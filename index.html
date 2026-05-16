@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elijah Paul Music</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+/* ── ROOT ───────────────────────────────────────────────── */
+:root {
+  --gold:#C9A84C; --gold-light:#F0DFA0; --gold-dim:#8A6E2F;
+  --ink:#1A1814; --ink2:#3A3630; --ink3:#6B6558;
+  --cream:#FAF8F3; --cream2:#F2EFE6; --cream3:#E8E3D8;
+  --white:#FFFFFF; --red:#C0392B; --green:#1E7E4B;
+  --radius:8px; --radius-lg:14px;
+  --shadow:0 2px 12px rgba(26,24,20,0.10);
+  --shadow-lg:0 6px 32px rgba(26,24,20,0.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.6;}
+
+/* ── LAYERS ─────────────────────────────────────────────── */
+.layer{display:none;} .layer.active{display:block;}
+
+/* ── PASSWORD SCREEN ────────────────────────────────────── */
+#layer-login{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--ink);}
+#layer-login.active{display:flex;}
+.login-box{background:var(--white);border-radius:var(--radius-lg);padding:40px 36px;width:100%;max-width:360px;text-align:center;box-shadow:var(--shadow-lg);}
+.login-box .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--gold-dim);margin-bottom:6px;}
+.login-box h2{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:6px;}
+.login-box p{font-size:13px;color:var(--ink3);margin-bottom:24px;}
+.login-box input{width:100%;padding:10px 14px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;text-align:center;letter-spacing:0.1em;outline:none;margin-bottom:12px;transition:border-color 0.15s;}
+.login-box input:focus{border-color:var(--gold);}
+.login-box input.err{border-color:var(--red);}
+.login-box .login-btn{width:100%;padding:11px;background:var(--gold);border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--ink);transition:background 0.15s;}
+.login-box .login-btn:hover{background:#b8943e;}
+.login-err{font-size:12px;color:var(--red);margin-top:6px;display:none;}
+.login-hint{font-size:11px;color:var(--ink3);margin-top:14px;}
+.login-hint a{color:var(--gold-dim);text-decoration:none;}
+.login-hint a:hover{text-decoration:underline;}
+
+/* ── WORKSTATION ────────────────────────────────────────── */
+.app-header{background:var(--ink);color:var(--cream);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.app-header .logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);letter-spacing:0.02em;}
+.app-header .logo span{color:var(--cream);font-style:italic;}
+.nav-tabs{display:flex;gap:4px;}
+.nav-tab{padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:500;color:#A09880;border:none;background:none;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.nav-tab:hover{color:var(--cream);background:rgba(255,255,255,0.08);}
+.nav-tab.active{color:var(--ink);background:var(--gold);}
+.logout-btn{padding:5px 12px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.15);background:none;color:#A09880;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.logout-btn:hover{color:var(--cream);border-color:rgba(255,255,255,0.3);}
+
+.app-body{padding:24px 28px;max-width:1400px;margin:0 auto;}
+.view{display:none;} .view.active{display:block;}
+
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.pipeline-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);}
+.btn{padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--gold);color:var(--ink);}
+.btn-primary:hover{background:#b8943e;}
+.btn-secondary{background:var(--cream2);color:var(--ink2);border:1px solid var(--cream3);}
+.btn-secondary:hover{background:var(--cream3);}
+.btn-danger{background:#fdecea;color:var(--red);border:1px solid #f5c6c2;}
+.btn-danger:hover{background:#fbd7d4;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+
+.pipeline-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;}
+.pipeline-col{background:var(--cream2);border-radius:var(--radius-lg);border:1px solid var(--cream3);overflow:hidden;}
+.pipeline-col-header{padding:12px 16px;border-bottom:1px solid var(--cream3);display:flex;align-items:center;justify-content:space-between;}
+.pipeline-col-header h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);}
+.col-count{background:var(--cream3);color:var(--ink3);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;}
+.col-enquiry .pipeline-col-header{border-top:3px solid #6B8CBA;}
+.col-quote .pipeline-col-header{border-top:3px solid var(--gold);}
+.col-deposit .pipeline-col-header{border-top:3px solid #E8944A;}
+.col-booked .pipeline-col-header{border-top:3px solid var(--green);}
+.pipeline-cards{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
+.booking-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--cream3);padding:12px 14px;cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;}
+.booking-card:hover{box-shadow:var(--shadow);border-color:#D4CEBC;}
+.card-name{font-weight:600;font-size:14px;margin-bottom:2px;}
+.card-event{font-size:12px;color:var(--ink3);margin-bottom:6px;}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.badge{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.badge-wedding{background:#EDE8F8;color:#4A3A8A;}
+.badge-birthday{background:#FEF0E3;color:#8A4A1A;}
+.badge-corporate{background:#E3F0FE;color:#1A4A8A;}
+.badge-other{background:#E8F8EE;color:#1A6A3A;}
+.follow-up-bar{margin-top:8px;padding-top:8px;border-top:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink3);}
+.follow-up-bar.overdue{color:var(--red);}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.15s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);}
+.form-group textarea{resize:vertical;min-height:80px;}
+
+.enquiry-card{background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);padding:28px;max-width:860px;}
+.enquiry-divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);padding:14px 0 8px;border-top:1px solid var(--cream2);margin-top:4px;grid-column:1/-1;}
+.enquiry-divider.first{border-top:none;padding-top:0;margin-top:0;}
+
+/* shared AC */
+.ac-wrap{position:relative;}
+.ac-dropdown{display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:9999;max-height:260px;overflow-y:auto;}
+.ac-item{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--cream2);color:var(--ink2);}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover{background:var(--cream2);}
+.ac-item-name{font-weight:500;margin-bottom:1px;}
+.ac-item-sub{font-size:11px;color:var(--ink3);}
+
+/* shared calendar */
+.cal-trigger-ws{padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);background:var(--white);cursor:pointer;font-size:14px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;transition:border-color 0.15s;}
+.cal-trigger-ws:hover{border-color:#c8bfaf;}
+.cal-popup-shared{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:16px;width:300px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-header span{font-weight:600;font-size:14px;}
+.cal-nav{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 8px;border-radius:var(--radius);color:var(--ink3);font-family:inherit;}
+.cal-nav:hover{background:var(--cream2);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-dow{font-size:10px;font-weight:700;text-align:center;color:var(--ink3);padding:4px 0;text-transform:uppercase;}
+.cal-day{font-size:13px;text-align:center;padding:6px 2px;border-radius:6px;cursor:pointer;transition:background 0.1s;}
+.cal-day:hover:not(.cal-booked):not(.cal-past):not(.cal-empty){background:var(--cream2);}
+.cal-day.cal-today{font-weight:700;color:var(--gold-dim);}
+.cal-day.cal-selected{background:var(--ink);color:var(--cream);}
+.cal-day.cal-booked{background:#fdecea;color:#C0A0A0;cursor:not-allowed;text-decoration:line-through;opacity:0.7;}
+.cal-day.cal-past{color:var(--cream3);cursor:not-allowed;}
+.cal-day.cal-empty{cursor:default;}
+
+.mileage-status{font-size:12px;color:var(--ink3);margin-top:4px;}
+.mileage-status.loading{color:var(--gold-dim);}
+.mileage-status.ok{color:var(--green);}
+.mileage-status.err{color:var(--red);}
+
+/* service option tiles (shared) */
+.service-option{display:block;cursor:pointer;border:2px solid var(--cream3);border-radius:var(--radius-lg);background:var(--white);transition:border-color 0.15s,box-shadow 0.15s;margin-bottom:12px;}
+.service-option input[type="radio"]{position:absolute;opacity:0;width:0;height:0;}
+.service-option-inner{display:flex;align-items:flex-start;gap:16px;padding:18px 20px;}
+.service-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
+.service-title{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+.service-desc{font-size:13px;color:var(--ink3);line-height:1.55;}
+.service-option.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.15);}
+.service-option:hover:not(.selected){box-shadow:var(--shadow);}
+
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:720px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--cream);}
+.modal-header h2{font-family:'DM Serif Display',serif;font-size:18px;color:var(--gold);}
+.modal-header .close-btn{background:none;border:none;color:#A09880;cursor:pointer;font-size:22px;line-height:1;padding:0;}
+.modal-header .close-btn:hover{color:var(--cream);}
+.modal-body{padding:24px;}
+.quote-output{background:var(--cream);border-radius:var(--radius);border:1px solid var(--cream3);padding:18px;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:Georgia,serif;color:var(--ink2);}
+.quote-output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.quote-output-header h3{font-size:13px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.07em;}
+.detail-sections{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.detail-section{background:var(--cream);border:1px solid var(--cream3);border-radius:var(--radius);padding:16px;}
+.detail-section h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);margin-bottom:12px;}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;border-bottom:1px solid var(--cream2);font-size:13px;gap:12px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row .lbl{color:var(--ink3);flex-shrink:0;}
+.detail-row .val{font-weight:500;text-align:right;color:var(--ink);}
+.inner-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--cream2);}
+.inner-tab{padding:7px 14px;border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink3);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'DM Sans',sans-serif;}
+.inner-tab.active{color:var(--gold-dim);border-bottom-color:var(--gold);}
+.inner-tab:hover:not(.active){color:var(--ink2);}
+.inner-panel{display:none;} .inner-panel.active{display:block;}
+.stage-select-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.stage-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--cream3);background:var(--cream2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink3);transition:all 0.15s;}
+.stage-btn.active-stage{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+.stage-btn:hover:not(.active-stage){background:var(--cream3);}
+.empty-col{text-align:center;padding:20px 12px;color:var(--ink3);font-size:12px;}
+.nudge-bar{background:linear-gradient(135deg,#2A241C,#1A1814);border-radius:var(--radius-lg);padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;color:var(--cream);flex-wrap:wrap;}
+.nudge-bar .nudge-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);}
+.nudge-item{background:rgba(255,255,255,0.08);border-radius:var(--radius);padding:4px 10px;font-size:12px;cursor:pointer;border:1px solid rgba(201,168,76,0.3);color:var(--cream);transition:background 0.15s;}
+.nudge-item:hover{background:rgba(201,168,76,0.15);}
+.nudge-item.overdue{border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.12);color:#FFB3A9;}
+
+.invoice-paper{background:white;border:1px solid var(--cream3);border-radius:var(--radius);padding:32px;font-size:13px;line-height:1.7;max-width:580px;margin:0 auto;}
+.invoice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+.invoice-logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold-dim);}
+.invoice-logo small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--ink3);font-weight:400;margin-top:2px;}
+.invoice-number{text-align:right;font-size:12px;color:var(--ink3);}
+.invoice-number strong{display:block;font-size:18px;color:var(--ink);font-weight:600;}
+.invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.invoice-party h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);margin-bottom:6px;}
+.invoice-party p{font-size:13px;color:var(--ink2);}
+.invoice-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.invoice-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);border-bottom:2px solid var(--cream3);padding:6px 0;text-align:left;}
+.invoice-table th:last-child,.invoice-table td:last-child{text-align:right;}
+.invoice-table td{padding:8px 0;border-bottom:1px solid var(--cream2);font-size:13px;vertical-align:top;}
+.invoice-table td:last-child{font-weight:500;}
+.invoice-totals{text-align:right;padding-top:8px;}
+.invoice-totals .total-line{display:flex;justify-content:flex-end;gap:40px;padding:3px 0;font-size:13px;color:var(--ink2);}
+.invoice-totals .total-line.grand{font-size:15px;font-weight:700;color:var(--ink);border-top:2px solid var(--ink);margin-top:6px;padding-top:8px;}
+.invoice-bank{margin-top:24px;padding-top:16px;border-top:1px solid var(--cream2);font-size:12px;color:var(--ink3);}
+.invoice-bank strong{display:block;margin-bottom:4px;color:var(--ink2);font-size:12px;}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1100px;}
+.settings-card{background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);padding:20px;}
+.settings-card h3{font-size:14px;font-weight:600;margin-bottom:6px;color:var(--ink);}
+.settings-card .card-desc{font-size:12px;color:var(--ink3);margin-bottom:14px;}
+.settings-card.full{grid-column:1/-1;}
+.et-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
+.et-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--cream2);}
+.et-row:last-child{border-bottom:none;}
+.et-name{flex:1;padding:5px 8px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);color:var(--ink);}
+.et-name:focus{outline:none;border-color:var(--gold);}
+.et-price{width:68px;padding:5px 8px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;text-align:right;background:var(--white);color:var(--ink);}
+.et-price:focus{outline:none;border-color:var(--gold);}
+.et-currency{font-size:12px;color:var(--ink3);flex-shrink:0;}
+.et-del{background:none;border:none;cursor:pointer;color:var(--red);font-size:18px;padding:2px 4px;line-height:1;border-radius:4px;flex-shrink:0;}
+.et-del:hover{background:#fdecea;}
+.dm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.dm-item{display:flex;flex-direction:column;gap:3px;}
+.dm-item label{font-size:11px;color:var(--ink3);font-weight:600;}
+.dm-item input{padding:5px 8px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);color:var(--ink);}
+.dm-item input:focus{outline:none;border-color:var(--gold);}
+.booked-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.booked-chip{background:#fdecea;color:#8A2A1A;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;}
+
+/* ── CLIENT BOOKING FORM ────────────────────────────────── */
+#layer-form{background:var(--cream);}
+.cf-page{max-width:660px;margin:0 auto;padding:32px 20px 60px;}
+.cf-header{text-align:center;margin-bottom:32px;}
+.cf-header .logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold-dim);}
+.cf-header h1{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);margin-top:10px;line-height:1.3;}
+.cf-header p{font-size:13px;color:var(--ink3);margin-top:6px;}
+.progress{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px;}
+.progress-step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:all 0.2s;}
+.progress-step.active{background:var(--ink);color:var(--cream);}
+.progress-step.done{background:var(--gold);color:var(--ink);}
+.progress-step.pending{background:var(--cream3);color:var(--ink3);}
+.progress-line{width:40px;height:2px;background:var(--cream3);border-radius:2px;}
+.progress-line.done{background:var(--gold);}
+.cf-card{background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);padding:24px 26px;margin-bottom:16px;}
+.cf-card-title{font-family:'DM Serif Display',serif;font-size:19px;color:var(--ink);margin-bottom:5px;}
+.cf-card-sub{font-size:13px;color:var(--ink3);margin-bottom:20px;line-height:1.5;}
+.cf-form-page{display:none;}
+.cf-form-page.active{display:block;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cf-group{display:flex;flex-direction:column;gap:4px;}
+.cf-group.full{grid-column:1/-1;}
+.cf-group label{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;}
+.cf-group input,.cf-group select,.cf-group textarea{padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.15s;width:100%;}
+.cf-group input:focus,.cf-group select:focus,.cf-group textarea:focus{border-color:var(--gold);}
+.cf-group textarea{resize:vertical;min-height:90px;}
+.cf-group input.cf-err,.cf-group select.cf-err{border-color:var(--red);}
+.cf-field-err{font-size:11px;color:var(--red);margin-top:2px;display:none;}
+.cf-divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);padding:12px 0 6px;border-top:1px solid var(--cream2);margin-top:4px;grid-column:1/-1;}
+.cf-divider.first{border-top:none;padding-top:0;margin-top:0;}
+.time-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dur-hint{font-size:12px;color:var(--gold-dim);margin-top:3px;font-weight:500;grid-column:1/-1;}
+.cal-trigger-cf{padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);background:var(--white);cursor:pointer;font-size:14px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;transition:border-color 0.15s;user-select:none;}
+.cal-trigger-cf:hover{border-color:#c8bfaf;}
+.cal-trigger-cf.cf-err{border-color:var(--red);}
+.service-chip{display:inline-flex;align-items:center;gap:8px;background:var(--cream2);border:1px solid var(--cream3);border-radius:20px;padding:4px 14px;font-size:13px;font-weight:500;color:var(--ink2);margin-bottom:18px;}
+.cf-btn{padding:12px 24px;border-radius:var(--radius);border:none;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;}
+.cf-btn-primary{background:var(--ink);color:var(--cream);font-size:15px;padding:14px;}
+.cf-btn-primary:hover{background:#2e2820;}
+.cf-btn-primary:disabled{background:var(--cream3);color:var(--ink3);cursor:not-allowed;}
+.cf-btn-back{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;padding:0;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;width:auto;}
+.cf-btn-back:hover{color:var(--ink);}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.success-card{text-align:center;padding:40px 24px;}
+.success-icon{font-size:52px;margin-bottom:14px;}
+.success-card h2{font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);margin-bottom:10px;}
+.success-card p{font-size:14px;color:var(--ink3);line-height:1.7;max-width:440px;margin:0 auto;}
+.success-signed{font-family:'DM Serif Display',serif;font-style:italic;color:var(--gold-dim);margin-top:14px;font-size:16px;}
+.submit-err-bar{display:none;font-size:13px;color:var(--red);text-align:center;margin-bottom:12px;padding:10px;background:#fdecea;border-radius:var(--radius);}
+
+.fu-checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--cream3);background:var(--cream2);margin-bottom:10px;cursor:pointer;transition:background 0.15s;}
+.fu-checkbox-row:hover{background:var(--cream3);}
+.fu-checkbox-row input[type="checkbox"]{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ink);cursor:pointer;}
+.fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
+.fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
+@media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 1: LOGIN
+═══════════════════════════════════════════════════════ -->
+<div id="layer-login" class="layer">
+  <div class="login-box">
+    <div class="logo">Elijah Paul</div>
+    <h2>Workstation</h2>
+    <p>Enter your password to access the booking manager.</p>
+    <input type="password" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Incorrect password — try again.</div>
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-hint">Client booking form? <a href="#book" onclick="showBookingForm()">Open here ↗</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 2: WORKSTATION
+═══════════════════════════════════════════════════════ -->
+<div id="layer-workstation" class="layer">
+  <header class="app-header">
+    <div class="logo">Elijah Paul <span>Music</span></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showView('pipeline')">Pipeline</button>
+      <button class="nav-tab" onclick="showView('new-enquiry')">New Enquiry</button>
+      <button class="nav-tab" onclick="showView('settings')">Settings</button>
+      <button class="nav-tab" onclick="showView('archived')">Archived</button>
+    </nav>
+    <button class="logout-btn" onclick="doLogout()">Lock ↩</button>
+  </header>
+
+  <div class="app-body">
+
+    <!-- PIPELINE -->
+    <div id="view-pipeline" class="view active">
+      <div class="pipeline-header">
+        <h1>Booking Pipeline</h1>
+        <button class="btn btn-primary" onclick="showView('new-enquiry')">+ New Enquiry</button>
+      </div>
+      <div id="nudge-bar" class="nudge-bar" style="display:none;">
+        <span class="nudge-label">⚡ Follow up today</span>
+        <span id="nudge-items"></span>
+      </div>
+      <div id="cal-refresh-bar" class="nudge-bar" style="display:none;background:linear-gradient(135deg,#2C1F0E,#1A1410);border:1px solid rgba(201,168,76,0.25);">
+        <span class="nudge-label" style="color:#E8B84B;">📅 Calendar refresh due</span>
+        <span style="font-size:13px;color:var(--cream);flex:1;">Your gigs calendar data is over 14 days old — booked dates may be out of date.</span>
+        <button class="btn btn-sm" style="background:var(--gold);color:var(--ink);white-space:nowrap;" onclick="showView('settings');setTimeout(()=>document.getElementById('ics-file-input').click(),400);">↻ Refresh now</button>
+        <button class="btn btn-sm btn-secondary" style="border-color:rgba(255,255,255,0.15);color:#A09880;" onclick="dismissCalRefresh()">Dismiss</button>
+      </div>
+      <div class="pipeline-cols">
+        <div class="pipeline-col col-enquiry">
+          <div class="pipeline-col-header" onclick="toggleCol('col-enquiry')" style="cursor:pointer;user-select:none;"><h3>Enquiry</h3><div style="display:flex;align-items:center;gap:8px;"><span class="col-count" id="count-enquiry">0</span><span class="col-toggle" id="toggle-col-enquiry" style="font-size:14px;color:var(--ink3);">▾</span></div></div>
+          <div class="pipeline-cards" id="col-enquiry"></div>
+        </div>
+        <div class="pipeline-col col-quote">
+          <div class="pipeline-col-header" onclick="toggleCol('col-quote')" style="cursor:pointer;user-select:none;"><h3>Quote Sent</h3><div style="display:flex;align-items:center;gap:8px;"><span class="col-count" id="count-quote">0</span><span class="col-toggle" id="toggle-col-quote" style="font-size:14px;color:var(--ink3);">▾</span></div></div>
+          <div class="pipeline-cards" id="col-quote"></div>
+        </div>
+        <div class="pipeline-col col-deposit">
+          <div class="pipeline-col-header" onclick="toggleCol('col-deposit')" style="cursor:pointer;user-select:none;"><h3>Deposit Pending</h3><div style="display:flex;align-items:center;gap:8px;"><span class="col-count" id="count-deposit">0</span><span class="col-toggle" id="toggle-col-deposit" style="font-size:14px;color:var(--ink3);">▾</span></div></div>
+          <div class="pipeline-cards" id="col-deposit"></div>
+        </div>
+        <div class="pipeline-col col-booked">
+          <div class="pipeline-col-header" onclick="toggleCol('col-booked')" style="cursor:pointer;user-select:none;"><h3>Booked ✓</h3><div style="display:flex;align-items:center;gap:8px;"><span class="col-count" id="count-booked">0</span><span class="col-toggle" id="toggle-col-booked" style="font-size:14px;color:var(--ink3);">▾</span></div></div>
+          <div class="pipeline-cards" id="col-booked"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ENQUIRY (internal) -->
+    <div id="view-new-enquiry" class="view">
+      <div class="pipeline-header">
+        <h1>New Enquiry</h1>
+        <button class="btn btn-secondary" onclick="showView('pipeline')">← Pipeline</button>
+      </div>
+      <div id="ws-enquiry-p1" class="enquiry-card">
+        <p style="font-size:13px;color:var(--ink3);margin-bottom:4px;">Step 1 of 2</p>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:20px;">What are you looking for?</h2>
+        <label class="service-option" id="ws-opt-sax_bt"><input type="radio" name="ws-service" value="sax_bt" onchange="wsSelectService('sax_bt')"><div class="service-option-inner"><div class="service-icon">🎷</div><div><div class="service-title">Sax with Backing Tracks</div><div class="service-desc">Self-contained — live sax through Elijah's own PA speaker system.</div></div></div></label>
+        <label class="service-option" id="ws-opt-sax_dj"><input type="radio" name="ws-service" value="sax_dj" onchange="wsSelectService('sax_dj')"><div class="service-option-inner"><div class="service-icon">🎧</div><div><div class="service-title">Sax with Client's DJ</div><div class="service-desc">Live sax alongside the client's DJ, through the DJ's PA system.</div></div></div></label>
+        <label class="service-option" id="ws-opt-combo"><input type="radio" name="ws-service" value="combo" onchange="wsSelectService('combo')"><div class="service-option-inner"><div class="service-icon">✨</div><div><div class="service-title">COMBO — Both</div><div class="service-desc">Sax with DJ + separate sax with backing tracks set.</div></div></div></label>
+        <button class="btn btn-primary" onclick="wsGoToP2()" style="margin-top:8px;width:100%;justify-content:center;padding:12px;font-size:15px;">Continue →</button>
+      </div>
+      <div id="ws-enquiry-p2" style="display:none;">
+        <div class="enquiry-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="wsGoToP1()">← Back</button>
+            <div id="ws-service-label" style="font-size:14px;font-weight:600;color:var(--ink);"></div>
+          </div>
+          <div class="form-grid">
+            <div class="enquiry-divider first">Client Details</div>
+            <div class="form-group"><label>First Name</label><input type="text" id="nq-firstname" placeholder="Jane"></div>
+            <div class="form-group"><label>Last Name</label><input type="text" id="nq-lastname" placeholder="Smith"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="nq-email" placeholder="jane@email.com"></div>
+            <div class="form-group"><label>Mobile</label><input type="text" id="nq-mobile" placeholder="07xxx xxxxxx"></div>
+            <div class="enquiry-divider">Event Details</div>
+            <div class="form-group" style="position:relative;">
+              <label>Event Date</label>
+              <div class="cal-trigger-ws" id="ws-cal-trigger" onclick="wsToggleCal(event)">
+                <span id="ws-cal-display" style="color:var(--ink3);">Select a date…</span>
+                <span style="font-size:16px;color:var(--ink3);">📅</span>
+              </div>
+              <input type="hidden" id="nq-date">
+              <div class="cal-popup-shared" id="ws-cal-popup"></div>
+            </div>
+            <div class="form-group"><label>Event Type</label><select id="nq-eventtype"><option value="">Select…</option></select></div>
+            <div class="form-group"><label>Start Time</label><input type="time" id="nq-starttime" value="19:00"></div>
+            <div class="form-group"><label>End Time</label><input type="time" id="nq-endtime" value="20:00"><div id="ws-dur-display" style="font-size:12px;color:var(--gold-dim);margin-top:3px;font-weight:500;"></div></div>
+            <div class="enquiry-divider">Venue</div>
+            <div class="form-group full ac-wrap">
+              <label>Venue Name / Address</label>
+              <input type="text" id="nq-venue" placeholder="Start typing…" autocomplete="off">
+              <div class="ac-dropdown" id="ws-ac-dropdown"></div>
+              <div class="mileage-status" id="ws-mileage-status"></div>
+            </div>
+            <div class="enquiry-divider">Notes</div>
+            <div class="form-group full"><label>Additional Notes</label><textarea id="nq-notes" placeholder="Any extra info…"></textarea></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--cream2);flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="saveEnquiry()">Save to Pipeline →</button>
+            <button class="btn btn-secondary btn-sm" onclick="autoFillTestEnquiry()" title="Fill form with random test data">🎲 Auto-fill test data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="view-settings" class="view">
+      <div class="pipeline-header"><h1>Settings</h1></div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Your Details</h3>
+          <div class="form-group" style="margin-bottom:10px;"><label>Your Name</label><input type="text" id="set-name"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Your Email</label><input type="email" id="set-email"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Home Postcode</label><input type="text" id="set-homepostcode"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Bank Sort Code</label><input type="text" id="set-sortcode" placeholder="00-00-00"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Account Number</label><input type="text" id="set-account" placeholder="12345678"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Website</label><input type="text" id="set-website"></div>
+          <div class="form-group"><label>Workstation Password</label><input type="password" id="set-password" placeholder="Set a new password"></div>
+          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="saveSettings()">Save Details</button>
+        </div>
+        <div class="settings-card">
+          <h3>Pricing Rates</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="form-group"><label>PA Rate (sax/BT)</label><input type="number" id="rate-pa-sax"></div>
+            <div class="form-group"><label>Base Rate</label><input type="number" id="rate-sax-dj"></div>
+            <div class="form-group"><label>Mileage per mile (£)</label><input type="number" id="rate-mileage" step="0.05"></div>
+            <div class="form-group"><label>30x minute rate</label><input type="number" id="rate-ext1"></div>
+            <div class="form-group"><label>1 hour rate</label><input type="number" id="rate-exthr"></div>
+            <div class="form-group"><label>Deposit up to £500</label><input type="number" id="rate-dep1"></div>
+            <div class="form-group"><label>Deposit £500–£749</label><input type="number" id="rate-dep2"></div>
+            <div class="form-group"><label>Deposit £750–£999</label><input type="number" id="rate-dep3"></div>
+            <div class="form-group"><label>Deposit £1000 &amp; over</label><input type="number" id="rate-dep4"></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="saveSettings()">Save Rates</button>
+        </div>
+        <div class="settings-card full">
+          <h3>Event Types &amp; Premiums</h3>
+          <p class="card-desc">Each event type adds a fixed amount to the base quote. Changes here also update the client booking form instantly.</p>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 0 6px;border-bottom:1px solid var(--cream2);">
+            <span style="flex:1;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;">Event Type Name</span>
+            <span style="width:68px;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;text-align:right;">Add (£)</span>
+            <span style="width:30px;"></span>
+          </div>
+          <div class="et-cols" id="et-editor"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="addEventType()">+ Add Event Type</button>
+            <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Event Types</button>
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3>Day of Week Premiums</h3>
+          <p class="card-desc">Added to every quote based on the event day.</p>
+          <div class="dm-grid" id="dow-editor"></div>
+          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="saveSettings()">Save</button>
+        </div>
+        <div class="settings-card">
+          <h3>Month of Year Premiums</h3>
+          <p class="card-desc">Added to every quote based on the event month.</p>
+          <div class="dm-grid" id="month-editor"></div>
+          <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="saveSettings()">Save</button>
+        </div>
+        <div class="settings-card full">
+          <h3>Availability — Gigs Calendar</h3>
+          <p class="card-desc">Upload your .ics file to block booked dates on the client booking form. <strong style="color:var(--ink2);">How to export:</strong> Google Calendar → ⚙ Settings → Import &amp; export → Export → unzip → upload the .ics file for your Gigs calendar. Booked dates update on the client form instantly.</p>
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="flex:1;min-width:200px;">
+              <label style="font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;">Upload .ics File</label>
+              <label id="ics-upload-label" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--cream2);border:1px solid var(--cream3);border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:500;color:var(--ink2);">
+                <span style="font-size:16px;">📂</span> Choose .ics file
+                <input type="file" id="ics-file-input" accept=".ics,text/calendar" style="display:none;" onchange="loadIcsFile(event)">
+              </label>
+              <div id="ics-filename" style="font-size:11px;color:var(--ink3);margin-top:5px;"></div>
+            </div>
+            <div style="flex:2;min-width:260px;">
+              <label style="font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;">Or paste .ics content</label>
+              <textarea id="ics-paste" rows="3" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:monospace;font-size:11px;background:var(--white);color:var(--ink);outline:none;resize:vertical;" placeholder="BEGIN:VCALENDAR&#10;...paste full .ics content here..."></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="processIcsInput()">Load Calendar Data</button>
+            <button class="btn btn-danger btn-sm" onclick="clearIcsData()">Clear Booked Dates</button>
+            <span id="ical-status" style="font-size:12px;color:var(--ink3);"></span>
+          </div>
+          <div id="booked-preview" style="margin-top:10px;"></div>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--cream2);">
+            <label style="font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;">Free Up a Date</label>
+            <p style="font-size:12px;color:var(--ink3);margin-bottom:10px;">If you can fit a second booking on a date that shows as unavailable, enter it below to free it up. Freed dates are logged and invoices for bookings on those dates will be numbered 02.</p>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="free-date-input" placeholder="YYYY-MM-DD" maxlength="10" style="padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:monospace;font-size:14px;width:150px;outline:none;" oninput="this.style.borderColor='var(--cream3)'" />
+              <button class="btn btn-primary btn-sm" onclick="freeUpDate()">Free this date</button>
+              <span id="free-date-status" style="font-size:12px;"></span>
+            </div>
+            <div id="freed-dates-log" style="margin-top:10px;"></div>
+          </div>
+        </div>
+        <div class="settings-card full">
+          <h3>Data Management</h3>
+          <p class="card-desc">All data is stored locally in your browser. Nothing sent to any server.</p>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#FEF9E7;border:1px solid #F9E79F;border-radius:var(--radius);">
+            <input type="checkbox" id="test-mode-toggle" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;" onchange="toggleTestMode(this.checked)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink);">⚡ Reminder Test Mode</div>
+              <div style="font-size:11px;color:var(--ink3);">When checked, all reminders are set to <strong>60 seconds</strong> instead of 7 days — for testing the follow-up system.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="exportData()">Export JSON backup</button>
+            <button class="btn btn-secondary btn-sm" onclick="importData()">Import JSON backup</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetRates()">↻ Reset pricing rates</button>
+            <button class="btn btn-danger btn-sm" onclick="clearAllData()">Clear all data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARCHIVED ENQUIRIES -->
+    <div id="view-archived" class="view">
+      <div class="pipeline-header">
+        <h1>Archived Enquiries</h1>
+        <p style="font-size:13px;color:var(--ink3);margin-top:-12px;">Enquiries that were not converted. Unarchive any time to return them to the pipeline.</p>
+      </div>
+      <div id="archived-list" style="display:flex;flex-direction:column;gap:10px;max-width:680px;"></div>
+    </div>
+
+  </div><!-- /app-body -->
+</div><!-- /layer-workstation -->
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYER 3: CLIENT BOOKING FORM
+═══════════════════════════════════════════════════════ -->
+<div id="layer-form" class="layer">
+  <div class="cf-page">
+    <div class="cf-header">
+      <div class="logo">Elijah Paul</div>
+      <h1>Sax Booking Enquiry</h1>
+      <p>Fill in the form and I'll send through personalised quotes within 48 hours.</p>
+    </div>
+    <div class="progress">
+      <div class="progress-step active" id="cf-prog-1">1</div>
+      <div class="progress-line" id="cf-prog-line"></div>
+      <div class="progress-step pending" id="cf-prog-2">2</div>
+    </div>
+
+    <!-- CF PAGE 1: Service -->
+    <div class="cf-form-page active" id="cf-page-1">
+      <div class="cf-card">
+        <div class="cf-card-title">What are you looking for?</div>
+        <div class="cf-card-sub">Choose the service that best fits your event.</div>
+        <label class="service-option" id="cf-opt-sax_bt"><input type="radio" name="cf-service" value="sax_bt" onchange="cfSelectService('sax_bt')"><div class="service-option-inner"><div class="service-icon">🎷</div><div><div class="service-title">Sax with Backing Tracks</div><div class="service-desc">A complete, self-contained performance — live sax over professionally produced backing tracks through my own PA speaker system. Perfect if you don't have a DJ.</div></div></div></label>
+        <label class="service-option" id="cf-opt-sax_dj"><input type="radio" name="cf-service" value="sax_dj" onchange="cfSelectService('sax_dj')"><div class="service-option-inner"><div class="service-icon">🎧</div><div><div class="service-title">Sax with Your DJ</div><div class="service-desc">Live sax alongside your existing DJ, feeding through the DJ's PA system for a seamless, high-energy performance.</div></div></div></label>
+        <label class="service-option" id="cf-opt-combo"><input type="radio" name="cf-service" value="combo" onchange="cfSelectService('combo')"><div class="service-option-inner"><div class="service-icon">✨</div><div><div class="service-title">COMBO — Both of the above</div><div class="service-desc">Sax alongside your DJ for part of the event, plus a separate sax with backing tracks set at another point — ideal for weddings.</div></div></div></label>
+        <div id="cf-service-error" style="display:none;font-size:12px;color:var(--red);margin-bottom:8px;">Please select a service to continue.</div>
+        <button class="cf-btn cf-btn-primary" onclick="cfGoToP2()" style="margin-top:8px;">Continue →</button>
+      </div>
+    </div>
+
+    <!-- CF PAGE 2: Details -->
+    <div class="cf-form-page" id="cf-page-2">
+      <button class="cf-btn-back" onclick="cfGoToP1()">← Change service</button>
+      <div class="service-chip" id="cf-service-chip"></div>
+      <div class="cf-card">
+        <div class="cf-card-title">Your Details</div>
+        <div class="cf-grid">
+          <div class="cf-group"><label>First Name *</label><input type="text" id="cf-firstname" placeholder="Jane"><div class="cf-field-err" id="cf-e-firstname">Required</div></div>
+          <div class="cf-group"><label>Last Name *</label><input type="text" id="cf-lastname" placeholder="Smith"><div class="cf-field-err" id="cf-e-lastname">Required</div></div>
+          <div class="cf-group"><label>Email Address *</label><input type="email" id="cf-email" placeholder="jane@example.com"><div class="cf-field-err" id="cf-e-email">Please enter a valid email</div></div>
+          <div class="cf-group"><label>Mobile Number</label><input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx"></div>
+        </div>
+      </div>
+      <div class="cf-card">
+        <div class="cf-card-title">Event Details</div>
+        <div class="cf-grid">
+          <div class="cf-group" style="position:relative;">
+            <label>Event Date *</label>
+            <div class="cal-trigger-cf" id="cf-cal-trigger" onclick="cfToggleCal(event)">
+              <span id="cf-cal-display" style="color:var(--ink3);">Select a date…</span>
+              <span style="font-size:18px;">📅</span>
+            </div>
+            <input type="hidden" id="cf-date">
+            <div class="cal-popup-shared" id="cf-cal-popup"></div>
+            <div class="cf-field-err" id="cf-e-date">Please select an event date</div>
+          </div>
+          <div class="cf-group">
+            <label>Event Type *</label>
+            <select id="cf-eventtype"><option value="">Select…</option></select>
+            <div class="cf-field-err" id="cf-e-eventtype">Required</div>
+          </div>
+          <div class="cf-group full">
+            <label>Performance Times</label>
+            <div class="time-pair">
+              <div class="cf-group"><label style="font-size:11px;">Start time</label><input type="time" id="cf-starttime" value="19:00"></div>
+              <div class="cf-group"><label style="font-size:11px;">End time</label><input type="time" id="cf-endtime" value="20:00"></div>
+              <div class="dur-hint" id="cf-dur-hint"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cf-card">
+        <div class="cf-card-title">Venue</div>
+        <div class="cf-group ac-wrap">
+          <label>Venue Name / Address *</label>
+          <input type="text" id="cf-venue" placeholder="Start typing a venue name or address…" autocomplete="off">
+          <div class="ac-dropdown" id="cf-ac-dropdown"></div>
+          <input type="hidden" id="cf-postcode">
+          <input type="hidden" id="cf-miles">
+          <div class="cf-field-err" id="cf-e-venue">Please enter a venue</div>
+        </div>
+      </div>
+      <div class="cf-card">
+        <div class="cf-card-title">Anything else?</div>
+        <div class="cf-group">
+          <label>Additional Notes / Requests</label>
+          <textarea id="cf-notes" placeholder="Any preferences, special requests, or extra info…"></textarea>
+        </div>
+      </div>
+      <div class="submit-err-bar" id="cf-submit-err">Something went wrong. Please try again or email me at info@elijahpaul.com</div>
+      <button class="cf-btn cf-btn-primary" id="cf-submit-btn" onclick="cfSubmit()">
+        <span id="cf-submit-label">Submit Booking Enquiry</span>
+        <span id="cf-submit-spinner" style="display:none;"><span class="spinner"></span></span>
+      </button>
+      <p style="font-size:11px;color:var(--ink3);text-align:center;margin-top:10px;">You'll receive a confirmation email immediately, and I'll follow up with quotes within 48 hours.</p>
+    </div>
+
+    <!-- CF SUCCESS -->
+    <div class="cf-form-page" id="cf-page-success">
+      <div class="cf-card success-card">
+        <div class="success-icon">🎷</div>
+        <h2 id="cf-success-heading">Thanks!</h2>
+        <p id="cf-success-body"></p>
+        <div class="success-signed">Elijah Paul</div>
+      </div>
+    </div>
+
+  </div><!-- /cf-page -->
+</div><!-- /layer-form -->
+
+<!-- WORKSTATION BOOKING DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header"><h2 id="modal-title">Booking</h2><button class="close-btn" onclick="closeModal('detail-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="stage-select-row">
+        <span style="font-size:12px;color:var(--ink3);margin-right:4px;">Move to:</span>
+        <button class="stage-btn" onclick="moveToStage('enquiry')">Enquiry</button>
+        <button class="stage-btn" onclick="moveToStage('quote')">Quote Sent</button>
+        <button class="stage-btn" onclick="moveToStage('deposit')">Deposit Pending</button>
+        <button class="stage-btn" onclick="moveToStage('booked')">Booked ✓</button>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="archiveBooking(currentBookingId)">🗄 Archive</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentBooking()">Delete</button>
+      </div>
+      <div class="inner-tabs">
+        <button class="inner-tab active" onclick="showTab('tab-detail')">Details</button>
+        <button class="inner-tab" onclick="showTab('tab-quote')">Quote Email</button>
+        <button class="inner-tab" onclick="showTab('tab-followup')" id="followup-tab-btn">Follow Up</button>
+        <button class="inner-tab" onclick="showTab('tab-other')">Other Invoice Details</button>
+        <button class="inner-tab" onclick="showTab('tab-invoice')">Invoices</button>
+        <button class="inner-tab" onclick="showTab('tab-booking-email')">Booking Email</button>
+        <button class="inner-tab" onclick="showTab('tab-calendar')">Calendar</button>
+      </div>
+      <div class="inner-panel active" id="tab-detail">
+        <div id="detail-content"></div>
+        <div style="margin-top:16px;">
+          <label style="font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:8px;">First Contact Method</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="contact-method-checkboxes">
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="Email/Booking Form" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('Email/Booking Form',this.checked)"> Email/Booking Form</label>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="Text" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('Text',this.checked)"> Text</label>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="Call" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('Call',this.checked)"> Call</label>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="WhatsApp" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('WhatsApp',this.checked)"> WhatsApp</label>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="Insta" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('Insta',this.checked)"> Insta</label>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;background:var(--cream2);user-select:none;"><input type="checkbox" name="contact-method" value="Facebook" style="accent-color:var(--ink);width:14px;height:14px;" onchange="saveContactMethod('Facebook',this.checked)"> Facebook</label>
+          </div>
+        </div>
+        <div style="margin-top:0;">
+          <label style="font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px;">Notes</label>
+          <textarea id="detail-notes-edit" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;min-height:80px;resize:vertical;"></textarea>
+          <button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="saveNotes()">Save Notes</button>
+        </div>
+        <!-- hidden follow-up input kept for JS compatibility -->
+        <input type="hidden" id="detail-followup">
+      </div>
+      <div class="inner-panel" id="tab-quote"><div id="quote-email-content"></div></div>
+      <div class="inner-panel" id="tab-followup"><div id="followup-email-content"></div></div>
+      <div class="inner-panel" id="tab-other">
+        <div style="max-width:440px;">
+          <p style="font-size:13px;color:var(--ink3);margin-bottom:20px;">Select the duration option the client has chosen. The quoted price for that duration will be applied to both invoices automatically.</p>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Chosen Option</label>
+            <select id="detail-chosen-option" onchange="saveChosenOption()" style="padding:9px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;">
+              <option value="">Not yet chosen</option>
+              <option value="1">60x minutes</option>
+              <option value="1.5">90x minutes</option>
+              <option value="2">2x hours</option>
+              <option value="3">3x hours</option>
+            </select>
+          </div>
+          <div id="chosen-price-display" style="font-size:13px;color:var(--ink3);margin-bottom:16px;"></div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Provisional Timings</label>
+            <textarea id="detail-provisional-timings" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;min-height:60px;resize:vertical;" placeholder="e.g. 19:00–20:00 Drinks Reception, 21:00–22:00 First Dance" oninput="saveInvoiceNotes()"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Invoice Notes <span style="font-weight:400;font-size:11px;">(optional — appears on invoices)</span></label>
+            <textarea id="detail-invoice-notes" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;min-height:70px;resize:vertical;" placeholder="e.g. ceremony entrance, drinks reception and first dance" oninput="saveInvoiceNotes()"></textarea>
+            <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveInvoiceNotes()">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="inner-panel" id="tab-invoice">
+        <div class="inner-tabs" style="margin-bottom:14px;">
+          <button class="inner-tab active" onclick="showInvoiceTab('invoice-deposit',this)">Deposit Invoice</button>
+          <button class="inner-tab" onclick="showInvoiceTab('invoice-balance',this)">Balance Invoice</button>
+        </div>
+        <div id="invoice-deposit" class="inner-panel active"></div>
+        <div id="invoice-balance" class="inner-panel"></div>
+      </div>
+      <div class="inner-panel" id="tab-booking-email"><div id="booking-email-content"></div></div>
+      <div class="inner-panel" id="tab-booking-email"><div id="booking-email-content"></div></div>
+      <div class="inner-panel" id="tab-calendar"><div id="calendar-content"></div></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
+
+<script>
+// ═══════════════════════════════════════════════════
+// EMAIL JS CONFIG
+// ═══════════════════════════════════════════════════
+const EMAILJS_PUBLIC_KEY  = 'aObqr3SjUOdTm03Py';
+const EMAILJS_SERVICE_ID  = 'service_t29syda';
+const EMAILJS_TEMPLATE_ID = 'template_afg6xzd';
+const MY_EMAIL = 'info@elijahpaul.com';
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+// ═══════════════════════════════════════════════════
+// DATA STORE — shared by workstation + client form
+// ═══════════════════════════════════════════════════
+let bookings = [];
+let currentBookingId = null;
+let bookedDates = [];
+let freedDates = []; // dates manually freed from bookedDates
+let settings = {
+  name:'Elijah Paul', email:'elijahpaulmusic@gmail.com',
+  homePostcode:'CO7 9AW', sortCode:'', account:'',
+  website:'www.elijahpaul.com', password:'elijah',
+  icalLastSync: null,
+  rates:{ paSax:30, saxDj:270, mileage:1.10,
+    ext1:60, extHr:100,
+    dep1amount:100, dep2amount:150, dep3amount:200, dep4amount:250,
+    dep1threshold:500, dep2threshold:750, dep3threshold:1000 },
+  eventRates:{
+    'Wedding':150,'Birthday Party':50,'Corporate Function':100,
+    'Anniversary':50,'Baby Shower':10,'Bat / Bar Mitzvah':100,
+    'Christmas Party':50,'Club':20,'Engagement Party':50,
+    'Fundraiser':0,'Funeral':10,'Hen Party':20,'Kids Party':20,
+    "New Year's Eve":300,'Other Event':20,"Valentine's Day":25
+  },
+  dayRates:{0:25,1:0,2:0,3:0,4:15,5:30,6:35},
+  monthRates:{0:-20,1:-20,2:0,3:20,4:30,5:50,6:60,7:60,8:20,9:0,10:0,11:30}
+};
+
+function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
+function loadData(){try{const b=localStorage.getItem('ep_bookings'),s=localStorage.getItem('ep_settings'),d=localStorage.getItem('ep_booked_dates');if(b)bookings=JSON.parse(b);if(s)settings=deepMerge(settings,JSON.parse(s));if(d)bookedDates=JSON.parse(d);const fd=localStorage.getItem('ep_freed_dates');if(fd)freedDates=JSON.parse(fd);}catch(e){}
+  // Clear legacy test bookings (one-time migration v2)
+  if(!settings._cleared_v2){bookings=[];settings._cleared_v2=true;localStorage.setItem('ep_bookings',JSON.stringify(bookings));}
+  // Ensure all rate fields always have valid numeric defaults
+  const rd=settings.rates;
+  if(!rd.paSax)rd.paSax=30;if(!rd.saxDj)rd.saxDj=270;
+  if(!rd.mileage)rd.mileage=1.10;if(!rd.ext1)rd.ext1=60;if(!rd.extHr)rd.extHr=100;
+  if(!rd.dep1amount)rd.dep1amount=100;if(!rd.dep2amount)rd.dep2amount=150;
+  if(!rd.dep3amount)rd.dep3amount=200;if(!rd.dep4amount)rd.dep4amount=250;
+  if(!rd.dep1threshold)rd.dep1threshold=500;if(!rd.dep2threshold)rd.dep2threshold=750;if(!rd.dep3threshold)rd.dep3threshold=1000;
+}
+function saveData(){localStorage.setItem('ep_bookings',JSON.stringify(bookings));localStorage.setItem('ep_settings',JSON.stringify(settings));localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));}
+function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
+
+// ═══════════════════════════════════════════════════
+// LAYER / LOGIN
+// ═══════════════════════════════════════════════════
+function showLayer(id){document.querySelectorAll('.layer').forEach(l=>l.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function getHashService(){
+  const match=window.location.hash.match(/^#book\/(\w+)$/);
+  return match?match[1]:null;
+}
+
+function init(){
+  loadData();
+  cfRebuildEventTypes();
+  const hash=window.location.hash;
+  if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
+  if(sessionStorage.getItem('ep_auth')==='1'){showWorkstation();return;}
+  showLayer('layer-login');
+}
+
+function doLogin(){
+  const input=document.getElementById('login-input');
+  const err=document.getElementById('login-err');
+  if(input.value===settings.password){
+    sessionStorage.setItem('ep_auth','1');
+    input.value='';
+    err.style.display='none';
+    input.classList.remove('err');
+    showWorkstation();
+  }else{
+    input.classList.add('err');
+    err.style.display='block';
+    input.select();
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('ep_auth');
+  document.getElementById('login-input').value='';
+  showLayer('layer-login');
+}
+
+function showWorkstation(){
+  showLayer('layer-workstation');
+  initWsVenueListeners();
+  renderPipeline();
+  rebuildEventTypeSelect();
+  calcWsDuration();
+}
+
+function showBookingForm(preselect){
+  showLayer('layer-form');
+  initCfVenueListeners();
+  cfCalYear=new Date().getFullYear();
+  cfCalMonth=new Date().getMonth();
+  if(preselect&&['sax_bt','sax_dj','combo'].includes(preselect)){
+    cfSelectService(preselect);
+    cfGoToP2();
+  }else{
+    // Reset to page 1 cleanly
+    cfShowPage('cf-page-1');
+    cfSetProgress(1);
+  }
+}
+
+// Update hash when switching
+window.addEventListener('hashchange',()=>{
+  if(window.location.hash.startsWith('#book'))showBookingForm(getHashService());
+});
+
+// ═══════════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════════
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+function fmtFollowUpDate(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  const thisYear=new Date().getFullYear();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const day=ordinal(d.getDate());
+  const month=months[d.getMonth()];
+  return d.getFullYear()===thisYear?`the ${day} of ${month}`:`the ${day} of ${month} ${d.getFullYear()}`;
+}
+
+// ═══════════════════════════════════════════════════
+// PRICING ENGINE
+// ═══════════════════════════════════════════════════
+function roundToNearest5(n){return Math.ceil(n/5)*5;}
+function durationExtra(hrs){const r=settings.rates;const ext1=r.ext1||60,extHr=r.extHr||100;if(hrs<=1)return 0;if(hrs<=1.5)return ext1;return extHr*Math.round(hrs-1);}
+function calcBasePrice(service,durationHrs,eventType,eventDate,milesOneWay,paRequired){
+  const r=settings.rates;
+  const date=eventDate?new Date(eventDate+'T12:00:00'):new Date();
+  if(isNaN(date.getTime()))return 0;
+  const ep=(settings.eventRates[eventType]!==undefined)?settings.eventRates[eventType]:20;
+  const dp=settings.dayRates[date.getDay()]||0,mp=settings.monthRates[date.getMonth()]||0;
+  const mileageRate=r.mileage||1.1;
+  const mc=roundToNearest5(milesOneWay*mileageRate);
+  const premiums=ep+dp+mp+mc,paAdd=paRequired?(r.paSax||30):0;
+  const baseRate=r.saxDj||270;
+  let base=baseRate+premiums+durationExtra(durationHrs)+paAdd;
+  return Math.max(base,0);
+}
+function calcDeposit(price){const r=settings.rates;if(price>=r.dep3threshold)return r.dep4amount;if(price>=r.dep2threshold)return r.dep3amount;if(price>=r.dep1threshold)return r.dep2amount;return r.dep1amount;}
+function paFromService(service){return service!=='sax_dj';}
+function calcAllQuotes(booking){
+  // Always quote all four tiers — client times only affect split note wording, not quote tiers
+  const ladder=[1,1.5,2,3];
+  return ladder.map(d=>{const price=Math.round(calcBasePrice(booking.service,d,booking.eventType,booking.eventDate,booking.miles||0,booking.paRequired));return{duration:d,price,deposit:calcDeposit(price)};}).filter(q=>!isNaN(q.price));
+}
+function durationLabel(d){if(d===0.5)return'30x minutes';if(d===1)return'60x minutes';if(d===1.5)return'90x minutes';if(d%1===0)return d+'x hours';return Math.round(d*60)+'x minutes';}
+function durationShort(d){if(!d)return'—';if(d===0.5)return'30 min';if(d===1)return'1 hr';if(d===1.5)return'90 min';if(d%1===0)return d+' hrs';return Math.round(d*60)+' min';}
+function depositSentence(quotes){const r=settings.rates,prices=quotes.map(q=>q.price).filter(p=>!isNaN(p));if(!prices.length)return'';const max=Math.max(...prices);const parts=[];if(max>=r.dep1threshold)parts.push(`All quotes above £${r.dep1threshold} require a £${r.dep2amount} deposit.`);if(max>=r.dep2threshold)parts.push(`All quotes above £${r.dep2threshold} require a £${r.dep3amount} deposit.`);if(max>=r.dep3threshold)parts.push(`All quotes above £${r.dep3threshold} require a £${r.dep4amount} deposit.`);parts.push('This confirms the booking once paid.');if(!parts.length||max<r.dep1threshold)return`All quotes require a £${r.dep1amount} deposit to confirm the booking.`;return parts.join(' ');}
+function timeOfDay(t){if(!t)return'night';const[h,m]=t.split(':').map(Number);return(h*60+(m||0))<1020?'day':'night';}
+function generateQuoteEmail(booking){
+  const name=booking.firstName,et=booking.eventType||'event',quotes=calcAllQuotes(booking);
+  if(!quotes.length)return'(Could not generate quote — please check the event date and service type are set correctly.)';
+  if(!booking.service)return'(No service type set — please open this booking, go to Details, and check the service field.)';
+  const service=booking.service,paText=booking.paRequired?' and my PA Speakers':'',depSentence=depositSentence(quotes);
+  const tod=timeOfDay(booking.startTime); // 'day' = before 17:00, 'night' = 17:00+
+  const isWedding=(et.toLowerCase()==='wedding');
+
+  // Split note: Wedding + day → ceremony split note; night → night split note; day → day split note
+  let splitNote;
+  if(isWedding && tod==='day'){
+    const q3=quotes.find(q=>q.duration===3)||quotes[quotes.length-1];
+    splitNote=`All options can be split up into sets across the day, for example: 30x minutes during your ceremony (bride entrance, registration background music and exit music), 90x minutes during your wedding reception and 1x hour alongside your DJ at the wedding party would be the same as 3x hours (£${q3.price}). I don't charge for breaks in between, however long.`;
+  } else if(tod==='night'){
+    splitNote=`All options can be split up into sets throughout the night for no additional fee - I don't charge for breaks! For example, a 2x hour set can be split into 2x 45 minute sets and 1x 30 minute set at no additional cost.`;
+  } else {
+    splitNote=`All options can be split up into sets throughout the day for no additional fee - I don't charge for breaks! For example, a 2x hour set can be split into 2x 45 minute sets and 1x 30 minute set at no additional cost.`;
+  }
+
+  const base=quotes[0];
+  let body='';
+
+  // sax_dj: no PA text. sax_bt + combo: include PA text. All three use identical structure.
+  const tpa = service==='sax_dj' ? ', including travel' : ` including travel,${paText}`;
+
+  body=`Hi ${name},\n\nThanks so much for the enquiry. I can confirm that I am available and very interested in performing for you and your guests at your ${et}!   \n\nFor ${durationLabel(base.duration)} of Sax Performance${tpa}, my fee will be £${base.price} including a £${base.deposit} deposit to confirm the booking. It also gives you free range over the repertoire I play so if you have any preferences or favourite tunes do let me know! You're also welcome to choose from my repertoire list found here: https://www.elijahpaul.com/repertoire    \n\n`;
+
+  const rest=quotes.slice(1);
+  if(rest.length){
+    body+=rest.map((q,i)=>(i===rest.length-1&&rest.length>1)
+      ?`${durationLabel(q.duration)} = £${q.price}.`
+      :`For ${durationLabel(q.duration)} with the same perks the total fee would be £${q.price}.`
+    ).join(' ')+'\n\n';
+  }
+  body+=depSentence+'\n\n'+splitNote+'\n\n';
+  body+=`Thanks again for the opportunity, if you have any questions about anything let me know and I'll be happy to help! Let me know if you would like to proceed with one of the quotes above and I'll send you through the invoices.  \n\nI hope to hear from you soon!   \n\nWith kind regards, \n${settings.name}`;
+  return body;
+}
+
+// ═══════════════════════════════════════════════════
+// SHARED CALENDAR RENDERER
+// ═══════════════════════════════════════════════════
+function renderCalPopup(popupId, year, month, selectedDate, onPickFn, navFn) {
+  const popup = document.getElementById(popupId);
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  let html=`<div class="cal-header">
+    <button class="cal-nav" onclick="event.stopPropagation();${navFn}(-1)">‹</button>
+    <span>${months[month]} ${year}</span>
+    <button class="cal-nav" onclick="event.stopPropagation();${navFn}(1)">›</button>
+  </div><div class="cal-grid">
+    <div class="cal-dow">Su</div><div class="cal-dow">Mo</div><div class="cal-dow">Tu</div>
+    <div class="cal-dow">We</div><div class="cal-dow">Th</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div>`;
+  for(let i=0;i<firstDay;i++)html+='<div class="cal-day cal-empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayObj=new Date(ds+'T12:00:00');dayObj.setHours(0,0,0,0);
+    const isPast=dayObj<today,isBooked=bookedDates.includes(ds);
+    let cls='cal-day';
+    if(isPast)cls+=' cal-past';
+    else if(isBooked)cls+=' cal-booked';
+    if(ds===todayStr)cls+=' cal-today';
+    if(ds===selectedDate)cls+=' cal-selected';
+    const click=(!isPast&&!isBooked)?`onclick="event.stopPropagation();${onPickFn}('${ds}')"` :'';
+    const title=isBooked?'title="Date unavailable"':'';
+    html+=`<div class="${cls}" ${click} ${title}>${d}</div>`;
+  }
+  html+='</div>';
+  popup.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════
+// WORKSTATION CALENDAR
+// ═══════════════════════════════════════════════════
+let wsCalYear=new Date().getFullYear(),wsCalMonth=new Date().getMonth(),wsCalSelected='',wsCalOpen=false;
+function wsToggleCal(e){e.stopPropagation();if(!wsCalOpen){renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');document.getElementById('ws-cal-popup').style.display='block';wsCalOpen=true;}else{document.getElementById('ws-cal-popup').style.display='none';wsCalOpen=false;}}
+function wsNavCal(dir){wsCalMonth+=dir;if(wsCalMonth<0){wsCalMonth=11;wsCalYear--;}if(wsCalMonth>11){wsCalMonth=0;wsCalYear++;}renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
+function wsPickDate(ds){wsCalSelected=ds;wsCalOpen=false;document.getElementById('nq-date').value=ds;document.getElementById('ws-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});document.getElementById('ws-cal-display').textContent=fmt;document.getElementById('ws-cal-display').style.color='var(--ink)';renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
+document.addEventListener('click',function(e){
+  if(wsCalOpen){const p=document.getElementById('ws-cal-popup'),t=document.getElementById('ws-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';wsCalOpen=false;}}
+  if(cfCalOpen){const p=document.getElementById('cf-cal-popup'),t=document.getElementById('cf-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';cfCalOpen=false;}}
+});
+
+// ═══════════════════════════════════════════════════
+// WORKSTATION ADDRESS AC
+// ═══════════════════════════════════════════════════
+let wsAcTimer=null;
+function getWsVenueEl(){return document.getElementById('nq-venue');}
+function getWsAcDrop(){return document.getElementById('ws-ac-dropdown');}
+function initWsVenueListeners(){
+  const wsVenueEl=getWsVenueEl();
+  const wsAcDrop=getWsAcDrop();
+  if(!wsVenueEl||wsVenueEl._listenerAdded)return;
+  wsVenueEl._listenerAdded=true;
+  wsVenueEl.addEventListener('input',function(){clearTimeout(wsAcTimer);const val=this.value.trim();if(val.length<3){wsAcDrop.style.display='none';return;}wsAcTimer=setTimeout(()=>runAC(val,wsAcDrop,wsSelectAddress),380);});
+  wsVenueEl.addEventListener('blur',()=>setTimeout(()=>wsAcDrop.style.display='none',200));
+  // Time field listeners — must be deferred as fields are in a hidden layer at parse time
+  const st=document.getElementById('nq-starttime');
+  const et=document.getElementById('nq-endtime');
+  if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',calcWsDuration);}
+  if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',calcWsDuration);}
+}
+async function runAC(val,dropEl,selectFn){try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&countrycodes=gb&addressdetails=1&format=json&limit=7`,{headers:{'Accept-Language':'en-GB'}});const results=await r.json();dropEl.innerHTML='';if(!results.length){dropEl.style.display='none';return;}results.forEach(res=>{const div=document.createElement('div');div.className='ac-item';div.innerHTML=`<div class="ac-item-name">${res.name||res.display_name.split(',')[0]}</div><div class="ac-item-sub">${res.display_name}</div>`;div.addEventListener('mousedown',e=>{e.preventDefault();selectFn(res);});dropEl.appendChild(div);});dropEl.style.display='block';}catch(e){dropEl.style.display='none';}}
+function wsSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const el=getWsVenueEl();const dr=getWsAcDrop();if(el){el.value=parts.join(', ')||res.display_name;el.dataset.lat=res.lat;el.dataset.lon=res.lon;}if(dr)dr.style.display='none';if(res.lat&&res.lon)wsTriggerMileage(parseFloat(res.lat),parseFloat(res.lon));}
+async function wsTriggerMileage(dLat,dLon){const el=document.getElementById('ws-mileage-status');el.textContent='⏳ Calculating…';el.className='mileage-status loading';try{const homePc=(settings.homePostcode||'CO79AW').replace(/\s/g,'');const hr=await fetch(`https://api.postcodes.io/postcodes/${homePc}`);const hd=await hr.json();let hLat=51.8619169,hLon=0.9573077;if(hd.status===200){hLat=hd.result.latitude;hLon=hd.result.longitude;}const rr=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const dd=await rr.json();if(dd.code==='Ok'){const miles=dd.routes[0].distance/1609.344;el.textContent=`✓ ${miles.toFixed(1)} miles — travel: £${roundToNearest5(miles*settings.rates.mileage)}`;el.className='mileage-status ok';el.dataset.miles=miles.toFixed(2);}else throw new Error();}catch(e){el.textContent='✗ Could not calculate distance';el.className='mileage-status err';el.dataset.miles='0';}}
+
+// ═══════════════════════════════════════════════════
+// WORKSTATION ENQUIRY — page navigation + duration
+// ═══════════════════════════════════════════════════
+let wsService='';
+const WS_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax with Client\'s DJ',combo:'✨ COMBO — Both'};
+function wsSelectService(val){wsService=val;document.querySelectorAll('[id^="ws-opt-"]').forEach(el=>el.classList.remove('selected'));document.getElementById('ws-opt-'+val).classList.add('selected');}
+function wsGoToP2(){if(!wsService){alert('Please select a service type.');return;}document.getElementById('ws-enquiry-p1').style.display='none';document.getElementById('ws-enquiry-p2').style.display='block';document.getElementById('ws-service-label').textContent=WS_SERVICE_LABELS[wsService]||'';}
+function wsGoToP1(){document.getElementById('ws-enquiry-p2').style.display='none';document.getElementById('ws-enquiry-p1').style.display='block';}
+function calcWsDuration(){const st=document.getElementById('nq-starttime'),et=document.getElementById('nq-endtime'),d=document.getElementById('ws-dur-display');const s=st?st.value:'',e=et?et.value:'';if(!s||!e){if(d)d.textContent='';return 1;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;if(d)d.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();return mins/60;}
+
+function buildBookingFromForm(){const _ms=document.getElementById('ws-mileage-status');const miles=parseFloat((_ms&&_ms.dataset.miles)||'0')||0,duration=calcWsDuration()||1,service=wsService,paRequired=paFromService(service);return{id:genId(),firstName:document.getElementById('nq-firstname').value.trim(),lastName:document.getElementById('nq-lastname').value.trim(),email:document.getElementById('nq-email').value.trim(),mobile:document.getElementById('nq-mobile').value.trim(),eventDate:document.getElementById('nq-date').value,eventType:document.getElementById('nq-eventtype').value,service,duration,startTime:document.getElementById('nq-starttime').value,endTime:document.getElementById('nq-endtime').value,paRequired,postcode:'',venue:(document.getElementById('nq-venue')||{value:''}).value.trim(),notes:document.getElementById('nq-notes').value.trim(),miles,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null};}
+
+
+function saveEnquiry(){
+  try{
+    const b=buildBookingFromForm();
+    const missing=[];
+    if(!b.firstName)missing.push('First Name');
+    if(!b.lastName)missing.push('Last Name');
+    if(!b.email)missing.push('Email');
+    if(!b.eventDate)missing.push('Event Date');
+    if(!b.eventType)missing.push('Event Type');
+    if(!b.venue)missing.push('Venue');
+    if(missing.length){alert('Please fill in the following required fields:\n\n• '+missing.join('\n• '));return;}
+    bookings.push(b);
+    saveData();
+    renderPipeline();
+    showView('pipeline');
+    ['nq-firstname','nq-lastname','nq-email','nq-mobile','nq-date','nq-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    wsCalSelected='';wsCalOpen=false;
+    const cald=document.getElementById('ws-cal-display');if(cald){cald.textContent='Select a date…';cald.style.color='var(--ink3)';}
+    const calp=document.getElementById('ws-cal-popup');if(calp)calp.style.display='none';
+    const _wv=document.getElementById('nq-venue');if(_wv){_wv.value='';_wv.dataset.lat='';_wv.dataset.lon='';}
+    const ms=document.getElementById('ws-mileage-status');if(ms){ms.textContent='';ms.className='mileage-status';ms.dataset.miles='0';}
+    wsService='';
+    document.querySelectorAll('[id^="ws-opt-"]').forEach(el=>el.classList.remove('selected'));
+    document.querySelectorAll('input[name="ws-service"]').forEach(r=>r.checked=false);
+    const p2=document.getElementById('ws-enquiry-p2');if(p2)p2.style.display='none';
+    const p1=document.getElementById('ws-enquiry-p1');if(p1)p1.style.display='block';
+  }catch(err){
+    alert('Save failed: '+err.message);
+    console.error(err);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// AUTO-ARCHIVE CHECK
+// ═══════════════════════════════════════════════════
+function runAutoArchiveCheck(){
+  const today=new Date();today.setHours(0,0,0,0);
+  let changed=false;
+  bookings.forEach(b=>{
+    if(!b.pendingArchive)return;
+    if(isReminderDue(b.pendingArchive)){b.stage='archived';b.archivedAt=new Date().toISOString();b.pendingArchive=null;changed=true;}
+  });
+  if(changed)saveData();
+}
+
+// ═══════════════════════════════════════════════════
+// REMINDER TEST MODE
+// ═══════════════════════════════════════════════════
+let testModeActive=false;
+
+// ── reminderDate: returns ISO string for when next reminder should fire ──
+function reminderDate(){
+  if(testModeActive){
+    // Test mode: 60 seconds from now as full ISO datetime
+    return new Date(Date.now()+60000).toISOString();
+  }
+  // Normal mode: 09:00 on the day 7 days from today
+  const d=new Date();
+  d.setDate(d.getDate()+7);
+  d.setHours(9,0,0,0);
+  return d.toISOString();
+}
+
+// ── isReminderDue: true if the stored reminder time has passed ──
+function isReminderDue(dateStr){
+  if(!dateStr)return false;
+  return Date.now()>=new Date(dateStr).getTime();
+}
+
+// ── reminderCountdown: human-readable time until reminder ──
+function reminderCountdown(dateStr){
+  if(!dateStr)return'';
+  const msLeft=new Date(dateStr).getTime()-Date.now();
+  if(msLeft<=0)return'due now';
+  const totalSecs=Math.floor(msLeft/1000);
+  const days=Math.floor(totalSecs/86400);
+  const hrs=Math.floor((totalSecs%86400)/3600);
+  const mins=Math.floor((totalSecs%3600)/60);
+  const secs=totalSecs%60;
+  if(totalSecs<=600){
+    // Within 10 minutes — show MM:SS countdown
+    return`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+  if(days>0) return`${days} day${days!==1?'s':''} (${new Date(dateStr).toLocaleDateString('en-GB',{day:'numeric',month:'short'})} at 09:00)`;
+  if(hrs>0) return`${hrs}h ${mins}m`;
+  return`${mins}m`;
+}
+
+// ── toggleTestMode: enable/disable test mode, reset all active reminders ──
+function toggleTestMode(on){
+  testModeActive=on;
+  clearInterval(window._testModeInterval);
+  if(on){
+    // Reset all active reminders to 60 seconds from now
+    bookings.forEach(b=>{
+      if(b.stage==='quote'||b.stage==='deposit'){
+        b.followUpDate=reminderDate();
+        if(b.pendingArchive)b.pendingArchive=reminderDate();
+      }
+    });
+    saveData();
+    // 1-second refresh loop
+    window._testModeInterval=setInterval(()=>{
+      runAutoArchiveCheck();
+      renderPipeline();
+      const modal=document.getElementById('detail-modal');
+      if(modal&&modal.classList.contains('open')&&currentBookingId){
+        const b=bookings.find(x=>x.id===currentBookingId);
+        if(b)renderFollowUpTab(b);
+      }
+    },1000);
+  } else {
+    // Turning off: reset all reminders to normal 09:00 7-day schedule
+    bookings.forEach(b=>{
+      if(b.stage==='quote'||b.stage==='deposit'){
+        b.followUpDate=reminderDate();
+        if(b.pendingArchive)b.pendingArchive=reminderDate();
+      }
+    });
+    saveData();
+    renderPipeline();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// FOLLOW-UP ACTIONS — Quote Sent
+// ═══════════════════════════════════════════════════
+function fuQuoteFollowUpAgain(id,wasOverdue){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.followUpDate=reminderDate();
+  b.followUpState=null;b.pendingArchive=null;
+  // Blue border only if reminder had already fired; silent reset if still running
+  b.followUpColor=wasOverdue?'blue':null;
+  saveData();renderPipeline();renderFollowUpTab(b);
+  // Tick the checkbox then uncheck after 1 second
+  const cb=document.getElementById('fu-again-cb-'+id);
+  if(cb){cb.checked=true;setTimeout(()=>{cb.checked=false;},1000);}
+}
+function fuQuoteSetDelete(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.followUpState='followed_up_delete';b.pendingArchive=reminderDate();b.followUpColor='blue';
+  saveData();renderPipeline();renderFollowUpTab(b);
+}
+
+// ═══════════════════════════════════════════════════
+// FOLLOW-UP ACTIONS — Deposit Pending
+// ═══════════════════════════════════════════════════
+function fuDepositFollowedUp(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.followUpDate=reminderDate();b.followUpState='followed_up';b.followUpColor='blue';b.pendingArchive=null;
+  saveData();renderPipeline();renderFollowUpTab(b);
+}
+function fuDepositFollowedUpAgain(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.followUpDate=reminderDate();
+  b.followUpState='followed_up_again';
+  b.pendingArchive=null;
+  b.followUpColor='blue';
+  saveData();renderPipeline();renderFollowUpTab(b);
+}
+
+// ═══════════════════════════════════════════════════
+// ARCHIVE / UNARCHIVE
+// ═══════════════════════════════════════════════════
+function archiveBooking(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.stage='archived';b.archivedAt=new Date().toISOString();b.pendingArchive=null;
+  saveData();renderPipeline();renderArchived();closeModal('detail-modal');
+}
+function unarchiveBooking(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.stage='enquiry';b.archivedAt=null;b.followUpState=null;b.followUpDate=null;b.followUpColor=null;b.pendingArchive=null;
+  saveData();renderPipeline();renderArchived();
+}
+function renderArchived(){
+  const el=document.getElementById('archived-list');if(!el)return;
+  const archived=bookings.filter(b=>b.stage==='archived');
+  if(!archived.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--ink3);font-size:13px;background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);">No archived enquiries yet.</div>';return;}
+  archived.sort((a,b)=>new Date(b.archivedAt||b.createdAt)-new Date(a.archivedAt||a.createdAt));
+  el.innerHTML=archived.map(b=>{
+    const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'No date';
+    const al=b.archivedAt?new Date(b.archivedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+    const sl={sax_bt:'Sax+BT',sax_dj:'Sax+DJ',combo:'Combo'}[b.service]||'';
+    return`<div style="background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">${b.firstName} ${b.lastName}</div>
+        <div style="font-size:12px;color:var(--ink3);">${dl} · ${b.eventType||''} · ${sl}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${b.email}${al?' · Archived '+al:''}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-secondary btn-sm" onclick="unarchiveBooking('${b.id}')">↩ Unarchive</button>
+        <button class="btn btn-danger btn-sm" onclick="permanentDelete('${b.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function permanentDelete(id){
+  if(!confirm('Permanently delete this archived enquiry?'))return;
+  bookings=bookings.filter(x=>x.id!==id);saveData();renderArchived();
+}
+
+// ═══════════════════════════════════════════════════
+// COLUMN COLLAPSE
+// ═══════════════════════════════════════════════════
+const collapseState={};
+function toggleCol(colId){
+  const cards=document.getElementById(colId);
+  const arrow=document.getElementById('toggle-'+colId);
+  if(!cards||!arrow)return;
+  collapseState[colId]=!collapseState[colId];
+  cards.style.display=collapseState[colId]?'none':'flex';
+  arrow.textContent=collapseState[colId]?'▸':'▾';
+}
+
+// ═══════════════════════════════════════════════════
+// PIPELINE
+// ═══════════════════════════════════════════════════
+function renderPipeline(){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);for(const[stage,list]of Object.entries(cols)){const el=document.getElementById('col-'+stage);document.getElementById('count-'+stage).textContent=list.length;if(!list.length){el.innerHTML='<div class="empty-col">No bookings</div>';continue;}list.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));el.innerHTML=list.map(b=>cardHtml(b)).join('');}const today=new Date();today.setHours(0,0,0,0);const nudges=bookings.filter(b=>{if(!b.followUpDate)return false;if(b.stage==='archived'||b.stage==='booked')return false;return isReminderDue(b.followUpDate);});const nb=document.getElementById('nudge-bar');if(nudges.length){nb.style.display='flex';document.getElementById('nudge-items').innerHTML=nudges.map(b=>`<span class="nudge-item overdue" onclick="openBooking('${b.id}')">${b.firstName} ${b.lastName}</span>`).join(' ');}else nb.style.display='none';renderCalRefreshNudge();
+  ['col-enquiry','col-quote','col-deposit','col-booked'].forEach(colId=>{
+    if(collapseState[colId]){
+      const cards=document.getElementById(colId);
+      const arrow=document.getElementById('toggle-'+colId);
+      if(cards)cards.style.display='none';
+      if(arrow)arrow.textContent='▸';
+    }
+  });
+}
+function cardHtml(b){const today=new Date();today.setHours(0,0,0,0);let fu='';let overdueBorder='';if(b.pendingArchive){overdueBorder='border:2px solid #5B8DD9!important;';}else if(b.followUpDate){const isOverdue=isReminderDue(b.followUpDate);if(isOverdue){overdueBorder='border:2px solid var(--red)!important;';}else if(b.followUpColor==='blue'){overdueBorder='border:2px solid #5B8DD9!important;';}}
+// Reminder timer display — pendingArchive takes priority over followUpDate
+if(b.pendingArchive){
+  const isArchiveDue=isReminderDue(b.pendingArchive);
+  if(isArchiveDue){
+    fu=`<div class="follow-up-bar overdue"><span>⚠ Archive overdue</span></div>`;
+  } else {
+    const cd=reminderCountdown(b.pendingArchive);
+    const isCountdown=cd.includes(':');
+    fu=`<div class="follow-up-bar" style="color:#5B8DD9;border-color:rgba(91,141,217,0.3);"><span>${isCountdown?`⏱ ${cd} to archive`:`🗄 Archive in ${cd}`}</span></div>`;
+  }
+} else if(b.followUpDate&&(b.stage==='quote'||b.stage==='deposit')){
+  const isOverdue=isReminderDue(b.followUpDate);
+  if(isOverdue){
+    fu=`<div class="follow-up-bar overdue"><span>⚠ Follow-up overdue</span></div>`;
+  } else {
+    const cd=reminderCountdown(b.followUpDate);
+    const isCountdown=cd.includes(':');
+    fu=`<div class="follow-up-bar"><span>${isCountdown?`⏱ ${cd}`:`🔔 ${cd}`}</span></div>`;
+  }
+}
+const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'No date';const sl={sax_bt:'Sax+BT',sax_dj:'Sax+DJ',combo:'Combo'}[b.service]||'';const t=(b.eventType||'').toLowerCase(),bc=t.includes('wedding')?'badge-wedding':t.includes('birthday')||t.includes('party')?'badge-birthday':t.includes('corporate')?'badge-corporate':'badge-other';return`<div class="booking-card" onclick="openBooking('${b.id}')" style="${overdueBorder}"><div class="card-name">${b.firstName} ${b.lastName}</div><div class="card-event">${dl} · ${b.venue||''}</div><div class="card-meta">${b.eventType?`<span class="badge ${bc}">${b.eventType}</span>`:''}${sl?`<span class="badge" style="background:var(--cream2);color:var(--ink3);">${sl}</span>`:''}${b.agreedPrice&&b.chosenDuration?`<span class="badge" style="background:#E8F5EE;color:#1E6A3A;">${durationShort(b.chosenDuration)} £${b.agreedPrice}</span>`:''}${b.source==='client-form'?`<span class="badge" style="background:#E8F0FE;color:#3A5BA0;">🌐 Web</span>`:''}</div>${fu}</div>`;}
+
+// ═══════════════════════════════════════════════════
+// BOOKING DETAIL MODAL
+// ═══════════════════════════════════════════════════
+function renderCalcSection(b){
+  const r=settings.rates;
+  if(!b.service||!b.eventDate)return'';
+  const date=new Date(b.eventDate+'T12:00:00');
+  if(isNaN(date.getTime()))return'';
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const ep=(settings.eventRates[b.eventType]!==undefined)?settings.eventRates[b.eventType]:20;
+  const dp=settings.dayRates[date.getDay()]||0;
+  const mp=settings.monthRates[date.getMonth()]||0;
+  const mileageRate=r.mileage||1.1;
+  const mc=roundToNearest5((b.miles||0)*mileageRate);
+  const paAdd=b.paRequired?(r.paSax||30):0;
+  const serviceBase=r.saxDj||270;
+  const ext1=r.ext1||60;
+  const extHr=r.extHr||100;
+  const premiumsTotal=serviceBase+ep+dp+mp+mc+paAdd;
+  const base60=Math.round(calcBasePrice(b.service,1,b.eventType,b.eventDate,b.miles||0,b.paRequired));
+  const base90=Math.round(calcBasePrice(b.service,1.5,b.eventType,b.eventDate,b.miles||0,b.paRequired));
+  const base120=Math.round(calcBasePrice(b.service,2,b.eventType,b.eventDate,b.miles||0,b.paRequired));
+  const base180=Math.round(calcBasePrice(b.service,3,b.eventType,b.eventDate,b.miles||0,b.paRequired));
+
+  const prow=(lbl,val,sub='')=>`<div class="detail-row"><span class="lbl">${lbl}</span><span class="val" style="font-family:monospace;">${val}${sub?` <span style="font-size:10px;color:var(--ink3);">${sub}</span>`:''}</span></div>`;
+
+  return `<div class="detail-section" style="grid-column:1/-1;">
+    <h4>Calculation Breakdown</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Premiums</div>
+        ${prow('Base rate','£'+serviceBase)}
+        ${prow('Event type ('+b.eventType+')','£'+ep)}
+        ${prow('Day ('+days[date.getDay()]+')','£'+dp)}
+        ${prow('Month ('+months[date.getMonth()]+')','£'+mp)}
+        ${prow('Travel ('+(b.miles||0).toFixed(1)+' mi × £'+mileageRate+')','£'+mc)}
+        ${paAdd?prow('PA speakers','£'+paAdd):''}
+        <div class="detail-row" style="border-top:1px solid var(--cream3);margin-top:4px;padding-top:6px;"><span class="lbl" style="font-weight:600;color:var(--ink);">Premiums total</span><span class="val" style="font-family:monospace;font-weight:700;">£${premiumsTotal}</span></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Duration add-ons (on top of 60min)</div>
+        ${prow('30x min rate','£'+ext1,'added to 60min for 90min')}
+        ${prow('1 hour rate','£'+extHr,'added to 60min for 2hrs')}
+        ${prow('2× hour rate','£'+(extHr*2),'added to 60min for 3hrs')}
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:10px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;margin-top:6px;">Quote results</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;">
+          ${[{l:'60x min',p:base60},{l:'90x min',p:base90},{l:'2x hours',p:base120},{l:'3x hours',p:base180}].map(q=>`<div style="background:var(--ink);border-radius:var(--radius);padding:8px;text-align:center;"><div style="font-size:10px;color:#A09880;margin-bottom:1px;">${q.l}</div><div style="font-size:16px;font-weight:700;color:var(--gold);">£${q.p}</div><div style="font-size:9px;color:#A09880;margin-top:1px;">dep £${calcDeposit(q.p)}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderBookingEmailTab(b){
+  const el=document.getElementById('booking-email-content');
+  if(!el)return;
+  const dep=b.agreedPrice?calcDeposit(b.agreedPrice):null;
+  const depStr=dep?`£${dep}`:'[deposit amount]';
+  const isSaxBT=b.service==='sax_bt';
+  const djPara=isSaxBT?'':'\n\nPlease let your DJ know that I\'ll be performing alongside them! Happy to chat to them before the day to discuss requirements if you can share their details with me, or mine with them. You can also send them this link which has all the info they should need: https://www.elijahpaul.com/fordjs';
+
+  const body=`Hi ${b.firstName},
+
+Really glad to hear you would like to proceed with the booking!
+
+Attached is the invoice for the deposit of ${depStr} which confirms the booking once paid as well as the final invoice which can be paid at any time from now up to 14 days after the performance by bank transfer, or in cash on the day if at all easier. For bank transfers, please use the invoice number as the reference.
+
+For ease, you're welcome to pay the deposit using this link: [deposit payment link]${djPara}
+
+I have added provisional timings to the invoice but these can be changed however you like at any time up to two weeks before the event.
+
+Please don't hesitate to ask if you have any questions and let me know what songs you would like me to play for you once you know! If you're stuck for ideas you're welcome to reference my repertoire list on my website here: https://www.elijahpaul.com/repertoire If I can receive your requests at least 2 days before the date that would be great.
+
+Also, here's a link to my most up to date PLI and PAT certificates in case you or your venue need them at all: https://www.elijahpaul.com/certificates
+
+Many thanks, and I look forward to performing for you!
+
+With kind regards,
+Elijah`;
+
+  el.innerHTML=`<div class="quote-output-header">
+    <h3>Booking Confirmation Email</h3>
+    <button class="btn btn-secondary btn-sm" onclick="copyById('booking-email-out')">Copy Email</button>
+  </div>
+  <div class="quote-output" id="booking-email-out">${body}</div>
+  <p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p>`;
+}
+
+function markSmsSent(id, cb){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  b.smsSent=true;
+  cb.checked=true;
+  cb.disabled=true;
+  // Turn label green
+  const lbl=document.getElementById('sms-label-'+id);
+  if(lbl){
+    lbl.style.background='#E8F5EE';
+    lbl.style.borderColor='#B8DFC8';
+    const span=lbl.querySelector('span');
+    if(span)span.style.color='#1E7E4B';
+  }
+  saveData();
+}
+
+function openBooking(id){currentBookingId=id;const b=bookings.find(x=>x.id===id);if(!b)return;document.getElementById('modal-title').textContent=`${b.firstName} ${b.lastName}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${b.firstName} ${b.lastName}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${b.email||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${b.mobile||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${b.notes||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${b.eventType||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${b.venue||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
+  const smsMsg=encodeURIComponent(`Hi ${b.firstName}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, Elijah Paul 🎷🎉`);
+  const mobile=(b.mobile||'').replace(/\s+/g,'');
+  const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
+  const smsSent=b.smsSent||false;
+  const smsSection=mobile
+    ? `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--cream2);">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <a href="${smsHref}" style="display:inline-block;padding:7px 16px;background:var(--ink);color:var(--cream);border-radius:var(--radius);font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;">📱 Send Text To Client In Messages...</a>
+          <label id="sms-label-${b.id}" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid ${smsSent?'#B8DFC8':'var(--cream3)'};border-radius:var(--radius);background:${smsSent?'#E8F5EE':'var(--cream2)'};cursor:pointer;user-select:none;transition:all 0.2s;">
+            <input type="checkbox" id="sms-sent-cb" ${smsSent?'checked disabled':''} style="width:16px;height:16px;accent-color:#1E7E4B;cursor:pointer;" onchange="markSmsSent('${b.id}',this)">
+            <span style="font-size:13px;font-weight:500;color:${smsSent?'#1E7E4B':'var(--ink2)'};">Text Sent?</span>
+          </label>
+        </div>
+      </div>`
+    : `<div style="margin-top:12px;font-size:12px;color:var(--ink3);">No mobile number on file — add one in Details to enable SMS.</div>`;
+  document.getElementById('quote-email-content').innerHTML=`<div class="quote-output-header"><h3>Quote Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('modal-email-out')">Copy Email</button></div><div class="quote-output" id="modal-email-out">${email}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p>${smsSection}`;renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
+  // Restore contact method checkboxes
+  setTimeout(()=>{
+    document.querySelectorAll('input[name="contact-method"]').forEach(cb=>{
+      cb.checked=b.contactMethods&&b.contactMethods.includes(cb.value);
+    });
+  },0);
+  showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');}
+
+function renderOtherTab(b){
+  const sel=document.getElementById('detail-chosen-option');
+  const disp=document.getElementById('chosen-price-display');
+  const notes=document.getElementById('detail-invoice-notes');
+  const pt=document.getElementById('detail-provisional-timings');
+  if(sel)sel.value=b.chosenDuration||'';
+  if(notes)notes.value=b.invoiceNotes||'';
+  if(pt)pt.value=b.provisionalTimings||'';
+  if(disp){
+    if(b.chosenDuration&&b.agreedPrice){
+      const dep=calcDeposit(b.agreedPrice);
+      disp.innerHTML=`<span style="font-size:15px;font-weight:700;color:var(--ink);">£${b.agreedPrice}</span> <span style="color:var(--ink3);">· deposit: £${dep}</span>`;
+    }else{disp.innerHTML='';}
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function openBookingTab(b){
+  renderFollowUpTab(b);
+  renderOtherTab(b);
+  renderPipeline();
+}
+
+function renderFollowUpTab(b){
+  const el=document.getElementById('followup-email-content');
+  if(!el)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const fuDate=b.followUpDate?new Date(b.followUpDate):null;
+  const isDue=b.followUpDate?isReminderDue(b.followUpDate):false;
+  const eventDateFmt=b.eventDate?fmtFollowUpDate(b.eventDate):'your event';
+  const followUpEmail=`Hi ${b.firstName},\n\nJust wanted to follow up with you and wondered if you have had any further thoughts about booking me for your ${b.eventType||'event'}? I'm still available on ${eventDateFmt} and would love the opportunity to play for you and your guests! If you have any questions about anything, or if anything has changed, let me know!\n\nI look forward to hearing from you!\n\nBest wishes,\nElijah`;
+
+  let html='';
+
+  // ── QUOTE SENT FLOW ──
+  if(b.stage==='quote'){
+    const state=b.followUpState||null;
+    const pendingArchive=b.pendingArchive||null;
+
+    if(pendingArchive){
+      // "Set to delete" is active — countdown to archive
+      const paCountdown=reminderCountdown(pendingArchive);
+      html+=`<div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;">🗄 <strong>Set to archive</strong> — will be moved to Archived Enquiries in <strong>${paCountdown}</strong> if no action is taken.</div>`;
+    } else if(!isDue){
+      const cd=reminderCountdown(b.followUpDate);
+      const isCountdown=cd.includes(':');
+      html+=`<div style="background:#E8F5EE;border:1px solid #B8DFC8;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:12px;">${isCountdown?`⏱ <strong style='font-family:monospace;font-size:16px;'>${cd}</strong> until follow-up`:`✓ Follow-up due in <strong>${cd}</strong>`}</div>`;
+    } else {
+      // Overdue
+      html+=`<div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;">⚠ <strong>Follow-up is due</strong> — use the email below and mark your action.</div>`;
+    }
+
+    // Follow Up Again? always visible — resets timer silently if not overdue, gives blue border if overdue
+    html+=`<div class="fu-checkbox-row" id="fu-again-row-${b.id}" onclick="fuQuoteFollowUpAgain('${b.id}',${isDue})"><input type="checkbox" id="fu-again-cb-${b.id}" onclick="event.stopPropagation();fuQuoteFollowUpAgain('${b.id}',${isDue})"><div><div class="fu-cb-label">Follow Up Again?</div><div class="fu-cb-sub">${isDue?'Resets reminder to 7 days from today (blue border).':'Resets reminder to 7 days from today.'}</div></div></div>`;
+
+    // "Set to delete" only shown when overdue
+    if(isDue&&!pendingArchive){
+      html+=`<div class="fu-checkbox-row" onclick="fuQuoteSetDelete('${b.id}')"><input type="checkbox" ${state==='followed_up_delete'?'checked':''} onclick="event.stopPropagation();fuQuoteSetDelete('${b.id}')"><div><div class="fu-cb-label">Followed Up, set to delete</div><div class="fu-cb-sub">Marks as Followed Up (blue border). If no further action within 7 days, moves to Archived Enquiries.</div></div></div>`;
+    }
+
+    // Email always shown
+    html+=`<div style="margin-top:16px;"><div class="quote-output-header"><h3>Follow-up Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('followup-email-out')">Copy Email</button></div><div class="quote-output" id="followup-email-out">${followUpEmail}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p></div>`;
+  }
+
+  // ── DEPOSIT PENDING FLOW ──
+  else if(b.stage==='deposit'){
+    const state=b.followUpState||null;
+    const daysLeft=fuDate?Math.round((fuDate-today)/(1000*60*60*24)):0;
+    const pendingArchive=b.pendingArchive||null;
+
+    if(state==='followed_up_again'&&!isDue){
+      // Followed up again — show countdown to next reminder
+      const cd4=reminderCountdown(b.followUpDate);const isCD4=cd4.includes(':');
+      html+=`<div style="background:#E8F5EE;border:1px solid #B8DFC8;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:12px;">${isCD4?`⏱ <strong style='font-family:monospace;font-size:16px;'>${cd4}</strong> until next deposit reminder`:`✓ Followed up again — next reminder in <strong>${cd4}</strong>`}</div>`;
+    } else if(state==='followed_up_again'&&isDue){
+      // Followed up again and now overdue — show as due
+      html+=`<div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;">⚠ <strong>Deposit reminder due again</strong> — chase the client for their deposit.</div>`;
+    } else if(!isDue){
+      const cd2=reminderCountdown(b.followUpDate);
+      const isCountdown2=cd2.includes(':');
+      html+=`<div style="background:#E8F5EE;border:1px solid #B8DFC8;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:12px;">${isCountdown2?`⏱ <strong style='font-family:monospace;font-size:16px;'>${cd2}</strong> until deposit reminder`:`✓ Deposit reminder due in <strong>${cd2}</strong>`}</div>`;
+    } else {
+      html+=`<div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;">⚠ <strong>Deposit reminder due</strong> — chase the client for their deposit.</div>`;
+      if(!state){
+        html+=`<div class="fu-checkbox-row" onclick="fuDepositFollowedUp('${b.id}')"><input type="checkbox" onclick="event.stopPropagation();fuDepositFollowedUp('${b.id}')"><div><div class="fu-cb-label">Followed Up?</div><div class="fu-cb-sub">Marks as followed up (blue border) and sets a new reminder.</div></div></div>`;
+      } else if(state==='followed_up'||state==='followed_up_again'){
+        html+=`<div class="fu-checkbox-row" onclick="fuDepositFollowedUpAgain('${b.id}')"><input type="checkbox" onclick="event.stopPropagation();fuDepositFollowedUpAgain('${b.id}')"><div><div class="fu-cb-label">Followed Up Again?</div><div class="fu-cb-sub">Sets a fresh reminder. Move to Booked or Archive to stop reminders.</div></div></div>`;
+      }
+    }
+    html+=`<p style="font-size:12px;color:var(--ink3);margin-top:12px;">Send your deposit follow-up email directly to: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p>`;
+  }
+
+  // ── OTHER STAGES ──
+  else {
+    html=`<div style="background:var(--cream2);border:1px solid var(--cream3);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--ink3);">Follow-up actions appear once a booking is in <strong>Quote Sent</strong> or <strong>Deposit Pending</strong>.</div>`;
+  }
+
+  el.innerHTML=html;
+}
+document.getElementById('detail-modal').addEventListener('click',function(e){if(e.target===this)closeModal('detail-modal');});
+function moveToStage(stage){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  const prev=b.stage;
+  b.stage=stage;
+  if(stage==='enquiry'){b.followUpDate=null;b.followUpState=null;b.pendingArchive=null;b.followUpColor=null;}
+  if(stage==='enquiry'){b.followUpDate=null;b.followUpState=null;b.pendingArchive=null;b.followUpColor=null;}
+  if(stage==='quote'){
+    b.followUpDate=reminderDate();
+    b.followUpState=null;
+    b.pendingArchive=null;
+  } else if(stage==='deposit'){
+    b.followUpDate=reminderDate();
+    b.followUpState=null;
+    b.pendingArchive=null;
+  } else if(stage==='booked'||stage==='archived'){
+    b.followUpDate=null;
+    b.followUpState=null;
+    b.pendingArchive=null;
+    b.followUpColor=null;
+  }
+  document.getElementById('detail-followup').value=b.followUpDate||'';
+  saveData();renderPipeline();
+  const sm={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓',archived:'Archived'};
+  document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===sm[stage]));
+  openBookingTab(b);
+}
+function deleteCurrentBooking(){if(!confirm('Delete this booking permanently?'))return;bookings=bookings.filter(x=>x.id!==currentBookingId);saveData();renderPipeline();closeModal('detail-modal');}
+function saveFollowup(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;b.followUpDate=document.getElementById('detail-followup').value||null;saveData();renderPipeline();}
+function setFollowup7(){document.getElementById('detail-followup').value=reminderDate().split('T')[0];}
+function clearFollowup(){document.getElementById('detail-followup').value='';}
+function saveChosenOption(){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  const dur=parseFloat(document.getElementById('detail-chosen-option').value)||null;
+  b.chosenDuration=dur;
+  if(dur){
+    const quotes=calcAllQuotes(b);
+    const q=quotes.find(x=>x.duration===dur)||quotes[0];
+    b.agreedPrice=q?q.price:null;
+    const disp=document.getElementById('chosen-price-display');
+    if(disp&&q)disp.innerHTML=`<span style="font-size:15px;font-weight:700;color:var(--ink);">£${q.price}</span> <span style="color:var(--ink3);">· deposit: £${q.deposit}</span>`;
+  }else{b.agreedPrice=null;const disp=document.getElementById('chosen-price-display');if(disp)disp.innerHTML='';}
+  saveData();renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderPipeline();
+}
+function saveInvoiceNotes(){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  b.invoiceNotes=document.getElementById('detail-invoice-notes').value;
+  const pt=document.getElementById('detail-provisional-timings');
+  if(pt)b.provisionalTimings=pt.value;
+  saveData();renderInvoices(b);renderCalendarTab(b);
+}
+function saveContactMethod(method,checked){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  if(checked){
+    b.contactMethods=[method]; // single value only
+    // Uncheck all other checkboxes visually
+    document.querySelectorAll('input[name="contact-method"]').forEach(cb=>{
+      cb.checked=(cb.value===method);
+    });
+  } else {
+    b.contactMethods=[];
+  }
+  saveData();const bCal=bookings.find(x=>x.id===currentBookingId);if(bCal)renderCalendarTab(bCal);
+}
+function saveNotes(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;b.notes=document.getElementById('detail-notes-edit').value;saveData();}
+
+// ═══════════════════════════════════════════════════
+// INVOICES
+// ═══════════════════════════════════════════════════
+function renderInvoices(b){
+  const price=b.agreedPrice,deposit=price?calcDeposit(price):null,balance=price?price-deposit:null;
+  const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
+  const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.substr(0,10).replace(/-/g,''):'00000000');
+  const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.substr(0,10)===b.createdAt?.substr(0,10)));
+  const isFreedDate=b.eventDate&&freedDates.includes(b.eventDate);
+  const rawSeq=sameDayBookings.findIndex(x=>x.id===b.id)+1;
+  const seqNum=String(isFreedDate?Math.max(rawSeq+1,2):rawSeq).padStart(2,'0');
+  const num=invDate+seqNum;
+  const sl={sax_bt:'Sax Performance with Backing Tracks',sax_dj:"Sax Performance (alongside client's DJ)",combo:'Sax Performance (DJ + Backing Tracks)'};
+  function iHtml(type){
+    const isD=type==='deposit';
+    const amount=isD?deposit:balance;
+    const iType=isD?'Deposit Invoice':'Performance Invoice';
+    const note=isD?'Deposit — confirms the booking':'Balance payment (due before event)';
+    const refNum=num+(isD?'D':'P');
+    if(!price)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Select a Chosen Option in the Other Invoice Details tab to generate invoices.</div>`;
+    const termsText=isD?'Terms of business: This invoice must be paid within 14 days from issuing it in order to save the date. Failure to pay within 14 days risks the date being taken by another client. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.':'Terms of business: This invoice can be paid at any time from now, up to 14 days after the performance date. It is preferred that this be paid on, or the day after the performance. Failure to pay after 30 days after the performance has been carried out will result in legal proceedings from the Musician\'s Union. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.';
+    const cashNote=isD?'':'<div style="font-weight:700;margin-top:8px;margin-bottom:10px;">Cash also accepted on day of performance.</div>';
+    return `<div style="margin-bottom:12px;display:flex;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="downloadInvoicePDF('${type}','${refNum}')">⬇ Download PDF</button></div>
+    <div class="invoice-paper" id="invoice-paper-${type}">
+      <div class="invoice-header">
+        <div>
+          <img src="data:image/jpeg;base64,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" alt="Elijah Paul Saxophonist" style="height:90px;width:auto;display:block;">
+        </div>
+        <div class="invoice-number">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);">${iType}</span>
+          <strong style="display:block;font-size:18px;font-weight:600;color:var(--ink);margin-top:2px;">${refNum}</strong>
+          <div style="font-size:11px;color:var(--ink3);margin-top:4px;">Issued: ${new Date().toLocaleDateString('en-GB')}</div>
+        </div>
+      </div>
+      <div class="invoice-parties">
+        <div class="invoice-party"><h5>From</h5><p>Elijah Paul<br>info@elijahpaul.com<br>07519 356742</p></div>
+        <div class="invoice-party"><h5>To</h5><p>${b.firstName} ${b.lastName}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
+      </div>
+      <table class="invoice-table">
+        <thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>${sl[b.service]||'Performance'}<br><span style="font-size:11px;color:var(--ink3);">${b.venue||''} · ${durationShort(b.chosenDuration||b.duration)}${b.provisionalTimings?' · '+b.provisionalTimings:''}${b.invoiceNotes?' · '+b.invoiceNotes:''}</span></td>
+              <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>—</td></tr>
+          <tr><td style="color:var(--ink3);">${note}</td><td></td><td>£${amount?.toLocaleString()}</td></tr>
+          ${b.paRequired&&isD?'<tr><td style="font-size:12px;color:var(--ink3);">PA Speakers included</td><td></td><td>—</td></tr>':''}
+        </tbody>
+      </table>
+      <div class="invoice-totals">
+        ${isD?`<div class="total-line"><span>Total booking fee</span><span>£${price.toLocaleString()}</span></div><div class="total-line"><span>Balance remaining</span><span>£${balance?.toLocaleString()}</span></div>`:`<div class="total-line"><span>Deposit paid</span><span>£${deposit?.toLocaleString()}</span></div>`}
+        <div class="total-line grand"><span>${isD?'Deposit due':'Balance due'}</span><span>£${amount?.toLocaleString()}</span></div>
+      </div>
+      <div class="invoice-bank">
+        <strong style="display:block;margin-bottom:6px;">Payment Details — Bank Transfer (preferred)</strong>
+        <div style="margin-bottom:10px;line-height:1.8;">Bank: Monzo<br>Name: Elisha Firmin trading as Elijah Paul Music<br>Acc No: 85029085<br>Sort Code: 04-00-04<br>Reference: <strong>${refNum}</strong><br><em style="font-size:11px;">(Business Account)</em></div>
+        ${cashNote}
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--cream2);font-size:11px;color:var(--ink3);line-height:1.7;">
+          <strong style="color:var(--ink2);">Terms of business: </strong>${termsText}
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('invoice-deposit').innerHTML=iHtml('deposit');
+  document.getElementById('invoice-balance').innerHTML=iHtml('balance');
+}
+function downloadInvoicePDF(type, refNum){
+  const el=document.getElementById('invoice-paper-'+type);
+  if(!el)return;
+  const title=(refNum||'Invoice')+' - Elijah Paul Saxophonist';
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:20mm 18mm;}@page:first{margin-top:20mm;}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{font-family:'DM Sans',sans-serif;max-width:600px;margin:0 auto;color:#1A1814;font-size:13px;line-height:1.6;}#print-tip{background:#1A1814;color:#FAF8F3;padding:10px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}#print-tip button{background:#C9A84C;border:none;color:#1A1814;padding:6px 14px;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;}@media print{#print-tip{display:none!important;}}.invoice-logo{font-family:'DM Serif Display',serif;font-size:20px;color:#8A6E2F;}.invoice-logo small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:#6B6558;font-weight:400;margin-top:2px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}th{font-size:11px;text-transform:uppercase;color:#6B6558;border-bottom:2px solid #E8E3D8;padding:6px 0;text-align:left;}th:last-child,td:last-child{text-align:right;}td{padding:8px 0;border-bottom:1px solid #F2EFE6;font-size:13px;vertical-align:top;}.total-line{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;}.total-line.grand{font-size:15px;font-weight:700;border-top:2px solid #1A1814;margin-top:6px;padding-top:8px;}.invoice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}.invoice-number{text-align:right;}.invoice-number strong{display:block;font-size:18px;font-weight:700;color:#1A1814;margin-top:2px;}.invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}.invoice-party h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B6558;margin-bottom:6px;}.invoice-bank{margin-top:24px;padding-top:16px;border-top:1px solid #F2EFE6;font-size:12px;color:#6B6558;line-height:1.8;}.invoice-totals{text-align:right;padding-top:8px;}</style></head><body><div id="print-tip"><span>⚠ In the print dialog: set <strong>Headers &amp; Footers → Off</strong> to remove browser header/footer from the PDF</span><button onclick="window.print()">Save as PDF</button></div>${el.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script></body></html>`);
+  w.document.close();
+}
+// ═══════════════════════════════════════════════════
+// CALENDAR TAB
+// ═══════════════════════════════════════════════════
+function renderCalendarTab(b){
+  if(!b.eventDate||!b.startTime){document.getElementById('calendar-content').innerHTML='<p style="color:var(--ink3);font-size:13px;padding:16px 0;">No event date/time set yet.</p>';return;}
+  const sl={sax_bt:'Sax + Backing Tracks',sax_dj:"Sax with Client's DJ",combo:'Combo Performance'};
+  // Title: service label — name — fee
+  const titleLabels={sax_bt:'SOLO SAX',sax_dj:'SAX AND DJ',combo:'SOLO SAX AND DJ'};
+  const feeStr=b.agreedPrice?` — £${b.agreedPrice}`:'';
+  const summary=(titleLabels[b.service]||'PERFORMANCE')+' — '+b.firstName+' '+b.lastName+feeStr;
+  // Set times = chosen option label + provisional timings
+  const chosenLabel=b.chosenDuration?durationShort(b.chosenDuration)+' ':'';
+  const setTimes=(chosenLabel+(b.provisionalTimings||'')).trim();
+  // Arrive time = 1 hour before first HH:MM in provisional timings
+  const firstTimeMatch=(b.provisionalTimings||'').match(/(\d{1,2}):(\d{2})/);
+  let arriveTime='';
+  if(firstTimeMatch){
+    const ftH=parseInt(firstTimeMatch[1]),ftM=parseInt(firstTimeMatch[2]);
+    const arrH=ftH-1<0?23:ftH-1;
+    arriveTime=`${String(arrH).padStart(2,'0')}:${String(ftM).padStart(2,'0')}`;
+  }
+  const milesBoth=b.miles?((b.miles)*2).toFixed(1):'—';
+  const priceLine=b.agreedPrice?`£${b.agreedPrice} agreed (deposit: £${calcDeposit(b.agreedPrice)})${b.chosenDuration?' — '+durationShort(b.chosenDuration):''}` :'Price TBC';
+  const contactMethod=b.contactMethods&&b.contactMethods.length?b.contactMethods[0]:'';
+  const fields=[
+    `Phone: ${b.mobile||''}`,
+    `Emergency: `,
+    `Email: ${b.email||''}`,
+    `Other ways we've spoken: ${contactMethod}`,
+    `Exact Location: ${b.venue||''}${b.postcode?' — '+b.postcode:''}`,
+    `Mileage (both ways): ${milesBoth} miles`,
+    `Dresscode: `,
+    `Surprise option 1/2: `,
+    `Arrive time: ${arriveTime}`,
+    `Set times: ${setTimes}`,
+    `Song/style requests: `,
+    `Playlist to use: `,
+    `Any other info: ${b.notes||''}`,
+  ];
+  const desc=fields.join('\n');
+  window._currentICS={summary,desc,b,arriveTime};
+  const previewRows=fields.map(f=>{
+    const colon=f.indexOf(':');
+    const label=f.substring(0,colon+1);
+    const value=f.substring(colon+1).trim();
+    return`<div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--cream2);font-size:13px;"><span style="min-width:180px;color:var(--ink3);font-weight:500;flex-shrink:0;">${label}</span><span style="color:var(--ink);">${value||'<span style="color:var(--cream3);">—</span>'}</span></div>`;
+  }).join('');
+  document.getElementById('calendar-content').innerHTML=`
+    <div style="background:var(--cream);border:1px solid var(--cream3);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;">
+      <div style="font-weight:600;font-size:14px;margin-bottom:10px;color:var(--ink);">${summary}</div>
+      ${previewRows}
+      <div style="margin-top:8px;padding-top:6px;font-size:11px;color:var(--ink3);">${priceLine}</div>
+    </div>
+    <button class="btn btn-primary" onclick="downloadICS()">⬇ Download .ics Calendar Event</button>
+    <p style="font-size:11px;color:var(--ink3);margin-top:8px;">Opens in Apple Calendar, Google Calendar, Outlook etc.</p>`;
+}
+
+function downloadICS(){
+  const{summary,desc,b,arriveTime}=window._currentICS;
+  const[sH,sM]=b.startTime.split(':').map(Number);
+  let eH,eM;
+  if(b.endTime){[eH,eM]=b.endTime.split(':').map(Number);}
+  else{eH=sH+Math.floor(b.duration);eM=sM+Math.round((b.duration%1)*60);}
+  // Arrive time for calendar start (1hr before performance)
+  const[aH,aM]=arriveTime.split(':').map(Number);
+  const dt=new Date(b.eventDate+'T12:00:00');
+  const pad=n=>String(n).padStart(2,'0');
+  const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
+  // Escape special chars in description for iCal format
+  const icsDesc=desc.replace(/\n/g,'\\n').replace(/,/g,'\\,');
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${summary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${b.venue||''}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:info@elijahpaul.com\r\nSUMMARY:Gig in 14 days — ${summary}\r\nDESCRIPTION:${summary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days — ${summary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download=`${b.firstName}_${b.lastName}_gig.ics`;a.click();
+}
+
+// ═══════════════════════════════════════════════════
+// TABS & VIEWS
+// ═══════════════════════════════════════════════════
+function showTab(id){document.querySelectorAll('#detail-modal .inner-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>t.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>{if(t.getAttribute('onclick')===`showTab('${id}')`)t.classList.add('active');});}
+function showInvoiceTab(id,btn){['invoice-deposit','invoice-balance'].forEach(p=>document.getElementById(p).classList.remove('active'));document.getElementById(id)?.classList.add('active');btn.closest('.inner-tabs').querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
+function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name)?.classList.add('active');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>{if(t.getAttribute('onclick')===`showView('${name}')`)t.classList.add('active');});if(name==='pipeline')renderPipeline();if(name==='settings')populateSettings();if(name==='archived')renderArchived();if(name==='new-enquiry'){
+    document.getElementById('ws-enquiry-p1').style.display='block';
+    document.getElementById('ws-enquiry-p2').style.display='none';
+    rebuildEventTypeSelect();
+    initWsVenueListeners();
+    // Ensure mileage status element has dataset.miles set
+    const ms=document.getElementById('ws-mileage-status');
+    if(ms&&!ms.dataset.miles)ms.dataset.miles='0';
+  }}
+
+// ═══════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════
+function populateSettings(){document.getElementById('set-name').value=settings.name||'';document.getElementById('set-email').value=settings.email||'';document.getElementById('set-homepostcode').value=settings.homePostcode||'';document.getElementById('set-sortcode').value=settings.sortCode||'';document.getElementById('set-account').value=settings.account||'';document.getElementById('set-website').value=settings.website||'';document.getElementById('set-password').value='';document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();}
+function renderEtEditor(){const entries=Object.entries(settings.eventRates),half=Math.ceil(entries.length/2);let c1='',c2='';entries.forEach(([name,price],i)=>{const row=`<div class="et-row"><input class="et-name" value="${escHtml(name)}" data-orig="${escHtml(name)}" onchange="renameEt(this)"><span class="et-currency">£</span><input class="et-price" type="number" value="${price}" data-name="${escHtml(name)}" onchange="updateEtPrice(this)"><button class="et-del" onclick="deleteEt('${escHtml(name)}')" title="Delete">×</button></div>`;if(i<half)c1+=row;else c2+=row;});document.getElementById('et-editor').innerHTML=`<div>${c1}</div><div>${c2}</div>`;rebuildEventTypeSelect();cfRebuildEventTypes();}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renameEt(el){const orig=el.dataset.orig,newName=el.value.trim();if(!newName||newName===orig)return;const entries=Object.entries(settings.eventRates),newRates={};entries.forEach(([k,v])=>{newRates[k===orig?newName:k]=v;});settings.eventRates=newRates;renderEtEditor();}
+function updateEtPrice(el){const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;}
+function deleteEt(name){if(!confirm(`Delete event type "${name}"?`))return;delete settings.eventRates[name];renderEtEditor();}
+function addEventType(){settings.eventRates['New Event Type']=0;renderEtEditor();setTimeout(()=>{const inputs=document.querySelectorAll('.et-name');if(inputs.length)inputs[inputs.length-1].focus();},50);}
+function rebuildEventTypeSelect(){const sel=document.getElementById('nq-eventtype'),cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
+function renderDowEditor(){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];document.getElementById('dow-editor').innerHTML=days.map((d,i)=>`<div class="dm-item"><label>${d}</label><input type="number" id="dow-${i}" value="${settings.dayRates[i]!==undefined?settings.dayRates[i]:0}"></div>`).join('');}
+function renderMonthEditor(){const months=['January','February','March','April','May','June','July','August','September','October','November','December'];document.getElementById('month-editor').innerHTML=months.map((m,i)=>`<div class="dm-item"><label>${m}</label><input type="number" id="month-${i}" value="${settings.monthRates[i]!==undefined?settings.monthRates[i]:0}"></div>`).join('');}
+function saveSettings(){settings.name=document.getElementById('set-name').value;settings.email=document.getElementById('set-email').value;settings.homePostcode=document.getElementById('set-homepostcode').value;settings.sortCode=document.getElementById('set-sortcode').value;settings.account=document.getElementById('set-account').value;settings.website=document.getElementById('set-website').value;const newPw=document.getElementById('set-password').value.trim();if(newPw)settings.password=newPw;settings.rates.paSax=parseFloat(document.getElementById('rate-pa-sax').value)||30;settings.rates.saxDj=parseFloat(document.getElementById('rate-sax-dj').value)||270;settings.rates.mileage=parseFloat(document.getElementById('rate-mileage').value)||1.1;settings.rates.ext1=parseFloat(document.getElementById('rate-ext1').value)||60;settings.rates.extHr=parseFloat(document.getElementById('rate-exthr').value)||100;settings.rates.dep1amount=parseFloat(document.getElementById('rate-dep1').value)||100;settings.rates.dep2amount=parseFloat(document.getElementById('rate-dep2').value)||150;settings.rates.dep3amount=parseFloat(document.getElementById('rate-dep3').value)||200;settings.rates.dep4amount=parseFloat(document.getElementById('rate-dep4').value)||250;document.querySelectorAll('.et-price').forEach(el=>{const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;});for(let i=0;i<7;i++){const el=document.getElementById('dow-'+i);if(el)settings.dayRates[i]=parseFloat(el.value)||0;}for(let i=0;i<12;i++){const el=document.getElementById('month-'+i);if(el)settings.monthRates[i]=parseFloat(el.value)||0;}saveData();rebuildEventTypeSelect();cfRebuildEventTypes();const btn=event?.target;if(btn){const orig=btn.textContent;btn.textContent='✓ Saved!';setTimeout(()=>btn.textContent=orig,1400);}}
+
+// ═══════════════════════════════════════════════════
+// ICAL / CALENDAR SYNC
+// ═══════════════════════════════════════════════════
+function loadIcsFile(event){const file=event.target.files[0];if(!file)return;document.getElementById('ics-filename').textContent=`Selected: ${file.name}`;const reader=new FileReader();reader.onload=function(e){document.getElementById('ics-paste').value=e.target.result;};reader.readAsText(file);}
+function processIcsInput(){const text=document.getElementById('ics-paste').value.trim(),statusEl=document.getElementById('ical-status');if(!text){statusEl.textContent='⚠ No data — upload a file or paste .ics content first.';return;}if(!text.includes('BEGIN:VCALENDAR')){statusEl.textContent='✗ Not a valid .ics file.';return;}bookedDates=parseIcal(text);settings.icalLastSync=new Date().toISOString();saveData();statusEl.textContent=`✓ Loaded — ${bookedDates.length} booked date(s) found`;statusEl.style.color='var(--green)';setTimeout(()=>{statusEl.style.color='';},3000);renderBookedPreview();renderCalRefreshNudge();document.getElementById('ics-paste').value='';document.getElementById('ics-filename').textContent='';document.getElementById('ics-file-input').value='';}
+function clearIcsData(){if(!confirm('Clear all booked dates?'))return;bookedDates=[];settings.icalLastSync=null;saveData();document.getElementById('ical-status').textContent='Booked dates cleared.';renderBookedPreview();renderCalRefreshNudge();}
+function parseIcal(text){const dates=new Set();const unfolded=text.replace(/\r?\n[ \t]/g,'');const lines=unfolded.split(/\r?\n/);let inEvent=false,dtstart='',dtend='';function extractDate(val){const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;}function addRange(start,end){if(!start)return;dates.add(start);if(!end||end<=start)return;const s=new Date(start+'T12:00:00'),e=new Date(end+'T12:00:00'),cur=new Date(s);cur.setDate(cur.getDate()+1);while(cur<e){dates.add(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);cur.setDate(cur.getDate()+1);}}for(const line of lines){const upper=line.toUpperCase();if(upper==='BEGIN:VEVENT'){inEvent=true;dtstart='';dtend='';continue;}if(upper==='END:VEVENT'){if(inEvent)addRange(dtstart,dtend);inEvent=false;continue;}if(!inEvent)continue;if(/^DTSTART[;:]/.test(line)){dtstart=extractDate(line.replace(/^DTSTART[^:]*:/,''));}else if(/^DTEND[;:]/.test(line)){dtend=extractDate(line.replace(/^DTEND[^:]*:/,''));}}return[...dates].sort();}
+function freeUpDate(){
+  const input=document.getElementById('free-date-input');
+  const status=document.getElementById('free-date-status');
+  const val=input.value.trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(val)){
+    status.textContent='⚠ Use YYYY-MM-DD format';status.style.color='var(--red)';
+    input.style.borderColor='var(--red)';return;
+  }
+  if(!bookedDates.includes(val)){
+    status.textContent=`"${val}" is not currently blocked`;status.style.color='var(--ink3)';return;
+  }
+  if(freedDates.includes(val)){
+    status.textContent='Already freed';status.style.color='var(--ink3)';return;
+  }
+  // Remove from bookedDates, add to freedDates log
+  bookedDates=bookedDates.filter(d=>d!==val);
+  freedDates.push(val);
+  freedDates.sort();
+  saveData();
+  renderBookedPreview();
+  renderFreedDatesLog();
+  status.textContent=`✓ ${new Date(val+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} freed`;
+  status.style.color='var(--green)';
+  input.value='';
+  setTimeout(()=>{status.textContent='';},4000);
+}
+
+function renderFreedDatesLog(){
+  const el=document.getElementById('freed-dates-log');if(!el)return;
+  if(!freedDates.length){el.innerHTML='';return;}
+  const chips=freedDates.map(d=>{
+    const fmt=new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return`<span style="display:inline-flex;align-items:center;gap:5px;background:#E8F5EE;color:#1E6A3A;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;margin:2px;">
+      🔓 ${fmt}
+      <button onclick="unFreeDate('${d}')" style="background:none;border:none;cursor:pointer;color:#1E6A3A;font-size:13px;line-height:1;padding:0 0 0 2px;" title="Re-block this date">×</button>
+    </span>`;
+  }).join('');
+  el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Freed Dates Log</div><div>${chips}</div>`;
+}
+
+function unFreeDate(d){
+  if(!confirm(`Re-block ${d}? It will show as unavailable again.`))return;
+  freedDates=freedDates.filter(x=>x!==d);
+  // Add back to bookedDates
+  if(!bookedDates.includes(d)){bookedDates.push(d);bookedDates.sort();}
+  saveData();renderBookedPreview();renderFreedDatesLog();
+}
+
+function renderBookedPreview(){const el=document.getElementById('booked-preview');if(!el)return;if(!bookedDates.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No booked dates found yet.</div>';return;}const chips=bookedDates.slice(0,30).map(d=>`<span class="booked-chip">${new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>`).join('');const more=bookedDates.length>30?`<span style="font-size:12px;color:var(--ink3);margin-left:4px;">+${bookedDates.length-30} more</span>`:'';el.innerHTML=`<div class="booked-chips">${chips}${more}</div>`;}
+function renderCalRefreshNudge(){const bar=document.getElementById('cal-refresh-bar');if(!bar)return;const last=settings.icalLastSync;if(!last||!bookedDates.length){bar.style.display='none';return;}const daysSince=(Date.now()-new Date(last).getTime())/(1000*60*60*24);bar.style.display=daysSince>=14?'flex':'none';}
+function dismissCalRefresh(){if(settings.icalLastSync){const snooze=new Date(new Date(settings.icalLastSync).getTime()+12*24*60*60*1000),twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);settings.icalLastSync=(snooze>twoDaysAgo?twoDaysAgo:snooze).toISOString();saveData();}document.getElementById('cal-refresh-bar').style.display='none';}
+
+// ═══════════════════════════════════════════════════
+// CLIENT BOOKING FORM
+// ═══════════════════════════════════════════════════
+let cfService='',cfCalYear=new Date().getFullYear(),cfCalMonth=new Date().getMonth(),cfCalSelected='',cfCalOpen=false;
+const CF_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax with Your DJ',combo:'✨ COMBO — Both'};
+const CF_SERVICE_EMAIL={sax_bt:'Sax and Backing Tracks',sax_dj:'Sax and DJ',combo:'Solo Sax Combo'};
+function cfRebuildEventTypes(){const sel=document.getElementById('cf-eventtype');if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
+function cfSelectService(val){cfService=val;document.querySelectorAll('[id^="cf-opt-"]').forEach(el=>el.classList.remove('selected'));document.getElementById('cf-opt-'+val).classList.add('selected');document.getElementById('cf-service-error').style.display='none';}
+function cfGoToP2(){if(!cfService){document.getElementById('cf-service-error').style.display='block';return;}cfShowPage('cf-page-2');cfSetProgress(2);document.getElementById('cf-service-chip').textContent=CF_SERVICE_LABELS[cfService]||'';}
+function cfGoToP1(){cfShowPage('cf-page-1');cfSetProgress(1);}
+function cfShowPage(id){document.querySelectorAll('.cf-form-page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function cfSetProgress(step){for(let i=1;i<=2;i++){const el=document.getElementById('cf-prog-'+i);el.className='progress-step '+(i<step?'done':i===step?'active':'pending');}document.getElementById('cf-prog-line').className='progress-line'+(step>1?' done':'');}
+function cfToggleCal(e){e.stopPropagation();if(!cfCalOpen){renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');document.getElementById('cf-cal-popup').style.display='block';cfCalOpen=true;}else{document.getElementById('cf-cal-popup').style.display='none';cfCalOpen=false;}}
+function cfNavCal(dir){cfCalMonth+=dir;if(cfCalMonth<0){cfCalMonth=11;cfCalYear--;}if(cfCalMonth>11){cfCalMonth=0;cfCalYear++;}renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');}
+function cfPickDate(ds){cfCalSelected=ds;cfCalOpen=false;document.getElementById('cf-date').value=ds;document.getElementById('cf-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});const disp=document.getElementById('cf-cal-display');disp.textContent=fmt;disp.style.color='var(--ink)';document.getElementById('cf-cal-trigger').classList.remove('cf-err');document.getElementById('cf-e-date').style.display='none';renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');}
+let cfAcTimer=null;
+function initCfVenueListeners(){
+  const cfVenueEl=document.getElementById('cf-venue');
+  const cfAcDrop=document.getElementById('cf-ac-dropdown');
+  if(!cfVenueEl||cfVenueEl._listenerAdded)return;
+  cfVenueEl._listenerAdded=true;
+  cfVenueEl.addEventListener('input',function(){clearTimeout(cfAcTimer);const val=this.value.trim();if(val.length<3){cfAcDrop.style.display='none';return;}cfAcTimer=setTimeout(()=>runAC(val,cfAcDrop,cfSelectAddress),380);});
+  cfVenueEl.addEventListener('blur',()=>setTimeout(()=>cfAcDrop.style.display='none',200));
+  // Time field listeners
+  const st=document.getElementById('cf-starttime');
+  const et=document.getElementById('cf-endtime');
+  if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',cfUpdateDuration);}
+  if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',cfUpdateDuration);}
+}
+function cfSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const v=document.getElementById('cf-venue');const d=document.getElementById('cf-ac-dropdown');if(v)v.value=parts.join(', ')||res.display_name;document.getElementById('cf-postcode').value=(addr.postcode||'').toUpperCase();if(d)d.style.display='none';document.getElementById('cf-e-venue').style.display='none';if(res.lat&&res.lon)cfCalcMiles(parseFloat(res.lat),parseFloat(res.lon));}
+async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));const hData=await hRes.json();let hLat=51.8619169,hLon=0.9573077;if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const rd=await route.json();if(rd.code==='Ok'){document.getElementById('cf-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}}catch(e){}}
+function cfUpdateDuration(){const s=document.getElementById('cf-starttime').value,e=document.getElementById('cf-endtime').value,hint=document.getElementById('cf-dur-hint');if(!s||!e){hint.textContent='';return;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;hint.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();}
+function cfValidate(){let ok=true;const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const venueEl=document.getElementById('cf-venue'),venueErr=document.getElementById('cf-e-venue'),venueVal=venueEl.value.trim();venueEl.classList.toggle('cf-err',!venueVal);venueErr.style.display=venueVal?'none':'block';if(!venueVal)ok=false;const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');if(!dateVal){trigger.classList.add('cf-err');dateErr.style.display='block';ok=false;}else{trigger.classList.remove('cf-err');dateErr.style.display='none';}return ok;}
+async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
+const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,startTime=document.getElementById('cf-starttime').value,endTime=document.getElementById('cf-endtime').value,venue=document.getElementById('cf-venue').value.trim(),postcode=document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
+const d=new Date(eventDate+'T12:00:00');
+const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const clientSubject=`Solo Sax Enquiry ${dateShort} — Elijah Paul Saxophonist`;
+const mySubject=`${CF_SERVICE_EMAIL[service]||service} Enquiry ${dateShort} — Elijah Paul Saxophonist`;
+const bookingDetails=`NAME:         ${firstName} ${lastName}
+EMAIL:        ${email}
+MOBILE:       ${mobile}
+
+SERVICE:      ${CF_SERVICE_LABELS[service]||service}
+DATE:         ${dateLong}
+EVENT TYPE:   ${eventType}
+START TIME:   ${startTime}
+END TIME:     ${endTime}
+
+VENUE:        ${venue}
+POSTCODE:     ${postcode}
+
+NOTES:
+${notes}`;
+const clientMessage=`Hi ${firstName},
+
+Thank you for filling out my booking form! This is your confirmation email, I will send through a few quote options within the next 48 hours. If you would like to proceed with one of these quotes once received, I will send through the invoices for the deposit which confirms the booking once paid, along with the invoice for the final fee which can be paid at any time up to 14 days after the event or in cash on the day if at all easier. Here are the details you have provided:
+
+${bookingDetails}
+
+Will be in touch soon!
+
+Kind regards,
+Elijah`;
+const myMessage=`New booking enquiry received via the website.
+
+${bookingDetails}
+DISTANCE:     ${miles} miles (one way)
+
+---
+Reply to this email to respond directly to ${firstName}.`;
+try{
+  await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:firstName,subject:clientSubject,message:clientMessage,reply_to:MY_EMAIL});
+  await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:MY_EMAIL,to_name:'Elijah',subject:mySubject,message:myMessage,reply_to:email});
+  const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
+  let durMins=0;if(startTime&&endTime){const[sh,sm]=startTime.split(':').map(Number),[eh,em]=endTime.split(':').map(Number);durMins=(eh*60+em)-(sh*60+sm);if(durMins<=0)durMins+=1440;}
+  const newBooking={id:genId(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:durMins?durMins/60:1,startTime,endTime,paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:'client-form'};
+  bookings.push(newBooking);saveData();
+  document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
+  document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
+  cfShowPage('cf-page-success');cfSetProgress(3);
+}catch(err){const msg=err?.text||err?.message||JSON.stringify(err)||'Unknown error';document.getElementById('cf-submit-err').textContent=`EmailJS error: ${msg}`;document.getElementById('cf-submit-err').style.display='block';document.getElementById('cf-submit-label').style.display='inline';document.getElementById('cf-submit-spinner').style.display='none';btn.disabled=false;}}
+
+// ═══════════════════════════════════════════════════
+// DATA MANAGEMENT
+// ═══════════════════════════════════════════════════
+function resetRates(){
+  const r=settings.rates;
+  if(!r.paSax)r.paSax=30;if(!r.saxDj)r.saxDj=270;if(!r.mileage)r.mileage=1.10;
+  if(!r.ext1)r.ext1=60;if(!r.extHr)r.extHr=100;
+  if(!r.dep1amount)r.dep1amount=100;if(!r.dep2amount)r.dep2amount=150;
+  if(!r.dep3amount)r.dep3amount=200;if(!r.dep4amount)r.dep4amount=250;
+  if(!r.dep1threshold)r.dep1threshold=500;if(!r.dep2threshold)r.dep2threshold=750;if(!r.dep3threshold)r.dep3threshold=1000;
+  saveData();populateSettings();
+  alert('Pricing rates fixed. Quote emails should now generate for all enquiries.');
+}
+function exportData(){const blob=new Blob([JSON.stringify({bookings,settings,bookedDates,freedDates},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`elijahpaul-bookings-${new Date().toISOString().split('T')[0]}.json`;a.click();}
+function importData(){document.getElementById('import-input').click();}
+function handleImport(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.bookings)bookings=d.bookings;if(d.settings)settings=deepMerge(settings,d.settings);if(d.bookedDates)bookedDates=d.bookedDates;if(d.freedDates)freedDates=d.freedDates;saveData();renderPipeline();alert('Data imported!');}catch{alert('Invalid file.');}};reader.readAsText(file);}
+function clearAllData(){if(!confirm('Delete ALL bookings and settings?'))return;bookings=[];bookedDates=[];freedDates=[];saveData();renderPipeline();}
+
+
+// ═══════════════════════════════════════════════════
+// TEST DATA GENERATOR
+// ═══════════════════════════════════════════════════
+const TEST_FIRST_NAMES=['Oliver','George','Harry','Jack','Noah','Charlie','Jacob','Alfie','Freddie','Oscar','Archie','Henry','Leo','William','James','Thomas','Ethan','Mason','Liam','Joshua','Amelia','Olivia','Isla','Ava','Emily','Poppy','Isabella','Jessica','Sophie','Grace','Lily','Sophia','Mia','Evie','Ruby','Florence','Freya','Charlotte','Daisy','Alice','Mohammed','Muhammad','Adam','Ibrahim','Yusuf','Aiden','Ryan','Nathan','Samuel','Daniel','Ella','Hannah','Emma','Lucy','Chloe','Millie','Phoebe','Eva','Layla','Imogen','Ellie','Zoe','Abigail','Scarlett','Sienna','Annabelle','Violet','Rosie','Willow','Esme'];
+const TEST_SURNAMES=['Smith','Jones','Williams','Taylor','Brown','Davies','Evans','Wilson','Thomas','Roberts','Johnson','Lewis','Walker','Robinson','Wood','Thompson','White','Watson','Jackson','Wright','Green','Harris','Cooper','King','Lee','Martin','Clarke','James','Morgan','Hughes','Edwards','Hill','Moore','Clark','Harrison','Scott','Young','Morris','Hall','Ward','Turner','Carter','Phillips','Mitchell','Patel','Khan','Shah','Ali','Ahmed','Sharma'];
+const TEST_SERVICES=['sax_bt','sax_dj','combo'];
+function autoFillTestEnquiry(){
+  const fn=TEST_FIRST_NAMES[Math.floor(Math.random()*TEST_FIRST_NAMES.length)];
+  const ln=TEST_SURNAMES[Math.floor(Math.random()*TEST_SURNAMES.length)];
+  const etKeys=Object.keys(settings.eventRates);
+  const et=etKeys[Math.floor(Math.random()*etKeys.length)];
+  const svc=TEST_SERVICES[Math.floor(Math.random()*TEST_SERVICES.length)];
+  // Fill fields
+  document.getElementById('nq-firstname').value=fn;
+  document.getElementById('nq-lastname').value=ln;
+  document.getElementById('nq-email').value='epfirmin@gmail.com';
+  document.getElementById('nq-mobile').value='07519 356742';
+  document.getElementById('nq-notes').value='Test enquiry — auto-generated';
+  // Date via custom calendar
+  wsPickDate('2027-05-25');
+  // Event type
+  const etSel=document.getElementById('nq-eventtype');
+  if(etSel){etSel.value=et;}
+  // Times
+  const st=document.getElementById('nq-starttime');if(st)st.value='19:00';
+  const et2=document.getElementById('nq-endtime');if(et2)et2.value='20:00';
+  // Venue — set directly without API call
+  const venueEl=document.getElementById('nq-venue');
+  if(venueEl){
+    venueEl.value='Swynford Manor, A1304, East Cambridgeshire, Cambridgeshire';
+    venueEl.dataset.lat='52.2271';
+    venueEl.dataset.lon='0.3198';
+  }
+  // Mileage — pre-calculated ~55 miles from CO7 9AW to CB8 area
+  const ms=document.getElementById('ws-mileage-status');
+  if(ms){ms.dataset.miles='54.3';ms.textContent='✓ 54.3 miles one way (test data)';ms.className='mileage-status ok';}
+  // Service — select on page 1 and move to page 2
+  wsSelectService(svc);
+  wsGoToP2();
+}
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+// init and getHashService defined above
+window.addEventListener('hashchange',()=>{if(window.location.hash.startsWith('#book'))showBookingForm(getHashService());});
+init();
+runAutoArchiveCheck();
+</script>
+</body>
+</html>

@@ -344,7 +344,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <button class="nav-tab" onclick="showView('settings')">Settings</button>
       <button class="nav-tab" onclick="showView('archived')">Archived</button>
     </nav>
-    <button class="logout-btn" onclick="doLogout()">Lock ↩</button>
+    <button class="logout-btn" onclick="doLogout()">Log Out ↩</button>
   </header>
 
   <div class="app-body">
@@ -1007,8 +1007,13 @@ function doForgotPassword(){
 
 function doLogout(){
   sessionStorage.removeItem('ep_auth');
-  document.getElementById('login-input').value='';
-  showLayer('layer-login');
+  if(window._fbSignOut&&window._fbAuth){
+    window._fbSignOut(window._fbAuth)
+      .then(()=>showLayer('layer-login'))
+      .catch(()=>showLayer('layer-login'));
+  } else {
+    showLayer('layer-login');
+  }
 }
 
 function showWorkstation(){

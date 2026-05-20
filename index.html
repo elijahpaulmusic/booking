@@ -11,7 +11,7 @@
 // FIREBASE INITIALISATION
 // ═══════════════════════════════════════════════════
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -33,6 +33,8 @@ window._fbAuth = auth;
 window._fbRef = ref;
 window._fbSet = set;
 window._fbGet = get;
+window._fbPush = push;
+window._fbPush = push;
 window._fbOnValue = onValue;
 window._fbChild = child;
 window._fbSignIn = signInWithEmailAndPassword;
@@ -880,6 +882,21 @@ function saveData(){
 }
 function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
 
+// ── Client form: write new enquiry to Firebase without auth ──────────────
+// Uses push() for atomic append — no read-then-write race condition
+function saveEnquiryToFirebase(booking){
+  if(!window._firebaseReady||!window._fbDb){
+    // Retry once Firebase is ready
+    document.addEventListener('firebase-ready',()=>saveEnquiryToFirebase(booking),{once:true});
+    return;
+  }
+  const db=window._fbDb,r=window._fbRef,p=window._fbPush;
+  if(!p){console.warn('Firebase push not available');return;}
+  p(r(db,'enquiries'),booking)
+    .then(()=>console.info('Enquiry saved to Firebase'))
+    .catch(e=>console.error('Firebase enquiry write failed:',e));
+}
+
 // ── Load all data from Firebase (called after login) ─────────────────────
 function syncFromFirebase(callback){
   if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
@@ -887,7 +904,13 @@ function syncFromFirebase(callback){
   g(r(db)).then(snapshot=>{
     if(snapshot.exists()){
       const d=snapshot.val();
-      if(d.bookings)bookings=Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{});
+      // Merge workstation bookings + client form enquiries (stored separately under 'enquiries')
+      const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
+      const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
+      // Merge: add any enquiry not already in ws bookings by id
+      const wsIds=new Set(ws.map(b=>b.id));
+      const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
+      bookings=[...ws,...newEnq];
       if(d.settings)settings=deepMerge(settings,d.settings);
       if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
       if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
@@ -902,16 +925,6 @@ function syncFromFirebase(callback){
 }
 
 // ── Client form: write new enquiry to Firebase without auth ──────────────
-function saveEnquiryToFirebase(booking){
-  if(!window._firebaseReady||!window._fbDb)return;
-  const db=window._fbDb,r=window._fbRef,s=window._fbSet,g=window._fbGet;
-  g(r(db,'bookings')).then(snapshot=>{
-    let arr=[];
-    if(snapshot.exists()){const val=snapshot.val();arr=Array.isArray(val)?val:Object.values(val||{});}
-    arr.push(booking);
-    s(r(db,'bookings'),arr).catch(e=>console.warn('FB enquiry write:',e));
-  }).catch(e=>console.warn('FB enquiry read:',e));
-}
 
 // ── Load all data from Firebase (called after login) ─────────────────────
 function syncFromFirebase(callback){
@@ -920,7 +933,13 @@ function syncFromFirebase(callback){
   g(r(db)).then(snapshot=>{
     if(snapshot.exists()){
       const d=snapshot.val();
-      if(d.bookings)bookings=Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{});
+      // Merge workstation bookings + client form enquiries (stored separately under 'enquiries')
+      const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
+      const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
+      // Merge: add any enquiry not already in ws bookings by id
+      const wsIds=new Set(ws.map(b=>b.id));
+      const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
+      bookings=[...ws,...newEnq];
       if(d.settings)settings=deepMerge(settings,d.settings);
       if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
       if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
@@ -936,20 +955,6 @@ function syncFromFirebase(callback){
 }
 
 // ── Client form: write new enquiry to Firebase without auth ──────────────
-function saveEnquiryToFirebase(booking){
-  if(!window._firebaseReady||!window._fbDb)return;
-  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
-  // Read current bookings, append, write back
-  window._fbGet(r(db,'bookings')).then(snapshot=>{
-    let arr=[];
-    if(snapshot.exists()){
-      const val=snapshot.val();
-      arr=Array.isArray(val)?val:Object.values(val||{});
-    }
-    arr.push(booking);
-    s(r(db,'bookings'),arr).catch(e=>console.warn('FB enquiry write:',e));
-  }).catch(e=>console.warn('FB enquiry read:',e));
-}
 
 // ═══════════════════════════════════════════════════
 // LAYER / LOGIN

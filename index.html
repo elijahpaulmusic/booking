@@ -909,13 +909,8 @@ function syncFromFirebase(callback){
   if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
   const db=window._fbDb,r=window._fbRef,g=window._fbGet;
   g(r(db)).then(snapshot=>{
-    console.log('Firebase sync - snapshot exists:',snapshot.exists());
     if(snapshot.exists()){
       const d=snapshot.val();
-      console.log('Firebase keys:',Object.keys(d));
-      console.log('bookings count:',d.bookings?Object.values(d.bookings||{}).length:0);
-      console.log('bookedDates count:',d.bookedDates?Object.values(d.bookedDates||{}).length:0);
-      console.log('settings present:',!!d.settings);
       const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
       const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
       const wsIds=new Set(ws.map(b=>b.id));

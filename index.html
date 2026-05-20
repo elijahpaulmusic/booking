@@ -871,14 +871,27 @@ function saveData(){
   localStorage.setItem('ep_settings',JSON.stringify(settings));
   localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
   localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
-  // Write to Firebase if available and user is authenticated
-  if(window._firebaseReady&&window._fbAuth&&window._fbAuth.currentUser){
-    const db=window._fbDb,r=window._fbRef,s=window._fbSet;
-    s(r(db,'bookings'),bookings).catch(e=>console.warn('FB bookings write:',e));
-    s(r(db,'settings'),settings).catch(e=>console.warn('FB settings write:',e));
-    s(r(db,'bookedDates'),bookedDates).catch(e=>console.warn('FB bookedDates write:',e));
-    s(r(db,'freedDates'),freedDates).catch(e=>console.warn('FB freedDates write:',e));
+  // Write to Firebase — queue if not ready yet
+  _fbWrite();
+}
+function _fbWrite(){
+  if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef){
+    // Not ready yet — retry in 500ms
+    clearTimeout(window._fbWriteTimer);
+    window._fbWriteTimer=setTimeout(_fbWrite,500);
+    return;
   }
+  if(!window._fbAuth||!window._fbAuth.currentUser){
+    // Not authenticated — retry in 500ms (auth state may still be loading)
+    clearTimeout(window._fbWriteTimer);
+    window._fbWriteTimer=setTimeout(_fbWrite,500);
+    return;
+  }
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+  s(r(db,'bookings'),bookings.length?bookings:null).catch(e=>console.warn('FB bookings:',e));
+  s(r(db,'settings'),settings).catch(e=>console.warn('FB settings:',e));
+  s(r(db,'bookedDates'),bookedDates.length?bookedDates:null).catch(e=>console.warn('FB bookedDates:',e));
+  s(r(db,'freedDates'),freedDates.length?freedDates:null).catch(e=>console.warn('FB freedDates:',e));
 }
 function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
 
@@ -904,16 +917,18 @@ function syncFromFirebase(callback){
   g(r(db)).then(snapshot=>{
     if(snapshot.exists()){
       const d=snapshot.val();
-      // Merge workstation bookings + client form enquiries (stored separately under 'enquiries')
+      // Bookings — merge workstation bookings + client enquiries
       const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
       const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
-      // Merge: add any enquiry not already in ws bookings by id
       const wsIds=new Set(ws.map(b=>b.id));
       const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
       bookings=[...ws,...newEnq];
+      // Settings
       if(d.settings)settings=deepMerge(settings,d.settings);
-      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
-      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
+      // Booked and freed dates
+      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates.filter(Boolean):Object.values(d.bookedDates||{}).filter(Boolean);
+      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates.filter(Boolean):Object.values(d.freedDates||{}).filter(Boolean);
+      // Write back to localStorage
       localStorage.setItem('ep_bookings',JSON.stringify(bookings));
       localStorage.setItem('ep_settings',JSON.stringify(settings));
       localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
@@ -921,7 +936,11 @@ function syncFromFirebase(callback){
     }
     runMigrations();
     if(callback)callback();
-  }).catch(e=>{console.warn('Firebase sync failed, using localStorage:',e);runMigrations();if(callback)callback();});
+  }).catch(e=>{
+    console.warn('Firebase sync failed, using localStorage:',e);
+    runMigrations();
+    if(callback)callback();
+  });
 }
 
 

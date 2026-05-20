@@ -865,28 +865,22 @@ function loadData(){
   }catch(e){console.warn('loadData error:',e);}
   runMigrations();
 }
+// Stored reference to authenticated user — set on login, cleared on logout
+window._fbCurrentUser = null;
+
 function saveData(){
   // Always write to localStorage as offline fallback
   localStorage.setItem('ep_bookings',JSON.stringify(bookings));
   localStorage.setItem('ep_settings',JSON.stringify(settings));
   localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
   localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
-  // Write to Firebase — queue if not ready yet
   _fbWrite();
 }
+
 function _fbWrite(){
-  if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef){
-    // Not ready yet — retry in 500ms
-    clearTimeout(window._fbWriteTimer);
-    window._fbWriteTimer=setTimeout(_fbWrite,500);
-    return;
-  }
-  if(!window._fbAuth||!window._fbAuth.currentUser){
-    // Not authenticated — retry in 500ms (auth state may still be loading)
-    clearTimeout(window._fbWriteTimer);
-    window._fbWriteTimer=setTimeout(_fbWrite,500);
-    return;
-  }
+  // Only write if Firebase is ready AND we have a confirmed authenticated user
+  if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef)return;
+  if(!window._fbCurrentUser)return;
   const db=window._fbDb,r=window._fbRef,s=window._fbSet;
   s(r(db,'bookings'),bookings.length?bookings:null).catch(e=>console.warn('FB bookings:',e));
   s(r(db,'settings'),settings).catch(e=>console.warn('FB settings:',e));
@@ -959,8 +953,26 @@ function init(){
   cfRebuildEventTypes();
   const hash=window.location.hash;
   if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
-  if(sessionStorage.getItem('ep_auth')==='1'){showWorkstation();return;}
+  // Show login immediately, then let Firebase auth state decide
   showLayer('layer-login');
+  function setupAuth(){
+    window._fbOnAuthStateChanged(window._fbAuth,user=>{
+      if(user){
+        window._fbCurrentUser=user;
+        sessionStorage.setItem('ep_auth','1');
+        syncFromFirebase(()=>{showWorkstation();});
+      } else {
+        window._fbCurrentUser=null;
+        sessionStorage.removeItem('ep_auth');
+        showLayer('layer-login');
+      }
+    });
+  }
+  if(window._firebaseReady&&window._fbOnAuthStateChanged){
+    setupAuth();
+  } else {
+    document.addEventListener('firebase-ready',setupAuth,{once:true});
+  }
 }
 
 function doLogin(){
@@ -975,7 +987,8 @@ function doLogin(){
   if(!window._firebaseReady||!window._fbSignIn){if(errEl){errEl.textContent='Still connecting — please try again in a moment.';errEl.style.display='block';}return;}
   if(spinner)spinner.style.display='block';
   window._fbSignIn(window._fbAuth,email,pw)
-    .then(()=>{
+    .then((cred)=>{
+      window._fbCurrentUser=cred.user;
       if(spinner)spinner.style.display='none';
       sessionStorage.setItem('ep_auth','1');
       syncFromFirebase(()=>{showWorkstation();});

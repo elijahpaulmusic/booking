@@ -322,21 +322,19 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 <!-- ═══════════════════════════════════════════════════════
      LAYER 1: LOGIN
 ═══════════════════════════════════════════════════════ -->
-<div id="layer-login" class="layer">
-  <div class="login-box">
-    <div class="logo">Elijah Paul</div>
-    <h2>Workstation</h2>
-    <p>Enter your password to access the booking manager.</p>
-    <input type="password" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    <div class="login-err" id="login-err">Incorrect password — try again.</div>
-    <button class="login-btn" onclick="doLogin()">Sign in</button>
-    <div class="login-hint">Client booking form? <a href="#book" onclick="showBookingForm()">Open here ↗</a></div>
+<div id="layer-login" class="layer active">
+  <div style="max-width:380px;margin:80px auto;padding:40px;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--cream3);text-align:center;">
+    <div class="logo" style="margin-bottom:4px;">Elijah Paul</div>
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:24px;">Booking Workstation</p>
+    <input type="email" id="login-email" placeholder="Email address" style="width:100%;padding:10px 14px;border:1px solid var(--cream3);border-radius:var(--radius);margin-bottom:10px;font-size:14px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('login-pw').focus()">
+    <input type="password" id="login-pw" placeholder="Password" style="width:100%;padding:10px 14px;border:1px solid var(--cream3);border-radius:var(--radius);margin-bottom:12px;font-size:14px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="doLogin()">Enter Workstation</button>
+    <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="doForgotPassword()">Forgot password?</button>
+    <div id="login-err" style="color:var(--red);font-size:12px;margin-top:8px;display:none;"></div>
+    <div id="login-ok" style="color:var(--green);font-size:12px;margin-top:8px;display:none;"></div>
+    <div id="login-spinner" style="display:none;margin-top:12px;font-size:13px;color:var(--ink3);">Signing in...</div>
   </div>
 </div>
-
-<!-- ═══════════════════════════════════════════════════════
-     LAYER 2: WORKSTATION
-═══════════════════════════════════════════════════════ -->
 <div id="layer-workstation" class="layer">
   <header class="app-header">
     <div class="logo">Elijah Paul <span>Music</span></div>
@@ -1800,7 +1798,7 @@ function downloadInvoicePDF(type, refNum){
   if(!el)return;
   const title=(refNum||'Invoice')+' - Elijah Paul Saxophonist';
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:20mm 18mm;}@page:first{margin-top:20mm;}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{font-family:'Open Sans Condensed','Open Sans',sans-serif;max-width:600px;margin:0 auto;color:#1A1814;font-size:13px;line-height:1.6;}#print-tip{background:#1A1814;color:#FAF8F3;padding:10px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}#print-tip button{background:#C9A84C;border:none;color:#1A1814;padding:6px 14px;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;}@media print{#print-tip{display:none!important;}}.invoice-logo{font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:20px;color:#8A6E2F;}.invoice-logo small{display:block;font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:11px;color:#6B6558;font-weight:400;margin-top:2px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}th{font-size:11px;text-transform:uppercase;color:#6B6558;border-bottom:2px solid #E8E3D8;padding:6px 0;text-align:left;}th:last-child,td:last-child{text-align:right;}td{padding:8px 0;border-bottom:1px solid #F2EFE6;font-size:13px;vertical-align:top;}.total-line{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;}.total-line.grand{font-size:15px;font-weight:700;border-top:2px solid #1A1814;margin-top:6px;padding-top:8px;}.invoice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}.invoice-number{text-align:right;}.invoice-number strong{display:block;font-size:18px;font-weight:700;color:#1A1814;margin-top:2px;}.invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}.invoice-party h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B6558;margin-bottom:6px;}.invoice-bank{margin-top:24px;padding-top:16px;border-top:1px solid #F2EFE6;font-size:12px;color:#6B6558;line-height:1.8;}.invoice-totals{text-align:right;padding-top:8px;}</style></head><body><div id="print-tip"><span>⚠ In the print dialog: set <strong>Headers &amp; Footers → Off</strong> to remove browser header/footer from the PDF</span><button onclick="window.print()">Save as PDF</button></div>${el.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:20mm 18mm;}@page:first{margin-top:20mm;}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{font-family:'Open Sans Condensed','Open Sans',sans-serif;max-width:600px;margin:0 auto;color:#1A1814;font-size:13px;line-height:1.6;}#print-tip{background:#1A1814;color:#FAF8F3;padding:10px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}#print-tip button{background:#C9A84C;border:none;color:#1A1814;padding:6px 14px;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;}@media print{#print-tip{display:none!important;}}.invoice-logo{font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:20px;color:#8A6E2F;}.invoice-logo small{display:block;font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:11px;color:#6B6558;font-weight:400;margin-top:2px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}th{font-size:11px;text-transform:uppercase;color:#6B6558;border-bottom:2px solid #E8E3D8;padding:6px 0;text-align:left;}th:last-child,td:last-child{text-align:right;}td{padding:8px 0;border-bottom:1px solid #F2EFE6;font-size:13px;vertical-align:top;}.total-line{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;}.total-line.grand{font-size:15px;font-weight:700;border-top:2px solid #1A1814;margin-top:6px;padding-top:8px;}.invoice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}.invoice-number{text-align:right;}.invoice-number strong{display:block;font-size:18px;font-weight:700;color:#1A1814;margin-top:2px;}.invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}.invoice-party h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B6558;margin-bottom:6px;}.invoice-bank{margin-top:24px;padding-top:16px;border-top:1px solid #F2EFE6;font-size:12px;color:#6B6558;line-height:1.8;}.invoice-totals{text-align:right;padding-top:8px;}</style></head><body><div id="print-tip"><span>⚠ In the print dialog: set <strong>Headers &amp; Footers → Off</strong> to remove browser header/footer from the PDF</span><button onclick="window.print()">Save as PDF</button></div>${el.outerHTML}\x3cscript\x3ewindow.onload=function(){setTimeout(function(){window.print();},400);}\x3c/script\x3e</body></html>`);
   w.document.close();
 }
 // ═══════════════════════════════════════════════════

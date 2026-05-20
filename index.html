@@ -1033,12 +1033,10 @@ function showBookingForm(preselect){
   if(window._firebaseReady&&window._fbDb){
     const db=window._fbDb,r=window._fbRef,g=window._fbGet;
     Promise.all([g(r(db,'bookedDates')),g(r(db,'freedDates'))]).then(([bdSnap,fdSnap])=>{
-      console.log('Firebase bookedDates snapshot exists:',bdSnap.exists(),'value:',bdSnap.val());
-      console.log('Firebase freedDates snapshot exists:',fdSnap.exists(),'value:',fdSnap.val());
       if(bdSnap.exists()){const val=bdSnap.val();bookedDates=Array.isArray(val)?val:Object.values(val||{});}
       if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
-      console.log('bookedDates after sync:',bookedDates.length,'dates');
-    }).catch(e=>console.error('Firebase date fetch error:',e));
+      if(cfCalOpen)renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');
+    }).catch(e=>console.warn('Firebase date fetch error:',e));
   } else {
     console.warn('Firebase not ready when showBookingForm called. _firebaseReady:',window._firebaseReady,'_fbDb:',!!window._fbDb);
     // Retry once Firebase is ready
@@ -1049,6 +1047,8 @@ function showBookingForm(preselect){
         if(bdSnap.exists()){const val=bdSnap.val();bookedDates=Array.isArray(val)?val:Object.values(val||{});}
         if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
         console.log('bookedDates after retry sync:',bookedDates.length,'dates');
+        // Re-render the calendar now that dates are loaded
+        if(cfCalOpen)renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');
       }).catch(e=>console.error('Firebase retry date fetch error:',e));
     },{once:true});
   }
@@ -1968,7 +1968,7 @@ function saveSettings(){settings.name=document.getElementById('set-name').value;
 function loadIcsFile(event){const file=event.target.files[0];if(!file)return;document.getElementById('ics-filename').textContent=`Selected: ${file.name}`;const reader=new FileReader();reader.onload=function(e){document.getElementById('ics-paste').value=e.target.result;};reader.readAsText(file);}
 function processIcsInput(){const text=document.getElementById('ics-paste').value.trim(),statusEl=document.getElementById('ical-status');if(!text){statusEl.textContent='⚠ No data — upload a file or paste .ics content first.';return;}if(!text.includes('BEGIN:VCALENDAR')){statusEl.textContent='✗ Not a valid .ics file.';return;}bookedDates=parseIcal(text);settings.icalLastSync=new Date().toISOString();saveData();statusEl.textContent=`✓ Loaded — ${bookedDates.length} booked date(s) found`;statusEl.style.color='var(--green)';setTimeout(()=>{statusEl.style.color='';},3000);renderBookedPreview();renderCalRefreshNudge();document.getElementById('ics-paste').value='';document.getElementById('ics-filename').textContent='';document.getElementById('ics-file-input').value='';}
 function clearIcsData(){if(!confirm('Clear all booked dates?'))return;bookedDates=[];settings.icalLastSync=null;saveData();document.getElementById('ical-status').textContent='Booked dates cleared.';renderBookedPreview();renderCalRefreshNudge();}
-function parseIcal(text){const dates=new Set();const unfolded=text.replace(/\r?\n[ \t]/g,'');const lines=unfolded.split(/\r?\n/);let inEvent=false,dtstart='',dtend='';function extractDate(val){const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;}function addRange(start,end){if(!start)return;dates.add(start);if(!end||end<=start)return;const s=new Date(start+'T12:00:00'),e=new Date(end+'T12:00:00'),cur=new Date(s);cur.setDate(cur.getDate()+1);while(cur<e){dates.add(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);cur.setDate(cur.getDate()+1);}}for(const line of lines){const upper=line.toUpperCase();if(upper==='BEGIN:VEVENT'){inEvent=true;dtstart='';dtend='';continue;}if(upper==='END:VEVENT'){if(inEvent)addRange(dtstart,dtend);inEvent=false;continue;}if(!inEvent)continue;if(/^DTSTART[;:]/.test(line)){dtstart=extractDate(line.replace(/^DTSTART[^:]*:/,''));}else if(/^DTEND[;:]/.test(line)){dtend=extractDate(line.replace(/^DTEND[^:]*:/,''));}}return[...dates].sort();}
+function parseIcal(text){const dates=new Set();const unfolded=text.replace(/\r?\n[ \t]/g,'');const lines=unfolded.split(/\r?\n/);let inEvent=false,dtstart='',dtend='';function extractDate(val){const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;}function addRange(start,end){if(!start)return;dates.add(start);if(!end||end<=start)return;const s=new Date(start+'T12:00:00'),e=new Date(end+'T12:00:00'),cur=new Date(s);cur.setDate(cur.getDate()+1);while(cur<e){dates.add(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);cur.setDate(cur.getDate()+1);}}for(const line of lines){const upper=line.toUpperCase();if(upper==='BEGIN:VEVENT'){inEvent=true;dtstart='';dtend='';continue;}if(upper==='END:VEVENT'){if(inEvent)addRange(dtstart,dtend);inEvent=false;continue;}if(!inEvent)continue;if(/^DTSTART[;:]/.test(line)){dtstart=extractDate(line.replace(/^DTSTART[^:]*:/,''));}else if(/^DTEND[;:]/.test(line)){dtend=extractDate(line.replace(/^DTEND[^:]*:/,''));}}return[...dates].filter(d=>d>=new Date().toISOString().split('T')[0]).sort();}
 function freeUpDate(){
   const input=document.getElementById('free-date-input');
   const status=document.getElementById('free-date-status');

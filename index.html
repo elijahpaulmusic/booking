@@ -924,37 +924,6 @@ function syncFromFirebase(callback){
   }).catch(e=>{console.warn('Firebase sync failed, using localStorage:',e);runMigrations();if(callback)callback();});
 }
 
-// ── Client form: write new enquiry to Firebase without auth ──────────────
-
-// ── Load all data from Firebase (called after login) ─────────────────────
-function syncFromFirebase(callback){
-  if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
-  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
-  g(r(db)).then(snapshot=>{
-    if(snapshot.exists()){
-      const d=snapshot.val();
-      // Merge workstation bookings + client form enquiries (stored separately under 'enquiries')
-      const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
-      const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
-      // Merge: add any enquiry not already in ws bookings by id
-      const wsIds=new Set(ws.map(b=>b.id));
-      const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
-      bookings=[...ws,...newEnq];
-      if(d.settings)settings=deepMerge(settings,d.settings);
-      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
-      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
-      // Sync back to localStorage
-      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
-      localStorage.setItem('ep_settings',JSON.stringify(settings));
-      localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
-      localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
-    }
-    runMigrations();
-    if(callback)callback();
-  }).catch(e=>{console.warn('Firebase sync failed, using localStorage:',e);runMigrations();if(callback)callback();});
-}
-
-// ── Client form: write new enquiry to Firebase without auth ──────────────
 
 // ═══════════════════════════════════════════════════
 // LAYER / LOGIN
@@ -1021,9 +990,46 @@ function doLogout(){
   }
 }
 
+function startEnquiryListener(){
+  // Listen for new enquiries in real time — pipeline updates automatically
+  if(!window._firebaseReady||!window._fbOnValue||!window._fbDb)return;
+  const db=window._fbDb,r=window._fbRef;
+  window._fbOnValue(r(db,'enquiries'),snapshot=>{
+    if(!snapshot.exists())return;
+    const enq=Object.values(snapshot.val()||{}).filter(b=>b&&b.id);
+    const wsIds=new Set(bookings.map(b=>b.id));
+    const newOnes=enq.filter(b=>!wsIds.has(b.id));
+    if(newOnes.length>0){
+      bookings=[...bookings,...newOnes];
+      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+      renderPipeline();
+      // Show nudge if pipeline is visible
+      const nudgeBar=document.getElementById('nudge-bar');
+      if(nudgeBar)nudgeBar.style.display='';
+    }
+  });
+}
+function startEnquiryListener(){
+  if(!window._firebaseReady||!window._fbOnValue||!window._fbDb)return;
+  if(window._enquiryListenerActive)return; // only one listener
+  window._enquiryListenerActive=true;
+  const db=window._fbDb,r=window._fbRef;
+  window._fbOnValue(r(db,'enquiries'),snapshot=>{
+    if(!snapshot.exists())return;
+    const enq=Object.values(snapshot.val()||{}).filter(b=>b&&b.id);
+    const wsIds=new Set(bookings.map(b=>b.id));
+    const newOnes=enq.filter(b=>!wsIds.has(b.id));
+    if(newOnes.length>0){
+      bookings=[...bookings,...newOnes];
+      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+      renderPipeline();
+    }
+  });
+}
 function showWorkstation(){
   showLayer('layer-workstation');
   initWsVenueListeners();
+  startEnquiryListener();
   renderPipeline();
   rebuildEventTypeSelect();
   calcWsDuration();

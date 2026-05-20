@@ -1030,13 +1030,27 @@ function showBookingForm(preselect){
   cfCalYear=new Date().getFullYear();
   cfCalMonth=new Date().getMonth();
   // Fetch bookedDates and freedDates from Firebase publicly (no auth needed)
-  // so the client calendar reflects the workstation's latest blocked dates
   if(window._firebaseReady&&window._fbDb){
     const db=window._fbDb,r=window._fbRef,g=window._fbGet;
     Promise.all([g(r(db,'bookedDates')),g(r(db,'freedDates'))]).then(([bdSnap,fdSnap])=>{
+      console.log('Firebase bookedDates snapshot exists:',bdSnap.exists(),'value:',bdSnap.val());
+      console.log('Firebase freedDates snapshot exists:',fdSnap.exists(),'value:',fdSnap.val());
       if(bdSnap.exists()){const val=bdSnap.val();bookedDates=Array.isArray(val)?val:Object.values(val||{});}
       if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
-    }).catch(e=>console.warn('Could not fetch dates from Firebase:',e));
+      console.log('bookedDates after sync:',bookedDates.length,'dates');
+    }).catch(e=>console.error('Firebase date fetch error:',e));
+  } else {
+    console.warn('Firebase not ready when showBookingForm called. _firebaseReady:',window._firebaseReady,'_fbDb:',!!window._fbDb);
+    // Retry once Firebase is ready
+    document.addEventListener('firebase-ready',()=>{
+      const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+      Promise.all([g(r(db,'bookedDates')),g(r(db,'freedDates'))]).then(([bdSnap,fdSnap])=>{
+        console.log('Firebase (retry) bookedDates:',bdSnap.exists(),bdSnap.val());
+        if(bdSnap.exists()){const val=bdSnap.val();bookedDates=Array.isArray(val)?val:Object.values(val||{});}
+        if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
+        console.log('bookedDates after retry sync:',bookedDates.length,'dates');
+      }).catch(e=>console.error('Firebase retry date fetch error:',e));
+    },{once:true});
   }
   if(preselect&&['sax_bt','sax_dj','combo'].includes(preselect)){
     cfSelectService(preselect);

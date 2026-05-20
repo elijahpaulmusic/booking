@@ -6,6 +6,43 @@
 <title>Elijah Paul Music</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@300;400;700&family=Open+Sans:wght@400;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="module">
+// ═══════════════════════════════════════════════════
+// FIREBASE INITIALISATION
+// ═══════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTBkjFMAVd5pPEe7vHBE0I0Te8uUCULlM",
+  authDomain: "elijah-paul-booking.firebaseapp.com",
+  databaseURL: "https://elijah-paul-booking-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "elijah-paul-booking",
+  storageBucket: "elijah-paul-booking.firebasestorage.app",
+  messagingSenderId: "312816538667",
+  appId: "1:312816538667:web:21defb472bbb92ef5a066e"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// Expose to global scope for use in main script
+window._fbDb = db;
+window._fbAuth = auth;
+window._fbRef = ref;
+window._fbSet = set;
+window._fbGet = get;
+window._fbOnValue = onValue;
+window._fbChild = child;
+window._fbSignIn = signInWithEmailAndPassword;
+window._fbSignOut = signOut;
+window._fbOnAuthStateChanged = onAuthStateChanged;
+window._fbSendPasswordReset = sendPasswordResetEmail;
+window._firebaseReady = true;
+// Signal to main script that Firebase is ready
+document.dispatchEvent(new Event('firebase-ready'));
+</script>
 <style>
 /* ── ROOT ───────────────────────────────────────────────── */
 :root {
@@ -759,19 +796,162 @@ let settings = {
 };
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
-function loadData(){try{const b=localStorage.getItem('ep_bookings'),s=localStorage.getItem('ep_settings'),d=localStorage.getItem('ep_booked_dates');if(b)bookings=JSON.parse(b);if(s)settings=deepMerge(settings,JSON.parse(s));if(d)bookedDates=JSON.parse(d);const fd=localStorage.getItem('ep_freed_dates');if(fd)freedDates=JSON.parse(fd);}catch(e){}
-  // Clear legacy test bookings (one-time migration v2)
-  if(!settings._cleared_v2){bookings=[];settings._cleared_v2=true;localStorage.setItem('ep_bookings',JSON.stringify(bookings));}
-  // Ensure all rate fields always have valid numeric defaults
-  const rd=settings.rates;
-  if(!rd.paSax)rd.paSax=30;if(!rd.saxDj)rd.saxDj=270;
-  if(!rd.mileage)rd.mileage=1.10;if(!rd.ext1)rd.ext1=60;if(!rd.extHr)rd.extHr=100;
-  if(!rd.dep1amount)rd.dep1amount=100;if(!rd.dep2amount)rd.dep2amount=150;
-  if(!rd.dep3amount)rd.dep3amount=200;if(!rd.dep4amount)rd.dep4amount=250;
-  if(!rd.dep1threshold)rd.dep1threshold=500;if(!rd.dep2threshold)rd.dep2threshold=750;if(!rd.dep3threshold)rd.dep3threshold=1000;
+// ── Schema version — increment this when data structure changes ──────────
+const SCHEMA_VERSION = 1;
+
+// ── Migration definitions — add new ones here as the app evolves ─────────
+const migrations = {
+  1: function(s, b){
+    // v1: Baseline — ensure all rate fields exist, clear legacy test bookings
+    const rd = s.rates;
+    if(!rd.paSax)rd.paSax=30;
+    if(!rd.saxDj)rd.saxDj=270;
+    if(!rd.mileage)rd.mileage=1.10;
+    if(!rd.ext1)rd.ext1=60;
+    if(!rd.extHr)rd.extHr=100;
+    if(!rd.dep1amount)rd.dep1amount=100;
+    if(!rd.dep2amount)rd.dep2amount=150;
+    if(!rd.dep3amount)rd.dep3amount=200;
+    if(!rd.dep4amount)rd.dep4amount=250;
+    if(!rd.dep1threshold)rd.dep1threshold=500;
+    if(!rd.dep2threshold)rd.dep2threshold=750;
+    if(!rd.dep3threshold)rd.dep3threshold=1000;
+    // Clear legacy test bookings (carried over from _cleared_v2 flag)
+    if(!s._cleared_v2){
+      b.length=0;
+      s._cleared_v2=true;
+    }
+    return {settings:s, bookings:b};
+  }
+  // Future example:
+  // 2: function(s, b){
+  //   // v2: rename 'saxDj' to 'baseRate' in rates
+  //   if(s.rates.saxDj!==undefined && s.rates.baseRate===undefined){
+  //     s.rates.baseRate = s.rates.saxDj;
+  //     delete s.rates.saxDj;
+  //   }
+  //   return {settings:s, bookings:b};
+  // }
+};
+
+function runMigrations(){
+  const storedVersion = settings.schemaVersion || 0;
+  if(storedVersion >= SCHEMA_VERSION) return; // already up to date
+  let changed = false;
+  for(let v = storedVersion + 1; v <= SCHEMA_VERSION; v++){
+    if(migrations[v]){
+      console.info(`Running migration v${v}...`);
+      const result = migrations[v](settings, bookings);
+      settings = result.settings;
+      bookings = result.bookings;
+      changed = true;
+    }
+  }
+  if(changed){
+    settings.schemaVersion = SCHEMA_VERSION;
+    saveData();
+    console.info(`Migrations complete. Schema now at v${SCHEMA_VERSION}.`);
+  }
 }
-function saveData(){localStorage.setItem('ep_bookings',JSON.stringify(bookings));localStorage.setItem('ep_settings',JSON.stringify(settings));localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));}
+
+function loadData(){
+  try{
+    const b=localStorage.getItem('ep_bookings'),s=localStorage.getItem('ep_settings'),d=localStorage.getItem('ep_booked_dates');
+    if(b)bookings=JSON.parse(b);
+    if(s)settings=deepMerge(settings,JSON.parse(s));
+    if(d)bookedDates=JSON.parse(d);
+    const fd=localStorage.getItem('ep_freed_dates');
+    if(fd)freedDates=JSON.parse(fd);
+  }catch(e){console.warn('loadData error:',e);}
+  runMigrations();
+}
+function saveData(){
+  // Always write to localStorage as offline fallback
+  localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+  localStorage.setItem('ep_settings',JSON.stringify(settings));
+  localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
+  localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
+  // Write to Firebase if available and user is authenticated
+  if(window._firebaseReady&&window._fbAuth&&window._fbAuth.currentUser){
+    const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+    s(r(db,'bookings'),bookings).catch(e=>console.warn('FB bookings write:',e));
+    s(r(db,'settings'),settings).catch(e=>console.warn('FB settings write:',e));
+    s(r(db,'bookedDates'),bookedDates).catch(e=>console.warn('FB bookedDates write:',e));
+    s(r(db,'freedDates'),freedDates).catch(e=>console.warn('FB freedDates write:',e));
+  }
+}
 function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
+
+// ── Load all data from Firebase (called after login) ─────────────────────
+function syncFromFirebase(callback){
+  if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+  g(r(db)).then(snapshot=>{
+    if(snapshot.exists()){
+      const d=snapshot.val();
+      if(d.bookings)bookings=Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{});
+      if(d.settings)settings=deepMerge(settings,d.settings);
+      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
+      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
+      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+      localStorage.setItem('ep_settings',JSON.stringify(settings));
+      localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
+      localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
+    }
+    runMigrations();
+    if(callback)callback();
+  }).catch(e=>{console.warn('Firebase sync failed, using localStorage:',e);runMigrations();if(callback)callback();});
+}
+
+// ── Client form: write new enquiry to Firebase without auth ──────────────
+function saveEnquiryToFirebase(booking){
+  if(!window._firebaseReady||!window._fbDb)return;
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet,g=window._fbGet;
+  g(r(db,'bookings')).then(snapshot=>{
+    let arr=[];
+    if(snapshot.exists()){const val=snapshot.val();arr=Array.isArray(val)?val:Object.values(val||{});}
+    arr.push(booking);
+    s(r(db,'bookings'),arr).catch(e=>console.warn('FB enquiry write:',e));
+  }).catch(e=>console.warn('FB enquiry read:',e));
+}
+
+// ── Load all data from Firebase (called after login) ─────────────────────
+function syncFromFirebase(callback){
+  if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+  g(r(db)).then(snapshot=>{
+    if(snapshot.exists()){
+      const d=snapshot.val();
+      if(d.bookings)bookings=Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{});
+      if(d.settings)settings=deepMerge(settings,d.settings);
+      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates:Object.values(d.bookedDates||{});
+      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates:Object.values(d.freedDates||{});
+      // Sync back to localStorage
+      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+      localStorage.setItem('ep_settings',JSON.stringify(settings));
+      localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
+      localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
+    }
+    runMigrations();
+    if(callback)callback();
+  }).catch(e=>{console.warn('Firebase sync failed, using localStorage:',e);runMigrations();if(callback)callback();});
+}
+
+// ── Client form: write new enquiry to Firebase without auth ──────────────
+function saveEnquiryToFirebase(booking){
+  if(!window._firebaseReady||!window._fbDb)return;
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+  // Read current bookings, append, write back
+  window._fbGet(r(db,'bookings')).then(snapshot=>{
+    let arr=[];
+    if(snapshot.exists()){
+      const val=snapshot.val();
+      arr=Array.isArray(val)?val:Object.values(val||{});
+    }
+    arr.push(booking);
+    s(r(db,'bookings'),arr).catch(e=>console.warn('FB enquiry write:',e));
+  }).catch(e=>console.warn('FB enquiry read:',e));
+}
 
 // ═══════════════════════════════════════════════════
 // LAYER / LOGIN
@@ -1727,6 +1907,14 @@ function addEventType(){settings.eventRates['New Event Type']=0;renderEtEditor()
 function rebuildEventTypeSelect(){const sel=document.getElementById('nq-eventtype'),cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
 function renderDowEditor(){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];document.getElementById('dow-editor').innerHTML=days.map((d,i)=>`<div class="dm-item"><label>${d}</label><input type="number" id="dow-${i}" value="${settings.dayRates[i]!==undefined?settings.dayRates[i]:0}"></div>`).join('');}
 function renderMonthEditor(){const months=['January','February','March','April','May','June','July','August','September','October','November','December'];document.getElementById('month-editor').innerHTML=months.map((m,i)=>`<div class="dm-item"><label>${m}</label><input type="number" id="month-${i}" value="${settings.monthRates[i]!==undefined?settings.monthRates[i]:0}"></div>`).join('');}
+function sendPasswordReset(){
+  const msgEl=document.getElementById('pw-reset-msg');
+  if(!window._fbAuth||!window._fbAuth.currentUser){msgEl.textContent='Not logged in.';msgEl.style.color='var(--red)';msgEl.style.display='block';return;}
+  const email=window._fbAuth.currentUser.email;
+  window._fbSendPasswordReset(window._fbAuth,email)
+    .then(()=>{msgEl.textContent='Reset email sent to '+email;msgEl.style.color='var(--green)';msgEl.style.display='block';})
+    .catch(e=>{msgEl.textContent='Error: '+e.message;msgEl.style.color='var(--red)';msgEl.style.display='block';});
+}
 function saveSettings(){settings.name=document.getElementById('set-name').value;settings.email=document.getElementById('set-email').value;settings.homePostcode=document.getElementById('set-homepostcode').value;settings.sortCode=document.getElementById('set-sortcode').value;settings.account=document.getElementById('set-account').value;settings.website=document.getElementById('set-website').value;const newPw=document.getElementById('set-password').value.trim();if(newPw)settings.password=newPw;settings.rates.paSax=parseFloat(document.getElementById('rate-pa-sax').value)||30;settings.rates.saxDj=parseFloat(document.getElementById('rate-sax-dj').value)||270;settings.rates.mileage=parseFloat(document.getElementById('rate-mileage').value)||1.1;settings.rates.ext1=parseFloat(document.getElementById('rate-ext1').value)||60;settings.rates.extHr=parseFloat(document.getElementById('rate-exthr').value)||100;settings.rates.dep1amount=parseFloat(document.getElementById('rate-dep1').value)||100;settings.rates.dep2amount=parseFloat(document.getElementById('rate-dep2').value)||150;settings.rates.dep3amount=parseFloat(document.getElementById('rate-dep3').value)||200;settings.rates.dep4amount=parseFloat(document.getElementById('rate-dep4').value)||250;document.querySelectorAll('.et-price').forEach(el=>{const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;});for(let i=0;i<7;i++){const el=document.getElementById('dow-'+i);if(el)settings.dayRates[i]=parseFloat(el.value)||0;}for(let i=0;i<12;i++){const el=document.getElementById('month-'+i);if(el)settings.monthRates[i]=parseFloat(el.value)||0;}saveData();rebuildEventTypeSelect();cfRebuildEventTypes();const btn=event?.target;if(btn){const orig=btn.textContent;btn.textContent='✓ Saved!';setTimeout(()=>btn.textContent=orig,1400);}}
 
 // ═══════════════════════════════════════════════════
@@ -1866,7 +2054,7 @@ try{
   const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
   let durMins=0;if(startTime&&endTime){const[sh,sm]=startTime.split(':').map(Number),[eh,em]=endTime.split(':').map(Number);durMins=(eh*60+em)-(sh*60+sm);if(durMins<=0)durMins+=1440;}
   const newBooking={id:genId(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:durMins?durMins/60:1,startTime,endTime,paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:'client-form'};
-  bookings.push(newBooking);saveData();
+  bookings.push(newBooking);saveData();saveEnquiryToFirebase(newBooking);
   document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
   document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
   cfShowPage('cf-page-success');cfSetProgress(3);

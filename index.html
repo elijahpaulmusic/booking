@@ -909,20 +909,21 @@ function syncFromFirebase(callback){
   if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
   const db=window._fbDb,r=window._fbRef,g=window._fbGet;
   g(r(db)).then(snapshot=>{
+    console.log('Firebase sync - snapshot exists:',snapshot.exists());
     if(snapshot.exists()){
       const d=snapshot.val();
-      // Bookings — merge workstation bookings + client enquiries
+      console.log('Firebase keys:',Object.keys(d));
+      console.log('bookings count:',d.bookings?Object.values(d.bookings||{}).length:0);
+      console.log('bookedDates count:',d.bookedDates?Object.values(d.bookedDates||{}).length:0);
+      console.log('settings present:',!!d.settings);
       const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
       const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
       const wsIds=new Set(ws.map(b=>b.id));
       const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
       bookings=[...ws,...newEnq];
-      // Settings
       if(d.settings)settings=deepMerge(settings,d.settings);
-      // Booked and freed dates
       if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates.filter(Boolean):Object.values(d.bookedDates||{}).filter(Boolean);
       if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates.filter(Boolean):Object.values(d.freedDates||{}).filter(Boolean);
-      // Write back to localStorage
       localStorage.setItem('ep_bookings',JSON.stringify(bookings));
       localStorage.setItem('ep_settings',JSON.stringify(settings));
       localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
@@ -931,7 +932,7 @@ function syncFromFirebase(callback){
     runMigrations();
     if(callback)callback();
   }).catch(e=>{
-    console.warn('Firebase sync failed, using localStorage:',e);
+    console.warn('Firebase sync failed:',e);
     runMigrations();
     if(callback)callback();
   });
@@ -1064,7 +1065,12 @@ function showWorkstation(){
   startEnquiryListener();
   renderPipeline();
   rebuildEventTypeSelect();
+  cfRebuildEventTypes();
   calcWsDuration();
+  // Re-render settings and availability in case data was just synced from Firebase
+  renderBookedPreview();
+  renderFreedDatesLog();
+  renderCalRefreshNudge();
 }
 
 function showBookingForm(preselect){

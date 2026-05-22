@@ -647,9 +647,21 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <div class="cf-card">
         <div class="cf-card-title">Venue</div>
         <div class="cf-group ac-wrap">
-          <label>Venue Name / Address *</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <label style="margin-bottom:0;">Venue Name / Address *</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;white-space:nowrap;">
+              <input type="checkbox" id="cf-manual-toggle" style="accent-color:var(--ink);width:14px;height:14px;" onchange="cfToggleManualAddress(this.checked)">
+              Can't find it? Enter manually
+            </label>
+          </div>
           <input type="text" id="cf-venue" placeholder="Start typing a venue name or address…" autocomplete="off">
           <div class="ac-dropdown" id="cf-ac-dropdown"></div>
+          <div id="cf-manual-address" style="display:none;margin-top:8px;">
+            <input type="text" id="cf-manual-venue" placeholder="Venue Name / House Number / House Name *" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;margin-bottom:8px;font-family:inherit;outline:none;box-sizing:border-box;">
+            <div class="cf-field-err" id="cf-e-manual-venue" style="display:none;">Please enter a venue name</div>
+            <input type="text" id="cf-manual-postcode" placeholder="Postcode *" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;" onblur="cfCalcMilesFromPostcode(this.value)">
+            <div class="cf-field-err" id="cf-e-manual-postcode" style="display:none;">Please enter a postcode</div>
+          </div>
           <input type="hidden" id="cf-postcode">
           <input type="hidden" id="cf-miles">
           <div class="cf-field-err" id="cf-e-venue">Please enter a venue</div>
@@ -2101,12 +2113,59 @@ function initCfVenueListeners(){
   if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',cfUpdateDuration);}
   if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',cfUpdateDuration);}
 }
+function cfToggleManualAddress(on){
+  const manual=document.getElementById('cf-manual-address');
+  const autoInput=document.getElementById('cf-venue');
+  const autoErr=document.getElementById('cf-e-venue');
+  if(manual)manual.style.display=on?'block':'none';
+  if(autoInput){
+    autoInput.style.opacity=on?'0.4':'1';
+    autoInput.style.pointerEvents=on?'none':'auto';
+  }
+  if(!on){
+    const mv=document.getElementById('cf-manual-venue');
+    const mp=document.getElementById('cf-manual-postcode');
+    if(mv){mv.value='';mv.classList.remove('cf-err');}
+    if(mp){mp.value='';mp.classList.remove('cf-err');}
+    document.getElementById('cf-e-manual-venue').style.display='none';
+    document.getElementById('cf-e-manual-postcode').style.display='none';
+    document.getElementById('cf-miles').value='';
+  }
+  if(autoErr)autoErr.style.display='none';
+}
+
+async function cfCalcMilesFromPostcode(postcode){
+  if(!postcode)return;
+  try{
+    const res=await fetch('https://api.postcodes.io/postcodes/'+postcode.replace(/\s+/g,''));
+    const data=await res.json();
+    if(data.status===200&&data.result){
+      await cfCalcMiles(data.result.latitude,data.result.longitude);
+    }
+  }catch(e){console.warn('Postcode lookup failed:',e);}
+}
+
 function cfSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const v=document.getElementById('cf-venue');const d=document.getElementById('cf-ac-dropdown');if(v)v.value=parts.join(', ')||res.display_name;document.getElementById('cf-postcode').value=(addr.postcode||'').toUpperCase();if(d)d.style.display='none';document.getElementById('cf-e-venue').style.display='none';if(res.lat&&res.lon)cfCalcMiles(parseFloat(res.lat),parseFloat(res.lon));}
 async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));const hData=await hRes.json();let hLat=51.8619169,hLon=0.9573077;if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const rd=await route.json();if(rd.code==='Ok'){document.getElementById('cf-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}}catch(e){}}
 function cfUpdateDuration(){const s=document.getElementById('cf-starttime').value,e=document.getElementById('cf-endtime').value,hint=document.getElementById('cf-dur-hint');if(!s||!e){hint.textContent='';return;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;hint.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();}
-function cfValidate(){let ok=true;const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const venueEl=document.getElementById('cf-venue'),venueErr=document.getElementById('cf-e-venue'),venueVal=venueEl.value.trim();venueEl.classList.toggle('cf-err',!venueVal);venueErr.style.display=venueVal?'none':'block';if(!venueVal)ok=false;const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');if(!dateVal){trigger.classList.add('cf-err');dateErr.style.display='block';ok=false;}else{trigger.classList.remove('cf-err');dateErr.style.display='none';}return ok;}
+function cfValidate(){let ok=true;const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const isManual=document.getElementById('cf-manual-toggle')?.checked;
+  if(isManual){
+    const mv=document.getElementById('cf-manual-venue'),mp=document.getElementById('cf-manual-postcode');
+    const mvv=mv?mv.value.trim():'',mpv=mp?mp.value.trim():'';
+    if(mv)mv.classList.toggle('cf-err',!mvv);
+    if(mp)mp.classList.toggle('cf-err',!mpv);
+    document.getElementById('cf-e-manual-venue').style.display=mvv?'none':'block';
+    document.getElementById('cf-e-manual-postcode').style.display=mpv?'none':'block';
+    if(!mvv||!mpv)ok=false;
+    // Clear autofill error
+    document.getElementById('cf-e-venue').style.display='none';
+  } else {
+    const venueEl=document.getElementById('cf-venue'),venueErr=document.getElementById('cf-e-venue'),venueVal=venueEl.value.trim();
+    venueEl.classList.toggle('cf-err',!venueVal);venueErr.style.display=venueVal?'none':'block';
+    if(!venueVal)ok=false;
+  }const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');if(!dateVal){trigger.classList.add('cf-err');dateErr.style.display='block';ok=false;}else{trigger.classList.remove('cf-err');dateErr.style.display='none';}return ok;}
 async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
-const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,startTime=document.getElementById('cf-starttime').value,endTime=document.getElementById('cf-endtime').value,venue=document.getElementById('cf-venue').value.trim(),postcode=document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
+const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,startTime=document.getElementById('cf-starttime').value,endTime=document.getElementById('cf-endtime').value,isManualAddr=(document.getElementById('cf-manual-toggle')?.checked||false),venue=isManualAddr?(document.getElementById('cf-manual-venue')?.value.trim()||''):document.getElementById('cf-venue').value.trim(),postcode=isManualAddr?(document.getElementById('cf-manual-postcode')?.value.trim().toUpperCase()||''):document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});

@@ -334,6 +334,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div id="login-err" style="color:var(--red);font-size:12px;margin-top:8px;display:none;"></div>
     <div id="login-ok" style="color:var(--green);font-size:12px;margin-top:8px;display:none;"></div>
     <div id="login-spinner" style="display:none;margin-top:12px;font-size:13px;color:var(--ink3);">Signing in...</div>
+    <div id="fb-status" style="font-size:11px;color:var(--ink3);margin-top:8px;"></div>
   </div>
 </div>
 <div id="layer-workstation" class="layer">
@@ -981,12 +982,14 @@ function init(){
   loadData();
   cfRebuildEventTypes();
   const hash=window.location.hash;
-  // Client booking form — no auth needed, show immediately
   if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
-  // Workstation — show login, Firebase auth state listener decides what to show
   showLayer('layer-login');
+  const fbStatus=document.getElementById('fb-status');
+  if(fbStatus)fbStatus.textContent='Firebase ready: '+window._firebaseReady+' | Auth: '+(!!window._fbAuth)+ ' | SignIn: '+(!!window._fbSignIn);
   if(window._firebaseReady&&window._fbOnAuthStateChanged&&window._fbAuth){
+    if(fbStatus)fbStatus.textContent+=' | Setting up auth listener...';
     window._fbOnAuthStateChanged(window._fbAuth,user=>{
+      if(fbStatus)fbStatus.textContent+=' | User: '+(user?user.email:'null');
       if(user){
         window._fbCurrentUser=user;
         sessionStorage.setItem('ep_auth','1');
@@ -997,6 +1000,8 @@ function init(){
         showLayer('layer-login');
       }
     });
+  } else {
+    if(fbStatus)fbStatus.textContent+=' | Firebase NOT ready at init time!';
   }
 }
 

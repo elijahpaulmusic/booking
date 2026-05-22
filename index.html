@@ -617,7 +617,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <label style="margin-bottom:0;font-size:12px;color:var(--ink3);font-weight:500;">
                 <input type="checkbox" id="cf-intl-toggle" style="accent-color:var(--ink);width:14px;height:14px;margin-right:6px;vertical-align:middle;" onchange="cfToggleIntl(this.checked)">
-                International number? (longer than 11 digits)
+                Int'l Number?
               </label>
             </div>
             <div id="cf-intl-fields" style="display:none;margin-top:8px;">
@@ -628,6 +628,8 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
                 </div>
                 <input type="tel" id="cf-intl-number" style="flex:1;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;">
               </div>
+              <div class="cf-field-err" id="cf-e-intl-code" style="display:none;">Please enter a country code</div>
+              <div class="cf-field-err" id="cf-e-intl-number" style="display:none;">Please enter a number</div>
             </div>
           </div>
         </div>
@@ -2135,8 +2137,10 @@ function cfToggleIntl(on){
   if(!on){
     const code=document.getElementById('cf-intl-code');
     const num=document.getElementById('cf-intl-number');
-    if(code)code.value='';
-    if(num)num.value='';
+    if(code){code.value='';code.classList.remove('cf-err');}
+    if(num){num.value='';num.classList.remove('cf-err');}
+    document.getElementById('cf-e-intl-code').style.display='none';
+    document.getElementById('cf-e-intl-number').style.display='none';
   }
 }
 
@@ -2175,7 +2179,29 @@ async function cfCalcMilesFromPostcode(postcode){
 function cfSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const v=document.getElementById('cf-venue');const d=document.getElementById('cf-ac-dropdown');if(v)v.value=parts.join(', ')||res.display_name;document.getElementById('cf-postcode').value=(addr.postcode||'').toUpperCase();if(d)d.style.display='none';document.getElementById('cf-e-venue').style.display='none';if(res.lat&&res.lon)cfCalcMiles(parseFloat(res.lat),parseFloat(res.lon));}
 async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));const hData=await hRes.json();let hLat=51.8619169,hLon=0.9573077;if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const rd=await route.json();if(rd.code==='Ok'){document.getElementById('cf-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}}catch(e){}}
 function cfUpdateDuration(){const s=document.getElementById('cf-starttime').value,e=document.getElementById('cf-endtime').value,hint=document.getElementById('cf-dur-hint');if(!s||!e){hint.textContent='';return;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;hint.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();}
-function cfValidate(){let ok=true;const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const isManual=document.getElementById('cf-manual-toggle')?.checked;
+function cfValidate(){let ok=true;
+  // Int'l number validation
+  const isIntl=document.getElementById('cf-intl-toggle')?.checked;
+  if(isIntl){
+    const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');
+    const icv=ic?ic.value.trim():'',inumv=inum?inum.value.trim():'';
+    if(ic)ic.classList.toggle('cf-err',!icv);
+    if(inum)inum.classList.toggle('cf-err',!inumv);
+    document.getElementById('cf-e-intl-code').style.display=icv?'none':'block';
+    document.getElementById('cf-e-intl-number').style.display=inumv?'none':'block';
+    if(!icv||!inumv)ok=false;
+  }
+  const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const isIntl=document.getElementById('cf-intl-toggle')?.checked;
+  if(isIntl){
+    const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');
+    const icv=ic?ic.value.trim():'',inumv=inum?inum.value.trim():'';
+    if(ic)ic.classList.toggle('cf-err',!icv);
+    if(inum)inum.classList.toggle('cf-err',!inumv);
+    document.getElementById('cf-e-intl-code').style.display=icv?'none':'block';
+    document.getElementById('cf-e-intl-number').style.display=inumv?'none':'block';
+    if(!icv||!inumv)ok=false;
+  }
+  const isManual=document.getElementById('cf-manual-toggle')?.checked;
   if(isManual){
     const mv=document.getElementById('cf-manual-venue'),mp=document.getElementById('cf-manual-postcode');
     const mvv=mv?mv.value.trim():'',mpv=mp?mp.value.trim():'';

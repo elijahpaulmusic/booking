@@ -457,7 +457,8 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <div class="form-group" style="margin-bottom:10px;"><label>Home Postcode</label><input type="text" id="set-homepostcode"></div>
           <div class="form-group" style="margin-bottom:10px;"><label>Bank Sort Code</label><input type="text" id="set-sortcode" placeholder="00-00-00"></div>
           <div class="form-group" style="margin-bottom:10px;"><label>Account Number</label><input type="text" id="set-account" placeholder="12345678"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Website</label><input type="text" id="set-website"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Phone Number</label><input type="tel" id="set-phone" placeholder="07xxx xxxxxx"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Invoice Name <span style="font-weight:400;font-size:11px;">(name on invoice payment details)</span></label><input type="text" id="set-invoicename" placeholder="e.g. Elisha Firmin trading as Elijah Paul Music"></div>
           <div class="form-group">
             <label>Password</label>
             <button class="btn btn-secondary btn-sm" onclick="sendPasswordReset()" type="button">Change Password — send reset email</button>
@@ -1879,7 +1880,7 @@ function renderInvoices(b){
       </div>
       <div class="invoice-bank">
         <strong style="display:block;margin-bottom:6px;">Payment Details — Bank Transfer (preferred)</strong>
-        <div style="margin-bottom:10px;line-height:1.8;">Bank: Monzo<br>Name: Elisha Firmin trading as Elijah Paul Music<br>Acc No: 85029085<br>Sort Code: 04-00-04<br>Reference: <strong>${refNum}</strong><br><em style="font-size:11px;">(Business Account)</em></div>
+        <div style="margin-bottom:10px;line-height:1.8;">Bank: Monzo<br>Name: ${settings.invoiceName||'Elisha Firmin trading as Elijah Paul Music'}<br>Acc No: ${settings.account||'85029085'}<br>Sort Code: ${settings.sortCode||'04-00-04'}<br>Reference: <strong>${refNum}</strong><br><em style="font-size:11px;">(Business Account)</em></div>
         ${cashNote}
         <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--cream2);font-size:11px;color:var(--ink3);line-height:1.7;">
           <strong style="color:var(--ink2);">Terms of business: </strong>${termsText}

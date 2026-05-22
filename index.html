@@ -6,14 +6,13 @@
 <title>Elijah Paul Music</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@300;400;700&family=Open+Sans:wght@400;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
 // ═══════════════════════════════════════════════════
 // FIREBASE INITIALISATION
 // ═══════════════════════════════════════════════════
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 try {
   const firebaseConfig = {
     apiKey: "AIzaSyDTBkjFMAVd5pPEe7vHBE0I0Te8uUCULlM",
@@ -24,28 +23,26 @@ try {
     messagingSenderId: "312816538667",
     appId: "1:312816538667:web:21defb472bbb92ef5a066e"
   };
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
+  firebase.initializeApp(firebaseConfig);
+  const _db = firebase.database();
+  const _auth = firebase.auth();
 
-  window._fbDb = db;
-  window._fbAuth = auth;
-  window._fbRef = ref;
-  window._fbSet = set;
-  window._fbGet = get;
-  window._fbPush = push;
-  window._fbOnValue = onValue;
-  window._fbChild = child;
-  window._fbSignIn = signInWithEmailAndPassword;
-  window._fbSignOut = signOut;
-  window._fbOnAuthStateChanged = onAuthStateChanged;
-  window._fbSendPasswordReset = sendPasswordResetEmail;
+  window._fbDb = _db;
+  window._fbAuth = _auth;
+  window._fbRef = (db, path) => path ? db.ref(path) : db.ref();
+  window._fbSet = (ref, val) => ref.set(val);
+  window._fbGet = (ref) => ref.get();
+  window._fbPush = (ref, val) => ref.push(val);
+  window._fbOnValue = (ref, cb) => ref.on('value', cb);
+  window._fbOnAuthStateChanged = (auth, cb) => auth.onAuthStateChanged(cb);
+  window._fbSignIn = (auth, email, pw) => auth.signInWithEmailAndPassword(email, pw);
+  window._fbSignOut = (auth) => auth.signOut();
+  window._fbSendPasswordReset = (auth, email) => auth.sendPasswordResetEmail(email);
   window._firebaseReady = true;
 } catch(e) {
   console.error('Firebase init error:', e);
   window._firebaseReady = false;
 }
-document.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
 /* ── ROOT ───────────────────────────────────────────────── */
@@ -930,8 +927,7 @@ function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2
 // Uses push() for atomic append — no read-then-write race condition
 function saveEnquiryToFirebase(booking){
   if(!window._firebaseReady||!window._fbDb){
-    // Retry once Firebase is ready
-    document.addEventListener('firebase-ready',()=>saveEnquiryToFirebase(booking),{once:true});
+    console.warn('Firebase not available for enquiry save');
     return;
   }
   const db=window._fbDb,r=window._fbRef,p=window._fbPush;
@@ -985,15 +981,11 @@ function init(){
   loadData();
   cfRebuildEventTypes();
   const hash=window.location.hash;
+  // Client booking form — no auth needed, show immediately
   if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
-  // Show login immediately, then let Firebase auth state decide
+  // Workstation — show login, Firebase auth state listener decides what to show
   showLayer('layer-login');
-  function setupAuth(){
-    if(!window._fbOnAuthStateChanged||!window._fbAuth){
-      // Firebase not ready yet — wait for it
-      document.addEventListener('firebase-ready',setupAuth,{once:true});
-      return;
-    }
+  if(window._firebaseReady&&window._fbOnAuthStateChanged&&window._fbAuth){
     window._fbOnAuthStateChanged(window._fbAuth,user=>{
       if(user){
         window._fbCurrentUser=user;
@@ -1005,11 +997,6 @@ function init(){
         showLayer('layer-login');
       }
     });
-  }
-  if(window._firebaseReady&&window._fbOnAuthStateChanged&&window._fbAuth){
-    setupAuth();
-  } else {
-    document.addEventListener('firebase-ready',setupAuth,{once:true});
   }
 }
 
@@ -1123,20 +1110,6 @@ function showBookingForm(preselect){
       if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
       if(cfCalOpen)renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');
     }).catch(e=>console.warn('Firebase date fetch error:',e));
-  } else {
-    console.warn('Firebase not ready when showBookingForm called. _firebaseReady:',window._firebaseReady,'_fbDb:',!!window._fbDb);
-    // Retry once Firebase is ready
-    document.addEventListener('firebase-ready',()=>{
-      const db=window._fbDb,r=window._fbRef,g=window._fbGet;
-      Promise.all([g(r(db,'bookedDates')),g(r(db,'freedDates'))]).then(([bdSnap,fdSnap])=>{
-        console.log('Firebase (retry) bookedDates:',bdSnap.exists(),bdSnap.val());
-        if(bdSnap.exists()){const val=bdSnap.val();bookedDates=Array.isArray(val)?val:Object.values(val||{});}
-        if(fdSnap.exists()){const val=fdSnap.val();freedDates=Array.isArray(val)?val:Object.values(val||{});}
-        console.log('bookedDates after retry sync:',bookedDates.length,'dates');
-        // Re-render the calendar now that dates are loaded
-        if(cfCalOpen)renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');
-      }).catch(e=>console.error('Firebase retry date fetch error:',e));
-    },{once:true});
   }
   if(preselect&&['sax_bt','sax_dj','combo'].includes(preselect)){
     cfSelectService(preselect);
@@ -2196,7 +2169,7 @@ function cfValidate(){let ok=true;
     document.getElementById('cf-e-intl-number').style.display=inumv?'none':'block';
     if(!icv||!inumv)ok=false;
   }
-  const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});const isIntl=document.getElementById('cf-intl-toggle')?.checked;
+  const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-mobile',err:'cf-e-mobile'},{id:'cf-eventtype',err:'cf-e-eventtype'}];fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});
   if(isIntl){
     const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');
     const icv=ic?ic.value.trim():'',inumv=inum?inum.value.trim():'';

@@ -613,7 +613,23 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <div class="cf-group"><label>Last Name *</label><input type="text" id="cf-lastname" placeholder="Smith"><div class="cf-field-err" id="cf-e-lastname">Required</div></div>
           <div class="cf-group"><label>Email Address *</label><input type="email" id="cf-email" placeholder="jane@example.com"><div class="cf-field-err" id="cf-e-email">Please enter a valid email</div></div>
           <div class="cf-group"><label>Mobile Number *</label><input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx"><div class="cf-field-err" id="cf-e-mobile">Required</div></div>
-          <div class="cf-group"><label>International Number <span style="font-weight:400;font-size:11px;">(only if applicable / longer than 11 digits)</span></label><div style="display:flex;gap:6px;align-items:center;"><div style="position:relative;flex:0 0 72px;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;">+</span><input type="tel" id="cf-intl-code" maxlength="3" style="padding:8px 8px 8px 22px;width:100%;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)"></div><input type="tel" id="cf-intl-number" style="flex:1;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;"></div></div>
+          <div class="cf-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <label style="margin-bottom:0;font-size:12px;color:var(--ink3);font-weight:500;">
+                <input type="checkbox" id="cf-intl-toggle" style="accent-color:var(--ink);width:14px;height:14px;margin-right:6px;vertical-align:middle;" onchange="cfToggleIntl(this.checked)">
+                International number? (longer than 11 digits)
+              </label>
+            </div>
+            <div id="cf-intl-fields" style="display:none;margin-top:8px;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <div style="position:relative;flex:0 0 72px;">
+                  <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;">+</span>
+                  <input type="tel" id="cf-intl-code" maxlength="3" placeholder="44" style="padding:8px 8px 8px 22px;width:100%;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)">
+                </div>
+                <input type="tel" id="cf-intl-number" style="flex:1;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="cf-card">
@@ -2113,6 +2129,17 @@ function initCfVenueListeners(){
   if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',cfUpdateDuration);}
   if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',cfUpdateDuration);}
 }
+function cfToggleIntl(on){
+  const fields=document.getElementById('cf-intl-fields');
+  if(fields)fields.style.display=on?'block':'none';
+  if(!on){
+    const code=document.getElementById('cf-intl-code');
+    const num=document.getElementById('cf-intl-number');
+    if(code)code.value='';
+    if(num)num.value='';
+  }
+}
+
 function cfToggleManualAddress(on){
   const manual=document.getElementById('cf-manual-address');
   const autoInput=document.getElementById('cf-venue');

@@ -989,6 +989,11 @@ function init(){
   // Show login immediately, then let Firebase auth state decide
   showLayer('layer-login');
   function setupAuth(){
+    if(!window._fbOnAuthStateChanged||!window._fbAuth){
+      // Firebase not ready yet — wait for it
+      document.addEventListener('firebase-ready',setupAuth,{once:true});
+      return;
+    }
     window._fbOnAuthStateChanged(window._fbAuth,user=>{
       if(user){
         window._fbCurrentUser=user;
@@ -1001,7 +1006,7 @@ function init(){
       }
     });
   }
-  if(window._firebaseReady&&window._fbOnAuthStateChanged){
+  if(window._firebaseReady&&window._fbOnAuthStateChanged&&window._fbAuth){
     setupAuth();
   } else {
     document.addEventListener('firebase-ready',setupAuth,{once:true});

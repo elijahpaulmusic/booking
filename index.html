@@ -618,10 +618,11 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
                 Int'l Number?
               </label>
             </div>
-            <div id="cf-phone-field">
-              <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx"><div class="cf-field-err" id="cf-e-mobile">Required</div>
-            </div>
-            <div id="cf-intl-fields" style="display:none;">
+            <div style="position:relative;">
+              <div id="cf-phone-field">
+                <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx" minlength="11" maxlength="11" oninput="this.value=this.value.replace(/[^0-9+\s]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
+              </div>
+              <div id="cf-intl-fields" style="display:none;position:absolute;top:0;left:0;width:100%;">
               <div style="display:flex;gap:6px;align-items:center;">
                 <div style="position:relative;flex:0 0 72px;">
                   <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;">+</span>
@@ -631,6 +632,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               </div>
               <div class="cf-field-err" id="cf-e-intl-code" style="display:none;">Please enter a country code</div>
               <div class="cf-field-err" id="cf-e-intl-number" style="display:none;">Please enter a number</div>
+              </div>
             </div>
           </div>
         </div>
@@ -2188,7 +2190,17 @@ function cfValidate(){let ok=true;
   const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-eventtype',err:'cf-e-eventtype'}];
   // Only validate mobile if intl toggle is not checked
   if(!document.getElementById('cf-intl-toggle')?.checked){
-    fields.push({id:'cf-mobile',err:'cf-e-mobile'});
+    const mobileEl=document.getElementById('cf-mobile');
+    const mobileDigits=(mobileEl?.value||'').replace(/\D/g,'');
+    const mobileErr=document.getElementById('cf-e-mobile');
+    if(!mobileDigits||mobileDigits.length!==11){
+      if(mobileEl)mobileEl.classList.add('cf-err');
+      if(mobileErr)mobileErr.style.display='block';
+      ok=false;
+    } else {
+      if(mobileEl)mobileEl.classList.remove('cf-err');
+      if(mobileErr)mobileErr.style.display='none';
+    }
   }fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});
   if(isIntl){
     const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');

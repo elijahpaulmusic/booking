@@ -181,10 +181,10 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .service-option:hover:not(.selected){box-shadow:var(--shadow);}
 
 /* modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:hidden;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:720px;box-shadow:var(--shadow-lg);overflow:hidden;}
-.modal-header{padding:18px 24px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--cream);}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:720px;max-height:calc(100vh - 80px);box-shadow:var(--shadow-lg);overflow-y:auto;display:flex;flex-direction:column;}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--cream);position:sticky;top:0;z-index:10;flex-shrink:0;}
 .modal-header h2{font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:18px;color:var(--gold);}
 .modal-header .close-btn{background:none;border:none;color:#A09880;cursor:pointer;font-size:22px;line-height:1;padding:0;}
 .modal-header .close-btn:hover{color:var(--cream);}
@@ -315,7 +315,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;overflow:hidden!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:92vh;overflow-y:auto!important;width:100%!important;}.modal-header{position:sticky;top:0;z-index:10;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;overflow:hidden!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:92vh!important;width:100%!important;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
 </style>
 </head>
 <body>
@@ -1709,7 +1709,7 @@ function openBooking(id){currentBookingId=id;const b=bookings.find(x=>x.id===id)
       cb.checked=b.contactMethods&&b.contactMethods.includes(cb.value);
     });
   },0);
-  showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');}
+  showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');document.body.style.overflow='hidden';}
 
 function renderOtherTab(b){
   const sel=document.getElementById('detail-chosen-option');
@@ -1726,7 +1726,7 @@ function renderOtherTab(b){
     }else{disp.innerHTML='';}
   }
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
 
 function openBookingTab(b){
   renderFollowUpTab(b);

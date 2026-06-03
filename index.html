@@ -560,9 +560,19 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         </div>
         <div class="settings-card full">
           <h3>Data Management</h3>
-          <div class="form-group" style="margin-bottom:14px;">
-            <label>Autofill Client Email Address <span style="font-weight:400;font-size:11px;">(used in New Enquiry autofill)</span></label>
-            <input type="email" id="set-autofill-email" placeholder="e.g. epfirmin@gmail.com" onchange="saveSettings()">
+          <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--cream2);">
+            <label style="font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:10px;">🎲 Auto-fill Test Data</label>
+            <p style="font-size:12px;color:var(--ink3);margin-bottom:10px;">These values are used when you click the Auto-fill button on the New Enquiry form.</p>
+            <div class="form-grid">
+              <div class="form-group"><label>Test Email</label><input type="email" id="set-autofill-email" placeholder="e.g. your@email.com" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Venue</label><input type="text" id="set-autofill-venue" placeholder="e.g. Swynford Manor, Cambridge" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Venue Lat</label><input type="text" id="set-autofill-lat" placeholder="e.g. 52.2271" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Venue Lon</label><input type="text" id="set-autofill-lon" placeholder="e.g. 0.3198" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Venue Miles</label><input type="number" id="set-autofill-miles" placeholder="e.g. 54.3" step="0.1" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Date</label><input type="date" id="set-autofill-date" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test Start Time</label><input type="time" id="set-autofill-starttime" onchange="saveSettings()"></div>
+              <div class="form-group"><label>Test End Time</label><input type="time" id="set-autofill-endtime" onchange="saveSettings()"></div>
+            </div>
           </div>
           <p class="card-desc">All data is stored locally in your browser. Nothing sent to any server.</p>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#FEF9E7;border:1px solid #F9E79F;border-radius:var(--radius);">
@@ -855,7 +865,7 @@ let currentBookingId = null;
 let bookedDates = [];
 let freedDates = []; // dates manually freed from bookedDates
 let settings = {
-  name:'Elijah Paul', email:'info@elijahpaul.com', autofillEmail:'', phone:'07519 356742', invoiceName:'Elisha Firmin trading as Elijah Paul Music',
+  name:'Elijah Paul', email:'info@elijahpaul.com', autofillEmail:'',autofillVenue:'Swynford Manor, A1304, East Cambridgeshire, Cambridgeshire',autofillLat:'52.2271',autofillLon:'0.3198',autofillMiles:'54.3',autofillDate:'2027-05-25',autofillStartTime:'19:00',autofillEndTime:'20:00', phone:'07519 356742', invoiceName:'Elisha Firmin trading as Elijah Paul Music',
   homePostcode:'CO7 9AW', sortCode:'', account:'',
   website:'www.elijahpaul.com', password:'elijah',
   icalLastSync: null,
@@ -870,7 +880,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '03/06/26 16:12:03';
+const BUILD_TIME = '03/06/26 16:20:56';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -2495,27 +2505,28 @@ function autoFillTestEnquiry(){
   // Fill fields
   document.getElementById('nq-firstname').value=fn;
   document.getElementById('nq-lastname').value=ln;
-  document.getElementById('nq-email').value=settings.autofillEmail||settings.email||'epfirmin@gmail.com';
-  document.getElementById('nq-mobile').value=settings.phone||'07519 356742';
+  document.getElementById('nq-email').value=settings.autofillEmail||settings.email||'';
+  document.getElementById('nq-mobile').value=settings.phone||'';
   document.getElementById('nq-notes').value='Test enquiry — auto-generated';
   // Date via custom calendar
-  wsPickDate('2027-05-25');
+  wsPickDate(settings.autofillDate||'');
   // Event type
   const etSel=document.getElementById('nq-eventtype');
   if(etSel){etSel.value=et;}
   // Times
-  const st=document.getElementById('nq-starttime');if(st)st.value='19:00';
-  const et2=document.getElementById('nq-endtime');if(et2)et2.value='20:00';
-  // Venue — set directly without API call
+  const st=document.getElementById('nq-starttime');if(st)st.value=settings.autofillStartTime||'19:00';
+  const et2=document.getElementById('nq-endtime');if(et2)et2.value=settings.autofillEndTime||'20:00';
+  // Venue
   const venueEl=document.getElementById('nq-venue');
-  if(venueEl){
-    venueEl.value='Swynford Manor, A1304, East Cambridgeshire, Cambridgeshire';
-    venueEl.dataset.lat='52.2271';
-    venueEl.dataset.lon='0.3198';
+  if(venueEl&&settings.autofillVenue){
+    venueEl.value=settings.autofillVenue;
+    venueEl.dataset.lat=settings.autofillLat||'';
+    venueEl.dataset.lon=settings.autofillLon||'';
   }
-  // Mileage — pre-calculated ~55 miles from CO7 9AW to CB8 area
+  // Mileage
   const ms=document.getElementById('ws-mileage-status');
-  if(ms){ms.dataset.miles='54.3';ms.textContent='✓ 54.3 miles one way (test data)';ms.className='mileage-status ok';}
+  const afMiles=parseFloat(settings.autofillMiles)||54.3;
+  if(ms){ms.dataset.miles=String(afMiles);ms.textContent='✓ '+afMiles+' miles one way (test data)';ms.className='mileage-status ok';}
   // Service — select on page 1 and move to page 2
   wsSelectService(svc);
   wsGoToP2();

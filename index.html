@@ -627,7 +627,12 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         <div class="cf-grid">
           <div class="cf-group"><label>First Name *</label><input type="text" id="cf-firstname" placeholder="Jane"><div class="cf-field-err" id="cf-e-firstname">Required</div></div>
           <div class="cf-group"><label>Last Name *</label><input type="text" id="cf-lastname" placeholder="Smith"><div class="cf-field-err" id="cf-e-lastname">Required</div></div>
-          <div class="cf-group"><label>Email Address *</label><input type="email" id="cf-email" placeholder="jane@example.com"><div class="cf-field-err" id="cf-e-email">Please enter a valid email</div></div>
+          <div class="cf-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <label style="margin-bottom:0;">Email Address *</label>
+            </div>
+            <input type="email" id="cf-email" placeholder="jane@example.com"><div class="cf-field-err" id="cf-e-email">Please enter a valid email</div>
+          </div>
           <div class="cf-group">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
               <label style="margin-bottom:0;">Mobile Number *</label>
@@ -637,9 +642,9 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               </label>
             </div>
             <div id="cf-phone-field">
-                <input type="tel" id="cf-mobile" name="tel" placeholder="07xxx xxxxxx" autocomplete="tel" onblur="this.value=this.value.replace(/[^0-9]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
-              </div>
-              <div id="cf-intl-fields" style="display:none;">
+              <input type="tel" id="cf-mobile" name="tel" placeholder="07xxx xxxxxx" autocomplete="tel" onblur="this.value=this.value.replace(/[^0-9]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
+            </div>
+            <div id="cf-intl-fields" style="display:none;">
               <div style="display:flex;gap:6px;align-items:center;">
                 <div style="position:relative;flex:0 0 72px;">
                   <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;">+</span>
@@ -649,7 +654,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               </div>
               <div class="cf-field-err" id="cf-e-intl-code" style="display:none;">Please enter a country code</div>
               <div class="cf-field-err" id="cf-e-intl-number" style="display:none;">Please enter a number</div>
-              </div>
+            </div>
           </div>
         </div>
       </div>

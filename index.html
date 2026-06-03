@@ -315,7 +315,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.stage-select-row{gap:4px!important;}.stage-select-row .stage-btn{flex:1 1 auto;min-width:calc(50% - 8px);font-size:11px;padding:5px 4px;text-align:center;}.stage-select-row .btn-secondary,.stage-select-row .btn-danger{flex:1 1 40%;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.calc-grid{grid-template-columns:1fr!important;flex-direction:column!important;}.quote-tiles{flex-wrap:wrap;}.quote-tile{min-width:calc(50% - 8px);}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.stage-select-row{gap:4px!important;}.stage-select-row .stage-btn{flex:1 1 auto;min-width:calc(50% - 8px);font-size:11px;padding:5px 4px;text-align:center;}.stage-select-row .btn-secondary,.stage-select-row .btn-danger{flex:1 1 40%;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
 </style>
 </head>
 <body>
@@ -1604,26 +1604,26 @@ function renderCalcSection(b){
 
   return `<div class="detail-section" style="grid-column:1/-1;">
     <h4>Calculation Breakdown</h4>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;">
-      <div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Premiums</div>
-        ${prow('Base rate','£'+serviceBase)}
-        ${prow('Event type ('+b.eventType+')','£'+ep)}
-        ${prow('Day ('+days[date.getDay()]+')','£'+dp)}
-        ${prow('Month ('+months[date.getMonth()]+')','£'+mp)}
-        ${prow('Travel ('+(b.miles||0).toFixed(1)+' mi × £'+mileageRate+')','£'+mc)}
-        ${paAdd?prow('PA speakers','£'+paAdd):''}
-        <div class="detail-row" style="border-top:1px solid var(--cream3);margin-top:4px;padding-top:6px;"><span class="lbl" style="font-weight:600;color:var(--ink);">Premiums total</span><span class="val" style="font-family:monospace;font-weight:700;">£${premiumsTotal}</span></div>
-      </div>
-      <div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Duration add-ons (on top of 60min)</div>
-        ${prow('30x min rate','£'+ext1,'added to 60min for 90min')}
-        ${prow('1 hour rate','£'+extHr,'added to 60min for 2hrs')}
-        ${prow('2× hour rate','£'+(extHr*2),'added to 60min for 3hrs')}
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:10px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;margin-top:6px;">Quote results</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;">
-          ${[{l:'60x min',p:base60},{l:'90x min',p:base90},{l:'2x hours',p:base120},{l:'3x hours',p:base180}].map(q=>`<div style="background:var(--ink);border-radius:var(--radius);padding:8px;text-align:center;"><div style="font-size:10px;color:#A09880;margin-bottom:1px;">${q.l}</div><div style="font-size:16px;font-weight:700;color:var(--gold);">£${q.p}</div><div style="font-size:9px;color:#A09880;margin-top:1px;">dep £${calcDeposit(q.p)}</div></div>`).join('')}
-        </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Premiums</div>
+      ${prow('Base rate','£'+serviceBase)}
+      ${prow('Event type ('+b.eventType+')','£'+ep)}
+      ${prow('Day ('+days[date.getDay()]+')','£'+dp)}
+      ${prow('Month ('+months[date.getMonth()]+')','£'+mp)}
+      ${prow('Travel ('+(b.miles||0).toFixed(1)+' mi × £'+mileageRate+')','£'+mc)}
+      ${paAdd?prow('PA speakers','£'+paAdd):''}
+      <div class="detail-row" style="border-top:1px solid var(--cream3);margin-top:4px;padding-top:6px;"><span class="lbl" style="font-weight:600;color:var(--ink);">Premiums total</span><span class="val" style="font-family:monospace;font-weight:700;">£${premiumsTotal}</span></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:2px;">Duration add-ons (on top of 60min)</div>
+      ${prow('30x min rate','£'+ext1,'added to 60min for 90min')}
+      ${prow('1 hour rate','£'+extHr,'added to 60min for 2hrs')}
+      ${prow('2× hour rate','£'+(extHr*2),'added to 60min for 3hrs')}
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);padding:3px 0 6px;border-bottom:1px solid var(--cream2);margin-bottom:8px;">Quote results</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" class="quote-results-grid">
+        ${[{l:'60x min',p:base60},{l:'90x min',p:base90},{l:'2x hours',p:base120},{l:'3x hours',p:base180}].map(q=>`<div style="background:var(--ink);border-radius:var(--radius);padding:8px;text-align:center;"><div style="font-size:10px;color:#A09880;margin-bottom:1px;">${q.l}</div><div style="font-size:16px;font-weight:700;color:var(--gold);">£${q.p}</div><div style="font-size:9px;color:#A09880;margin-top:1px;">dep £${calcDeposit(q.p)}</div></div>`).join('')}
       </div>
     </div>
   </div>`;

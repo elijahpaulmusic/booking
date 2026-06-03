@@ -361,7 +361,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <button class="nav-tab" onclick="showView('archived')">Archived</button>
     </nav>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-      <div style="font-size:9px;color:#6B6558;letter-spacing:0.04em;line-height:1;">v 03/06/26 11:05:43</div>
+      <div id="app-version" style="font-size:9px;color:#6B6558;letter-spacing:0.04em;line-height:1;"></div>
       <button class="logout-btn" onclick="doLogout()">Log Out ↩</button>
     </div>
   </header>
@@ -524,6 +524,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         </div>
         <div class="settings-card full">
           <h3>Availability — Gigs Calendar</h3>
+          <div id="ical-last-sync-label" style="font-size:12px;color:var(--ink3);margin-bottom:8px;"></div>
           <p class="card-desc">Upload your .ics file to block booked dates on the client booking form. <strong style="color:var(--ink2);">How to export:</strong> Google Calendar → ⚙ Settings → Import &amp; export → Export → unzip → upload the .ics file for your Gigs calendar. Booked dates update on the client form instantly.</p>
           <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px;">
             <div style="flex:1;min-width:200px;">
@@ -637,7 +638,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             </div>
             <div style="position:relative;min-height:42px;">
               <div id="cf-phone-field">
-                <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx" minlength="11" maxlength="11" oninput="this.value=this.value.replace(/[^0-9+\s]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
+                <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx" autocomplete="tel" onblur="this.value=this.value.replace(/[^0-9]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
               </div>
               <div id="cf-intl-fields" style="display:none;position:absolute;top:0;left:0;width:100%;">
               <div style="display:flex;gap:6px;align-items:center;">
@@ -860,6 +861,13 @@ let settings = {
 };
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
+// ── Build timestamp (auto-updated on every save) ─────────────────────────
+const BUILD_TIME = '03/06/26 15:02:19';
+document.addEventListener('DOMContentLoaded',()=>{
+  const el=document.getElementById('app-version');
+  if(el)el.textContent='v '+BUILD_TIME;
+});
+
 // ── Schema version — increment this when data structure changes ──────────
 const SCHEMA_VERSION = 1;
 
@@ -2334,7 +2342,9 @@ function cfValidate(){let ok=true;
   // Only validate mobile if intl toggle is not checked
   if(!document.getElementById('cf-intl-toggle')?.checked){
     const mobileEl=document.getElementById('cf-mobile');
-    const mobileDigits=(mobileEl?.value||'').replace(/\D/g,'');
+    // Strip non-digits on validate in case autofill included spaces/dashes
+    if(mobileEl)mobileEl.value=(mobileEl.value||'').replace(/[^0-9]/g,'');
+    const mobileDigits=mobileEl?.value||'';
     const mobileErr=document.getElementById('cf-e-mobile');
     if(!mobileDigits||mobileDigits.length!==11){
       if(mobileEl)mobileEl.classList.add('cf-err');

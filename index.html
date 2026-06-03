@@ -315,7 +315,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.stage-select-row{gap:4px!important;}.stage-select-row .stage-btn{flex:1 1 auto;min-width:calc(50% - 8px);font-size:11px;padding:5px 4px;text-align:center;}.stage-select-row .btn-secondary,.stage-select-row .btn-danger{flex:1 1 40%;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.calc-grid{grid-template-columns:1fr!important;flex-direction:column!important;}.quote-tiles{flex-wrap:wrap;}.quote-tile{min-width:calc(50% - 8px);}}
 </style>
 </head>
 <body>
@@ -617,7 +617,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
                 Int'l Number?
               </label>
             </div>
-            <div style="position:relative;">
+            <div style="position:relative;min-height:42px;">
               <div id="cf-phone-field">
                 <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx" minlength="11" maxlength="11" oninput="this.value=this.value.replace(/[^0-9+\s]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
               </div>
@@ -926,6 +926,31 @@ function _fbWrite(){
   s(r(db,'settings'),settings).catch(e=>console.warn('FB settings:',e));
   s(r(db,'bookedDates'),bookedDates.length?bookedDates:null).catch(e=>console.warn('FB bookedDates:',e));
   s(r(db,'freedDates'),freedDates.length?freedDates:null).catch(e=>console.warn('FB freedDates:',e));
+  // Clean up /enquiries — remove any entries that are now in /bookings to avoid duplicates
+  _fbCleanEnquiries();
+}
+
+function _fbCleanEnquiries(){
+  if(!window._firebaseReady||!window._fbDb||!window._fbCurrentUser)return;
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet,s=window._fbSet;
+  const bookingIds=new Set(bookings.map(b=>b.id));
+  g(r(db,'enquiries')).then(snapshot=>{
+    if(!snapshot.exists())return;
+    const enqObj=snapshot.val();
+    // Firebase push() stores as object with auto-keys, filter out any whose id is in bookings
+    let changed=false;
+    Object.keys(enqObj).forEach(key=>{
+      const enq=enqObj[key];
+      if(enq&&enq.id&&bookingIds.has(enq.id)){
+        delete enqObj[key];
+        changed=true;
+      }
+    });
+    if(changed){
+      s(r(db,'enquiries'),Object.keys(enqObj).length?enqObj:null)
+        .catch(e=>console.warn('FB enquiries cleanup:',e));
+    }
+  }).catch(e=>console.warn('FB enquiries read:',e));
 }
 function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
 
@@ -964,6 +989,8 @@ function syncFromFirebase(callback){
       localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
     }
     runMigrations();
+    // Clean up enquiries that have already been merged into bookings
+    if(window._fbCurrentUser)_fbCleanEnquiries();
     if(callback)callback();
   }).catch(e=>{
     console.warn('Firebase sync failed:',e);

@@ -94,7 +94,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 
 .pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .pipeline-header h1{font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:22px;color:var(--ink);}
-.btn{padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'Open Sans Condensed','Open Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn{padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'Open Sans Condensed','Open Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:6px;}
 .btn-primary{background:var(--gold);color:var(--ink);}
 .btn-primary:hover{background:#b8943e;}
 .btn-secondary{background:var(--cream2);color:var(--ink2);border:1px solid var(--cream3);}
@@ -315,7 +315,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;overflow:hidden!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:92vh;overflow-y:auto!important;width:100%!important;}.modal-header{position:sticky;top:0;z-index:10;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
 </style>
 </head>
 <body>
@@ -731,8 +731,8 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <button class="stage-btn" onclick="moveToStage('booked')">Booked ✓</button>
         </div>
         <div class="stage-row">
-          <button class="btn btn-secondary btn-sm" onclick="archiveBooking(currentBookingId)">🗄 Archive</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCurrentBooking()">Delete</button>
+          <button class="btn btn-secondary btn-sm" style="text-align:center;justify-content:center;" onclick="archiveBooking(currentBookingId)">🗄 Archive</button>
+          <button class="btn btn-danger btn-sm" style="text-align:center;justify-content:center;" onclick="deleteCurrentBooking()">Delete</button>
         </div>
       </div>
       <div class="inner-tabs">
@@ -2052,7 +2052,7 @@ function downloadICS(){
 // ═══════════════════════════════════════════════════
 // TABS & VIEWS
 // ═══════════════════════════════════════════════════
-function showTab(id){document.querySelectorAll('#detail-modal .inner-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>t.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>{if(t.getAttribute('onclick')===`showTab('${id}')`)t.classList.add('active');});}
+function showTab(id){document.querySelectorAll('#detail-modal .inner-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>t.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>{if(t.getAttribute('onclick')===`showTab('${id}')`)t.classList.add('active');});const modal=document.querySelector('#detail-modal .modal');if(modal)modal.scrollTop=0;}
 function showInvoiceTab(id,btn){['invoice-deposit','invoice-balance'].forEach(p=>document.getElementById(p).classList.remove('active'));document.getElementById(id)?.classList.add('active');btn.closest('.inner-tabs').querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name)?.classList.add('active');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>{if(t.getAttribute('onclick')===`showView('${name}')`)t.classList.add('active');});if(name==='pipeline')renderPipeline();if(name==='settings')populateSettings();if(name==='archived')renderArchived();if(name==='new-enquiry'){
     document.getElementById('ws-enquiry-p1').style.display='block';

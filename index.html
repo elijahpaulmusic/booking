@@ -204,7 +204,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .inner-tab.active{color:var(--gold-dim);border-bottom-color:var(--gold);}
 .inner-tab:hover:not(.active){color:var(--ink2);}
 .inner-panel{display:none;} .inner-panel.active{display:block;}
-.stage-select-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.stage-select-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}.stage-select-row .stage-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .stage-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--cream3);background:var(--cream2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Open Sans Condensed','Open Sans',sans-serif;color:var(--ink3);transition:all 0.15s;}
 .stage-btn.active-stage{background:var(--ink);color:var(--cream);border-color:var(--ink);}
 .stage-btn:hover:not(.active-stage){background:var(--cream3);}
@@ -315,7 +315,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-label{font-size:13px;font-weight:500;color:var(--ink2);}
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.stage-select-row{gap:4px!important;}.stage-select-row .stage-btn{flex:1 1 auto;min-width:calc(50% - 8px);font-size:11px;padding:5px 4px;text-align:center;}.stage-select-row .btn-secondary,.stage-select-row .btn-danger{flex:1 1 40%;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;align-items:flex-end!important;}.modal{border-radius:var(--radius-lg) var(--radius-lg) 0 0!important;max-height:95vh;overflow-y:auto;width:100%!important;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
 </style>
 </head>
 <body>
@@ -721,13 +721,19 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div class="modal-header"><h2 id="modal-title">Booking</h2><button class="close-btn" onclick="closeModal('detail-modal')">×</button></div>
     <div class="modal-body">
       <div class="stage-select-row">
-        <span style="font-size:12px;color:var(--ink3);margin-right:4px;">Move to:</span>
-        <button class="stage-btn" onclick="moveToStage('enquiry')">Enquiry</button>
-        <button class="stage-btn" onclick="moveToStage('quote')">Quote Sent</button>
-        <button class="stage-btn" onclick="moveToStage('deposit')">Deposit Pending</button>
-        <button class="stage-btn" onclick="moveToStage('booked')">Booked ✓</button>
-        <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="archiveBooking(currentBookingId)">🗄 Archive</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCurrentBooking()">Delete</button>
+        <span style="font-size:12px;font-weight:600;color:var(--ink3);">Move to:</span>
+        <div class="stage-row">
+          <button class="stage-btn" onclick="moveToStage('enquiry')">Enquiry</button>
+          <button class="stage-btn" onclick="moveToStage('quote')">Quote Sent</button>
+        </div>
+        <div class="stage-row">
+          <button class="stage-btn" onclick="moveToStage('deposit')">Deposit Pending</button>
+          <button class="stage-btn" onclick="moveToStage('booked')">Booked ✓</button>
+        </div>
+        <div class="stage-row">
+          <button class="btn btn-secondary btn-sm" onclick="archiveBooking(currentBookingId)">🗄 Archive</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentBooking()">Delete</button>
+        </div>
       </div>
       <div class="inner-tabs">
         <button class="inner-tab active" onclick="showTab('tab-detail')">Details</button>

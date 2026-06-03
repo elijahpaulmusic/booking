@@ -716,7 +716,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <textarea id="cf-notes" placeholder="Set splits and detailed timings, if applicable, can be decided at a closer date."></textarea>
         </div>
       </div>
-      <div class="submit-err-bar" id="cf-submit-err">Something went wrong. Please try again or email me at info@elijahpaul.com</div>
+      <div class="submit-err-bar" id="cf-submit-err">Something went wrong. Please try again or contact me directly.</div>
       <button class="cf-btn cf-btn-primary" id="cf-submit-btn" onclick="cfSubmit()">
         <span id="cf-submit-label">Submit Booking Enquiry</span>
         <span id="cf-submit-spinner" style="display:none;"><span class="spinner"></span></span>
@@ -957,10 +957,15 @@ function _fbWrite(){
   if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef)return;
   if(!window._fbCurrentUser)return;
   const db=window._fbDb,r=window._fbRef,s=window._fbSet;
-  s(r(db,'bookings'),bookings.length?bookings:null).catch(e=>console.warn('FB bookings:',e));
-  s(r(db,'settings'),settings).catch(e=>console.warn('FB settings:',e));
-  s(r(db,'bookedDates'),bookedDates.length?bookedDates:null).catch(e=>console.warn('FB bookedDates:',e));
-  s(r(db,'freedDates'),freedDates.length?freedDates:null).catch(e=>console.warn('FB freedDates:',e));
+  const _onFbErr=e=>{
+    console.warn('Firebase write error:',e);
+    clearTimeout(window._fbErrTimer);
+    window._fbErrTimer=setTimeout(()=>showToast('⚠ Could not save to server — working offline','error',4000),2000);
+  };
+  s(r(db,'bookings'),bookings.length?bookings:null).catch(_onFbErr);
+  s(r(db,'settings'),settings).catch(_onFbErr);
+  s(r(db,'bookedDates'),bookedDates.length?bookedDates:null).catch(_onFbErr);
+  s(r(db,'freedDates'),freedDates.length?freedDates:null).catch(_onFbErr);
   // Clean up /enquiries — remove any entries that are now in /bookings to avoid duplicates
   _fbCleanEnquiries();
 }
@@ -1147,28 +1152,13 @@ function doLogout(){
 }
 
 function startEnquiryListener(){
-  // Listen for new enquiries in real time — pipeline updates automatically
   if(!window._firebaseReady||!window._fbOnValue||!window._fbDb)return;
-  const db=window._fbDb,r=window._fbRef;
-  window._fbOnValue(r(db,'enquiries'),snapshot=>{
-    if(!snapshot.exists())return;
-    const enq=Object.values(snapshot.val()||{}).filter(b=>b&&b.id);
-    const wsIds=new Set(bookings.map(b=>b.id));
-    const newOnes=enq.filter(b=>!wsIds.has(b.id));
-    if(newOnes.length>0){
-      bookings=[...bookings,...newOnes];
-      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
-      renderPipeline();
-      // Show nudge if pipeline is visible
-      const nudgeBar=document.getElementById('nudge-bar');
-      if(nudgeBar)nudgeBar.style.display='';
-    }
-  });
-}
-function startEnquiryListener(){
-  if(!window._firebaseReady||!window._fbOnValue||!window._fbDb)return;
-  if(window._enquiryListenerActive)return; // only one listener
+  if(window._enquiryListenerActive)return;
   window._enquiryListenerActive=true;
+  // Request browser notification permission
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
   const db=window._fbDb,r=window._fbRef;
   window._fbOnValue(r(db,'enquiries'),snapshot=>{
     if(!snapshot.exists())return;
@@ -1179,6 +1169,31 @@ function startEnquiryListener(){
       bookings=[...bookings,...newOnes];
       localStorage.setItem('ep_bookings',JSON.stringify(bookings));
       renderPipeline();
+      // ── Notify for each new enquiry ──────────────────────────────────
+      newOnes.forEach(b=>{
+        const name=(b.firstName||'')+' '+(b.lastName||'');
+        // Toast
+        showToast('📋 New enquiry: '+name.trim(),'info',5000);
+        // Audio ping — short subtle tone
+        try{
+          const ctx=new(window.AudioContext||window.webkitAudioContext)();
+          const osc=ctx.createOscillator();
+          const gain=ctx.createGain();
+          osc.connect(gain);gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(880,ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(440,ctx.currentTime+0.3);
+          gain.gain.setValueAtTime(0.15,ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+          osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.4);
+        }catch(e){}
+        // Browser notification (if tab not focused)
+        if('Notification' in window && Notification.permission==='granted' && document.hidden){
+          new Notification('New booking enquiry',{
+            body:name.trim()+' — '+( b.eventType||'')+(b.eventDate?' · '+new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):''),
+            icon:'',tag:'enquiry-'+b.id
+          });
+        }
+      });
     }
   });
 }
@@ -1702,7 +1717,7 @@ function renderBookingEmailTab(b){
   const isSaxBT=b.service==='sax_bt';
   const djPara=isSaxBT?'':'\n\nPlease let your DJ know that I\'ll be performing alongside them! Happy to chat to them before the day to discuss requirements if you can share their details with me, or mine with them. You can also send them this link which has all the info they should need: https://www.elijahpaul.com/fordjs';
 
-  const body=`Hi ${b.firstName},
+  const body=`Hi ${esc(b.firstName)},
 
 Really glad to hear you would like to proceed with the booking!
 
@@ -1752,7 +1767,7 @@ function openBooking(id){
   // Lock body scroll — iOS Safari requires position:fixed technique
   window._scrollY=window.scrollY||window.pageYOffset;
   document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${esc(b.firstName)} ${esc(b.lastName)}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
-  const smsMsg=encodeURIComponent(`Hi ${b.firstName}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
+  const smsMsg=encodeURIComponent(`Hi ${esc(b.firstName)}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
   const mobile=(b.mobile||'').replace(/\s+/g,'');
   const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
   const smsSent=b.smsSent||false;
@@ -1812,7 +1827,7 @@ function renderFollowUpTab(b){
   const fuDate=b.followUpDate?new Date(b.followUpDate):null;
   const isDue=b.followUpDate?isReminderDue(b.followUpDate):false;
   const eventDateFmt=b.eventDate?fmtFollowUpDate(b.eventDate):'your event';
-  const followUpEmail=`Hi ${b.firstName},\n\nJust wanted to follow up with you and wondered if you have had any further thoughts about booking me for your ${b.eventType||'event'}? I'm still available on ${eventDateFmt} and would love the opportunity to play for you and your guests! If you have any questions about anything, or if anything has changed, let me know!\n\nI look forward to hearing from you!\n\nBest wishes,\nElijah`;
+  const followUpEmail=`Hi ${esc(b.firstName)},\n\nJust wanted to follow up with you and wondered if you have had any further thoughts about booking me for your ${b.eventType||'event'}? I'm still available on ${eventDateFmt} and would love the opportunity to play for you and your guests! If you have any questions about anything, or if anything has changed, let me know!\n\nI look forward to hearing from you!\n\nBest wishes,\nElijah`;
 
   let html='';
 

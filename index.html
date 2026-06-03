@@ -181,7 +181,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .service-option:hover:not(.selected){box-shadow:var(--shadow);}
 
 /* modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:hidden;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:hidden;top:0;left:0;right:0;bottom:0;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:720px;max-height:calc(100vh - 80px);box-shadow:var(--shadow-lg);overflow-y:auto;display:flex;flex-direction:column;}
 .modal-header{padding:18px 24px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--cream);position:sticky;top:0;z-index:10;flex-shrink:0;}
@@ -1686,7 +1686,15 @@ function markSmsSent(id, cb){
   saveData();
 }
 
-function openBooking(id){currentBookingId=id;const b=bookings.find(x=>x.id===id);if(!b)return;document.getElementById('modal-title').textContent=`${b.firstName} ${b.lastName}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${b.firstName} ${b.lastName}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${b.email||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${b.mobile||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${b.notes||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${b.eventType||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${b.venue||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
+function openBooking(id){
+  currentBookingId=id;
+  const b=bookings.find(x=>x.id===id);
+  if(!b)return;
+  // Lock body scroll — works on iOS Safari
+  window._scrollY=window.scrollY;
+  document.body.style.position='fixed';
+  document.body.style.top='-'+window._scrollY+'px';
+  document.body.style.width='100%';document.getElementById('modal-title').textContent=`${b.firstName} ${b.lastName}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${b.firstName} ${b.lastName}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${b.email||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${b.mobile||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${b.notes||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${b.eventType||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${b.venue||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
   const smsMsg=encodeURIComponent(`Hi ${b.firstName}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
   const mobile=(b.mobile||'').replace(/\s+/g,'');
   const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
@@ -1709,7 +1717,7 @@ function openBooking(id){currentBookingId=id;const b=bookings.find(x=>x.id===id)
       cb.checked=b.contactMethods&&b.contactMethods.includes(cb.value);
     });
   },0);
-  showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');document.body.style.overflow='hidden';}
+  showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');}
 
 function renderOtherTab(b){
   const sel=document.getElementById('detail-chosen-option');
@@ -1726,7 +1734,15 @@ function renderOtherTab(b){
     }else{disp.innerHTML='';}
   }
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  // Restore body scroll — iOS Safari fix
+  const scrollY=window._scrollY||0;
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.width='';
+  window.scrollTo(0,scrollY);
+}
 
 function openBookingTab(b){
   renderFollowUpTab(b);

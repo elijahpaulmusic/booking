@@ -648,9 +648,9 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               <div style="display:flex;gap:6px;align-items:center;">
                 <div style="position:relative;flex:0 0 72px;">
                   <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;">+</span>
-                  <input type="tel" id="cf-intl-code" maxlength="3" placeholder="44" style="padding:8px 8px 8px 22px;width:100%;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)">
+                  <input type="tel" id="cf-intl-code" maxlength="3" placeholder="44" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)" style="padding:10px 8px 10px 22px;width:100%;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;">
                 </div>
-                <input type="tel" id="cf-intl-number" style="flex:1;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;">
+                <input type="tel" id="cf-intl-number" style="flex:1;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;">
               </div>
               <div class="cf-field-err" id="cf-e-intl-code" style="display:none;">Please enter a country code</div>
               <div class="cf-field-err" id="cf-e-intl-number" style="display:none;">Please enter a number</div>

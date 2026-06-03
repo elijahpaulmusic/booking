@@ -636,9 +636,9 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
                 Int'l Number?
               </label>
             </div>
-            <div style="position:relative;min-height:42px;">
+            <div style="position:relative;">
               <div id="cf-phone-field">
-                <input type="tel" id="cf-mobile" placeholder="07xxx xxxxxx" autocomplete="tel" onblur="this.value=this.value.replace(/[^0-9]/g,'')"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
+                <input type="tel" id="cf-mobile" name="tel" placeholder="07xxx xxxxxx" autocomplete="tel" onblur="this.value=this.value.replace(/[^0-9]/g,'')" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"><div class="cf-field-err" id="cf-e-mobile">Please enter an 11-digit UK number</div>
               </div>
               <div id="cf-intl-fields" style="display:none;position:absolute;top:0;left:0;width:100%;">
               <div style="display:flex;gap:6px;align-items:center;">

@@ -467,13 +467,13 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <div class="settings-grid">
         <div class="settings-card">
           <h3>Your Details <span class="save-flash">✓ Saved</span></h3>
-          <div class="form-group" style="margin-bottom:10px;"><label>Your Name</label><input type="text" id="set-name"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Your Email</label><input type="email" id="set-email"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Phone Number</label><input type="tel" id="set-phone" placeholder="07xxx xxxxxx"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Home Postcode</label><input type="text" id="set-homepostcode"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Invoice Name <span style="font-weight:400;font-size:11px;">(name on invoice payment details)</span></label><input type="text" id="set-invoicename" placeholder="e.g. Elisha Firmin trading as Elijah Paul Music"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Bank Sort Code</label><input type="text" id="set-sortcode" placeholder="00-00-00"></div>
-          <div class="form-group" style="margin-bottom:10px;"><label>Account Number</label><input type="text" id="set-account" placeholder="12345678"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Your Name</label><input type="text" id="set-name" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Your Email</label><input type="email" id="set-email" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Phone Number</label><input type="tel" id="set-phone" placeholder="07xxx xxxxxx" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Home Postcode</label><input type="text" id="set-homepostcode" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Invoice Name <span style="font-weight:400;font-size:11px;">(name on invoice payment details)</span></label><input type="text" id="set-invoicename" placeholder="e.g. Elisha Firmin trading as Elijah Paul Music" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Bank Sort Code</label><input type="text" id="set-sortcode" placeholder="00-00-00" onchange="saveSettings()"></div>
+          <div class="form-group" style="margin-bottom:10px;"><label>Account Number</label><input type="text" id="set-account" placeholder="12345678" onchange="saveSettings()"></div>
           <div class="form-group">
             <label>Password</label>
             <button class="btn btn-secondary btn-sm" onclick="sendPasswordReset()" type="button">Change Password — send reset email</button>

@@ -39,6 +39,8 @@ try {
   window._fbSignOut = (auth) => auth.signOut();
   window._fbSendPasswordReset = (auth, email) => auth.sendPasswordResetEmail(email);
   window._firebaseReady = true;
+  const fbStatusEl=document.getElementById('login-firebase-status');
+  if(fbStatusEl)fbStatusEl.style.display='none';
 } catch(e) {
   console.error('Firebase init error:', e);
   window._firebaseReady = false;
@@ -56,6 +58,17 @@ try {
   --shadow-lg:0 6px 32px rgba(26,24,20,0.16);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
+
+/* Toast notifications */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;color:var(--cream);opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none;max-width:320px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:#1E7E4B;}
+.toast.error{background:#C0392B;}
+.toast.info{background:var(--ink);}
+/* Settings save flash */
+.save-flash{font-size:11px;color:var(--green);opacity:0;transition:opacity 0.3s;margin-left:8px;}
+.save-flash.show{opacity:1;}
 body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.6;}
 
 /* ── LAYERS ─────────────────────────────────────────────── */
@@ -335,6 +348,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div id="login-err" style="color:var(--red);font-size:12px;margin-top:8px;display:none;"></div>
     <div id="login-ok" style="color:var(--green);font-size:12px;margin-top:8px;display:none;"></div>
     <div id="login-spinner" style="display:none;margin-top:12px;font-size:13px;color:var(--ink3);">Signing in...</div>
+    <div id="login-firebase-status" style="font-size:11px;color:var(--ink3);margin-top:6px;opacity:0.6;">Connecting to server...</div>
   </div>
 </div>
 <div id="layer-workstation" class="layer">
@@ -709,7 +723,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         <div class="success-icon">🎷</div>
         <h2 id="cf-success-heading">Thanks!</h2>
         <p id="cf-success-body"></p>
-        <div class="success-signed">Elijah Paul</div>
+        <div class="success-signed" id="cf-success-name">Elijah Paul</div>
       </div>
     </div>
 
@@ -803,7 +817,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         <div id="invoice-balance" class="inner-panel"></div>
       </div>
       <div class="inner-panel" id="tab-booking-email"><div id="booking-email-content"></div></div>
-      <div class="inner-panel" id="tab-booking-email"><div id="booking-email-content"></div></div>
+      <div class="inner-panel" id="tab-booking-email-2"><div id="booking-email-content-2"></div></div>
       <div class="inner-panel" id="tab-calendar"><div id="calendar-content"></div></div>
     </div>
   </div>
@@ -959,7 +973,36 @@ function _fbCleanEnquiries(){
     }
   }).catch(e=>console.warn('FB enquiries read:',e));
 }
-function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
+// ── XSS sanitiser — use for all user-supplied data in innerHTML ──────────
+function esc(str){
+  if(!str)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function copyText(text){
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast('Copied!','success',1500)).catch(()=>_fallbackCopy(text));}
+  else{_fallbackCopy(text);}
+}
+function _fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;';
+  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast('Copied!','success',1500);}catch(e){}ta.remove();
+}
+function copyById(id){
+  const el=document.getElementById(id);if(!el)return;
+  copyText(el.innerText||el.textContent||'');
+}
+
+function showToast(msg,type='info',duration=3000){
+  const container=document.getElementById('toast-container');if(!container)return;
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  container.appendChild(t);requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},duration);
+}
+function showSaveFlash(){
+  const flashes=document.querySelectorAll('.save-flash');
+  flashes.forEach(f=>{f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2000);});
+}
+function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
 
 // ── Client form: write new enquiry to Firebase without auth ──────────────
 // Uses push() for atomic append — no read-then-write race condition
@@ -1032,6 +1075,7 @@ function init(){
         window._fbCurrentUser=user;
         sessionStorage.setItem('ep_auth','1');
         syncFromFirebase(()=>{showWorkstation();});
+        showToast('Syncing data...','info',1000);
       } else {
         window._fbCurrentUser=null;
         sessionStorage.removeItem('ep_auth');
@@ -1325,7 +1369,7 @@ async function wsTriggerMileage(dLat,dLon){const el=document.getElementById('ws-
 let wsService='';
 const WS_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax with Client\'s DJ',combo:'✨ COMBO — Both'};
 function wsSelectService(val){wsService=val;document.querySelectorAll('[id^="ws-opt-"]').forEach(el=>el.classList.remove('selected'));document.getElementById('ws-opt-'+val).classList.add('selected');}
-function wsGoToP2(){if(!wsService){alert('Please select a service type.');return;}document.getElementById('ws-enquiry-p1').style.display='none';document.getElementById('ws-enquiry-p2').style.display='block';document.getElementById('ws-service-label').textContent=WS_SERVICE_LABELS[wsService]||'';}
+function wsGoToP2(){if(!wsService){showToast('Please select a service type.','error');return;}document.getElementById('ws-enquiry-p1').style.display='none';document.getElementById('ws-enquiry-p2').style.display='block';document.getElementById('ws-service-label').textContent=WS_SERVICE_LABELS[wsService]||'';}
 function wsGoToP1(){document.getElementById('ws-enquiry-p2').style.display='none';document.getElementById('ws-enquiry-p1').style.display='block';}
 function calcWsDuration(){const st=document.getElementById('nq-starttime'),et=document.getElementById('nq-endtime'),d=document.getElementById('ws-dur-display');const s=st?st.value:'',e=et?et.value:'';if(!s||!e){if(d)d.textContent='';return 1;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;if(d)d.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();return mins/60;}
 
@@ -1342,7 +1386,7 @@ function saveEnquiry(){
     if(!b.eventDate)missing.push('Event Date');
     if(!b.eventType)missing.push('Event Type');
     if(!b.venue)missing.push('Venue');
-    if(missing.length){alert('Please fill in the following required fields:\n\n• '+missing.join('\n• '));return;}
+    if(missing.length){showToast('Please fill in: '+missing.join(', '),'error');return;}
     bookings.push(b);
     saveData();
     renderPipeline();
@@ -1359,7 +1403,7 @@ function saveEnquiry(){
     const p2=document.getElementById('ws-enquiry-p2');if(p2)p2.style.display='none';
     const p1=document.getElementById('ws-enquiry-p1');if(p1)p1.style.display='block';
   }catch(err){
-    alert('Save failed: '+err.message);
+    showToast('Save failed: '+err.message,'error');
     console.error(err);
   }
 }
@@ -1517,7 +1561,7 @@ function renderArchived(){
     const sl={sax_bt:'Sax+BT',sax_dj:'Sax+DJ',combo:'Combo'}[b.service]||'';
     return`<div style="background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <div>
-        <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">${b.firstName} ${b.lastName}</div>
+        <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">${esc(b.firstName)} ${esc(b.lastName)}</div>
         <div style="font-size:12px;color:var(--ink3);">${dl} · ${b.eventType||''} · ${sl}</div>
         <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${b.email}${al?' · Archived '+al:''}</div>
       </div>
@@ -1549,7 +1593,7 @@ function toggleCol(colId){
 // ═══════════════════════════════════════════════════
 // PIPELINE
 // ═══════════════════════════════════════════════════
-function renderPipeline(){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);for(const[stage,list]of Object.entries(cols)){const el=document.getElementById('col-'+stage);document.getElementById('count-'+stage).textContent=list.length;if(!list.length){el.innerHTML='<div class="empty-col">No bookings</div>';continue;}list.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));el.innerHTML=list.map(b=>cardHtml(b)).join('');}const today=new Date();today.setHours(0,0,0,0);const nudges=bookings.filter(b=>{if(!b.followUpDate)return false;if(b.stage==='archived'||b.stage==='booked')return false;return isReminderDue(b.followUpDate);});const nb=document.getElementById('nudge-bar');if(nudges.length){nb.style.display='flex';document.getElementById('nudge-items').innerHTML=nudges.map(b=>`<span class="nudge-item overdue" onclick="openBooking('${b.id}')">${b.firstName} ${b.lastName}</span>`).join(' ');}else nb.style.display='none';renderCalRefreshNudge();
+function renderPipeline(){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);for(const[stage,list]of Object.entries(cols)){const el=document.getElementById('col-'+stage);document.getElementById('count-'+stage).textContent=list.length;if(!list.length){el.innerHTML='<div class="empty-col">No bookings</div>';continue;}list.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));el.innerHTML=list.map(b=>cardHtml(b)).join('');}const today=new Date();today.setHours(0,0,0,0);const nudges=bookings.filter(b=>{if(!b.followUpDate)return false;if(b.stage==='archived'||b.stage==='booked')return false;return isReminderDue(b.followUpDate);});const nb=document.getElementById('nudge-bar');if(nudges.length){nb.style.display='flex';document.getElementById('nudge-items').innerHTML=nudges.map(b=>`<span class="nudge-item overdue" onclick="openBooking('${b.id}')">${esc(b.firstName)} ${esc(b.lastName)}</span>`).join(' ');}else nb.style.display='none';renderCalRefreshNudge();
   ['col-enquiry','col-quote','col-deposit','col-booked'].forEach(colId=>{
     if(collapseState[colId]){
       const cards=document.getElementById(colId);
@@ -1580,7 +1624,7 @@ if(b.pendingArchive){
     fu=`<div class="follow-up-bar"><span>${isCountdown?`⏱ ${cd}`:`🔔 ${cd}`}</span></div>`;
   }
 }
-const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'No date';const sl={sax_bt:'Sax+BT',sax_dj:'Sax+DJ',combo:'Combo'}[b.service]||'';const t=(b.eventType||'').toLowerCase(),bc=t.includes('wedding')?'badge-wedding':t.includes('birthday')||t.includes('party')?'badge-birthday':t.includes('corporate')?'badge-corporate':'badge-other';return`<div class="booking-card" onclick="openBooking('${b.id}')" style="${overdueBorder}"><div class="card-name">${b.firstName} ${b.lastName}</div><div class="card-event">${dl} · ${b.venue||''}</div><div class="card-meta">${b.eventType?`<span class="badge ${bc}">${b.eventType}</span>`:''}${sl?`<span class="badge" style="background:var(--cream2);color:var(--ink3);">${sl}</span>`:''}${b.agreedPrice&&b.chosenDuration?`<span class="badge" style="background:#E8F5EE;color:#1E6A3A;">${durationShort(b.chosenDuration)} £${b.agreedPrice}</span>`:''}${b.source==='client-form'?`<span class="badge" style="background:#E8F0FE;color:#3A5BA0;">🌐 Web</span>`:''}</div>${fu}</div>`;}
+const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'No date';const sl={sax_bt:'Sax+BT',sax_dj:'Sax+DJ',combo:'Combo'}[b.service]||'';const t=(b.eventType||'').toLowerCase(),bc=t.includes('wedding')?'badge-wedding':t.includes('birthday')||t.includes('party')?'badge-birthday':t.includes('corporate')?'badge-corporate':'badge-other';return`<div class="booking-card" onclick="openBooking('${b.id}')" style="${overdueBorder}"><div class="card-name">${esc(b.firstName)} ${esc(b.lastName)}</div><div class="card-event">${dl} · ${b.venue||''}</div><div class="card-meta">${b.eventType?`<span class="badge ${bc}">${b.eventType}</span>`:''}${sl?`<span class="badge" style="background:var(--cream2);color:var(--ink3);">${sl}</span>`:''}${b.agreedPrice&&b.chosenDuration?`<span class="badge" style="background:#E8F5EE;color:#1E6A3A;">${durationShort(b.chosenDuration)} £${b.agreedPrice}</span>`:''}${b.source==='client-form'?`<span class="badge" style="background:#E8F0FE;color:#3A5BA0;">🌐 Web</span>`:''}</div>${fu}</div>`;}
 
 // ═══════════════════════════════════════════════════
 // BOOKING DETAIL MODAL
@@ -1693,7 +1737,7 @@ function openBooking(id){
   if(!b)return;
   // Lock body scroll — iOS Safari requires position:fixed technique
   window._scrollY=window.scrollY||window.pageYOffset;
-  document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${b.firstName} ${b.lastName}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${b.firstName} ${b.lastName}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${b.email||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${b.mobile||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${b.notes||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${b.eventType||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${b.venue||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
+  document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${esc(b.firstName)} ${esc(b.lastName)}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime||'—'}</span></div><div class="detail-row"><span class="lbl">End</span><span class="val">${b.endTime||'—'}</span></div><div class="detail-row"><span class="lbl">Duration</span><span class="val">${durationShort(b.duration)}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${b.chosenDuration?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${b.agreedPrice?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
   const smsMsg=encodeURIComponent(`Hi ${b.firstName}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
   const mobile=(b.mobile||'').replace(/\s+/g,'');
   const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
@@ -1709,7 +1753,7 @@ function openBooking(id){
         </div>
       </div>`
     : `<div style="margin-top:12px;font-size:12px;color:var(--ink3);">No mobile number on file — add one in Details to enable SMS.</div>`;
-  document.getElementById('quote-email-content').innerHTML=`<div class="quote-output-header"><h3>Quote Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('modal-email-out')">Copy Email</button></div><div class="quote-output" id="modal-email-out">${email}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p>${smsSection}`;renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
+  document.getElementById('quote-email-content').innerHTML=`<div class="quote-output-header"><h3>Quote Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('modal-email-out')">Copy Email</button></div><div style="background:var(--cream2);border:1px solid var(--cream3);border-radius:var(--radius);padding:8px 12px;margin-bottom:8px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="color:var(--ink3);font-weight:600;flex-shrink:0;">Subject:</span><span id="quote-subject-line" style="color:var(--ink);flex:1;"></span><button class="btn btn-secondary btn-sm" onclick="copyText(document.getElementById('quote-subject-line').textContent)" style="flex-shrink:0;padding:4px 10px;font-size:11px;">Copy</button></div><div class="quote-output" id="modal-email-out">${email}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${b.email}" style="color:var(--gold-dim);">${b.email}</a></p>${smsSection}`;renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
   // Restore contact method checkboxes
   setTimeout(()=>{
     document.querySelectorAll('input[name="contact-method"]').forEach(cb=>{
@@ -1850,7 +1894,18 @@ function moveToStage(stage){
   document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===sm[stage]));
   openBookingTab(b);
 }
-function deleteCurrentBooking(){if(!confirm('Delete this booking permanently?'))return;bookings=bookings.filter(x=>x.id!==currentBookingId);saveData();renderPipeline();closeModal('detail-modal');}
+function deleteCurrentBooking(){
+  const btn=document.querySelector('#detail-modal .btn-danger');if(!btn)return;
+  if(btn.dataset.confirm==='1'){
+    bookings=bookings.filter(x=>x.id!==currentBookingId);
+    saveData();closeModal('detail-modal');renderPipeline();renderArchived();
+    showToast('Booking deleted.','info');
+  } else {
+    btn.dataset.confirm='1';btn.textContent='Confirm Delete?';
+    btn.style.background='#C0392B';btn.style.color='#fff';
+    setTimeout(()=>{if(btn){btn.dataset.confirm='';btn.textContent='Delete';btn.style.background='';btn.style.color='';}},3000);
+  }
+}
 function saveFollowup(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;b.followUpDate=document.getElementById('detail-followup').value||null;saveData();renderPipeline();}
 function setFollowup7(){document.getElementById('detail-followup').value=reminderDate().split('T')[0];}
 function clearFollowup(){document.getElementById('detail-followup').value='';}
@@ -1920,8 +1975,8 @@ function saveNotes(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)ret
 function renderInvoices(b){
   const price=b.agreedPrice,deposit=price?calcDeposit(price):null,balance=price?price-deposit:null;
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
-  const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.substr(0,10).replace(/-/g,''):'00000000');
-  const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.substr(0,10)===b.createdAt?.substr(0,10)));
+  const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.slice(0,10).replace(/-/g,''):'00000000');
+  const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)));
   const isFreedDate=b.eventDate&&freedDates.includes(b.eventDate);
   const rawSeq=sameDayBookings.findIndex(x=>x.id===b.id)+1;
   const seqNum=String(isFreedDate?Math.max(rawSeq+1,2):rawSeq).padStart(2,'0');
@@ -1950,7 +2005,7 @@ function renderInvoices(b){
       </div>
       <div class="invoice-parties">
         <div class="invoice-party"><h5>From</h5><p>Elijah Paul<br>info@elijahpaul.com<br>07519 356742</p></div>
-        <div class="invoice-party"><h5>To</h5><p>${b.firstName} ${b.lastName}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
+        <div class="invoice-party"><h5>To</h5><p>${esc(b.firstName)} ${esc(b.lastName)}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
       </div>
       <table class="invoice-table">
         <thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead>
@@ -2056,7 +2111,7 @@ function downloadICS(){
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
   // Escape special chars in description for iCal format
   const icsDesc=desc.replace(/\n/g,'\\n').replace(/,/g,'\\,');
-  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${summary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${b.venue||''}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:info@elijahpaul.com\r\nSUMMARY:Gig in 14 days — ${summary}\r\nDESCRIPTION:${summary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days — ${summary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//${settings.name||'Elijah Paul Music'}//EN\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${summary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${b.venue||''}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:info@elijahpaul.com\r\nSUMMARY:Gig in 14 days — ${summary}\r\nDESCRIPTION:${summary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days — ${summary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
   a.download=`${b.firstName}_${b.lastName}_gig.ics`;a.click();
@@ -2156,7 +2211,23 @@ function unFreeDate(d){
 }
 
 function renderBookedPreview(){const el=document.getElementById('booked-preview');if(!el)return;if(!bookedDates.length){el.innerHTML='<div style="font-size:12px;color:var(--ink3);">No booked dates found yet.</div>';return;}const chips=bookedDates.slice(0,30).map(d=>`<span class="booked-chip">${new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>`).join('');const more=bookedDates.length>30?`<span style="font-size:12px;color:var(--ink3);margin-left:4px;">+${bookedDates.length-30} more</span>`:'';el.innerHTML=`<div class="booked-chips">${chips}${more}</div>`;}
-function renderCalRefreshNudge(){const bar=document.getElementById('cal-refresh-bar');if(!bar)return;const last=settings.icalLastSync;if(!last||!bookedDates.length){bar.style.display='none';return;}const daysSince=(Date.now()-new Date(last).getTime())/(1000*60*60*24);bar.style.display=daysSince>=14?'flex':'none';}
+function renderCalRefreshNudge(){
+  const bar=document.getElementById('cal-refresh-bar');if(!bar)return;
+  const last=settings.icalLastSync;
+  // Update last sync label
+  const syncLabel=document.getElementById('ical-last-sync-label');
+  if(syncLabel){
+    if(last&&bookedDates.length){
+      const d=new Date(last);const daysSince=Math.floor((Date.now()-d.getTime())/(1000*60*60*24));
+      syncLabel.textContent='Last synced: '+d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+(daysSince===0?' (today)':daysSince===1?' (yesterday)':' ('+daysSince+' days ago)');
+    } else {
+      syncLabel.textContent='No calendar uploaded yet.';
+    }
+  }
+  if(!last||!bookedDates.length){bar.style.display='none';return;}
+  const daysSince=(Date.now()-new Date(last).getTime())/(1000*60*60*24);
+  bar.style.display=daysSince>=14?'flex':'none';
+}
 function dismissCalRefresh(){if(settings.icalLastSync){const snooze=new Date(new Date(settings.icalLastSync).getTime()+12*24*60*60*1000),twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);settings.icalLastSync=(snooze>twoDaysAgo?twoDaysAgo:snooze).toISOString();saveData();}document.getElementById('cal-refresh-bar').style.display='none';}
 
 // ═══════════════════════════════════════════════════
@@ -2358,11 +2429,11 @@ function resetRates(){
   if(!r.dep3amount)r.dep3amount=200;if(!r.dep4amount)r.dep4amount=250;
   if(!r.dep1threshold)r.dep1threshold=500;if(!r.dep2threshold)r.dep2threshold=750;if(!r.dep3threshold)r.dep3threshold=1000;
   saveData();populateSettings();
-  alert('Pricing rates fixed. Quote emails should now generate for all enquiries.');
+  showToast('Pricing rates fixed.','success');
 }
 function exportData(){const blob=new Blob([JSON.stringify({bookings,settings,bookedDates,freedDates},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`elijahpaul-bookings-${new Date().toISOString().split('T')[0]}.json`;a.click();}
 function importData(){document.getElementById('import-input').click();}
-function handleImport(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.bookings)bookings=d.bookings;if(d.settings)settings=deepMerge(settings,d.settings);if(d.bookedDates)bookedDates=d.bookedDates;if(d.freedDates)freedDates=d.freedDates;saveData();renderPipeline();alert('Data imported!');}catch{alert('Invalid file.');}};reader.readAsText(file);}
+function handleImport(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.bookings)bookings=d.bookings;if(d.settings)settings=deepMerge(settings,d.settings);if(d.bookedDates)bookedDates=d.bookedDates;if(d.freedDates)freedDates=d.freedDates;saveData();renderPipeline();showToast('Data imported!','success');}catch{showToast('Invalid file — please use a valid export.','error');}};reader.readAsText(file);}
 function clearAllData(){if(!confirm('Delete ALL bookings and settings?'))return;bookings=[];bookedDates=[];freedDates=[];saveData();renderPipeline();}
 
 
@@ -2381,7 +2452,7 @@ function autoFillTestEnquiry(){
   // Fill fields
   document.getElementById('nq-firstname').value=fn;
   document.getElementById('nq-lastname').value=ln;
-  document.getElementById('nq-email').value='epfirmin@gmail.com';
+  document.getElementById('nq-email').value=settings.email||'epfirmin@gmail.com';
   document.getElementById('nq-mobile').value=settings.phone||'07519 356742';
   document.getElementById('nq-notes').value='Test enquiry — auto-generated';
   // Date via custom calendar
@@ -2417,5 +2488,6 @@ if(document.readyState==='loading'){
   init();runAutoArchiveCheck();
 }
 </script>
+<div id="toast-container"></div>
 </body>
 </html>

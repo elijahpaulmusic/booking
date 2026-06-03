@@ -360,7 +360,10 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <button class="nav-tab" onclick="showView('settings')">Settings</button>
       <button class="nav-tab" onclick="showView('archived')">Archived</button>
     </nav>
-    <button class="logout-btn" onclick="doLogout()">Log Out ↩</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+      <div style="font-size:9px;color:#6B6558;letter-spacing:0.04em;line-height:1;">v 03/06/26 11:05:43</div>
+      <button class="logout-btn" onclick="doLogout()">Log Out ↩</button>
+    </div>
   </header>
 
   <div class="app-body">

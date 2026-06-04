@@ -902,7 +902,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 10:23:23';
+const BUILD_TIME = '04/06/26 10:27:04';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;

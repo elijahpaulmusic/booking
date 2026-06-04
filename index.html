@@ -898,7 +898,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 10:12:20';
+const BUILD_TIME = '04/06/26 10:22:04';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -1504,7 +1504,7 @@ function saveEnquiry(){
     const p1=document.getElementById('ws-enquiry-p1');if(p1)p1.style.display='block';
   }catch(err){
     showToast('Save failed: '+err.message,'error');
-    console.error(err);
+    console.error('EmailJS send failed:', err);
   }
 }
 
@@ -2672,8 +2672,8 @@ const firstName=document.getElementById('cf-firstname').value.trim(),lastName=do
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const clientSubject=`Solo Sax Enquiry ${dateShort} — Elijah Paul Saxophonist`;
-const mySubject=`${CF_SERVICE_EMAIL[service]||service} Enquiry ${dateShort} — Elijah Paul Saxophonist`;
+const clientSubject=`Solo Sax Enquiry ${dateShort} — ${settings.name||'Elijah Paul'} Saxophonist`;
+const mySubject=`${CF_SERVICE_EMAIL[service]||service} Enquiry ${dateShort} — ${settings.name||'Elijah Paul'} Saxophonist`;
 const bookingDetails=`NAME:         ${firstName} ${lastName}
 EMAIL:        ${email}
 MOBILE:       ${mobile}

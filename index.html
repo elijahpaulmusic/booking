@@ -296,14 +296,16 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .cf-group{display:flex;flex-direction:column;gap:4px;}
 .cf-group.full{grid-column:1/-1;}
 .cf-group label{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;}
-.cf-group input,.cf-group select,.cf-group textarea{padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.15s;width:100%;}
+.cf-group input,.cf-group select,.cf-group textarea{padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:14px;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.15s;width:100%;box-sizing:border-box;}
 .cf-group input:focus,.cf-group select:focus,.cf-group textarea:focus{border-color:var(--gold);}
 .cf-group textarea{resize:vertical;min-height:90px;}
 .cf-group input.cf-err,.cf-group select.cf-err{border-color:var(--red);}
 .cf-field-err{font-size:11px;color:var(--red);margin-top:2px;display:none;}
 .cf-divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);padding:12px 0 6px;border-top:1px solid var(--cream2);margin-top:4px;grid-column:1/-1;}
 .cf-divider.first{border-top:none;padding-top:0;margin-top:0;}
-.time-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.time-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
+.time-pair .cf-group{margin-bottom:0;}
+.time-pair input[type="time"]{width:100%;box-sizing:border-box;min-width:0;-webkit-appearance:none;appearance:none;}
 .dur-hint{font-size:12px;color:var(--gold-dim);margin-top:3px;font-weight:500;grid-column:1/-1;}
 .cal-trigger-cf{padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);background:var(--white);cursor:pointer;font-size:14px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;transition:border-color 0.15s;user-select:none;}
 .cal-trigger-cf:hover{border-color:#c8bfaf;}
@@ -914,7 +916,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 08:55:06';
+const BUILD_TIME = '04/06/26 09:10:48'
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;

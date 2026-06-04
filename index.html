@@ -898,14 +898,14 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 10:02:12';
+const BUILD_TIME = '04/06/26 10:12:20';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
 });
 
 // ── Schema version — increment this when data structure changes ──────────
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // ── Migration definitions — add new ones here as the app evolves ─────────
 const migrations = {
@@ -930,16 +930,14 @@ const migrations = {
       s._cleared_v2=true;
     }
     return {settings:s, bookings:b};
+  },
+  // v2: clean up legacy autofill keys no longer used
+  2: function(s, b){
+    const legacyKeys=['autofillVenue','autofillLat','autofillLon','autofillMiles',
+                      'autofillDate','autofillStartTime','autofillEndTime','autofillPhone'];
+    legacyKeys.forEach(k=>{ if(k in s) delete s[k]; });
+    return {settings:s, bookings:b};
   }
-  // Future example:
-  // 2: function(s, b){
-  //   // v2: rename 'saxDj' to 'baseRate' in rates
-  //   if(s.rates.saxDj!==undefined && s.rates.baseRate===undefined){
-  //     s.rates.baseRate = s.rates.saxDj;
-  //     delete s.rates.saxDj;
-  //   }
-  //   return {settings:s, bookings:b};
-  // }
 };
 
 function runMigrations(){
@@ -1938,7 +1936,7 @@ function renderFollowUpTab(b){
   const fuDate=b.followUpDate?new Date(b.followUpDate):null;
   const isDue=b.followUpDate?isReminderDue(b.followUpDate):false;
   const eventDateFmt=b.eventDate?fmtFollowUpDate(b.eventDate):'your event';
-  const followUpEmail=`Hi ${esc(b.firstName)},\n\nJust wanted to follow up with you and wondered if you have had any further thoughts about booking me for your ${b.eventType||'event'}? I'm still available on ${eventDateFmt} and would love the opportunity to play for you and your guests! If you have any questions about anything, or if anything has changed, let me know!\n\nI look forward to hearing from you!\n\nBest wishes,\nElijah`;
+  const followUpEmail=`Hi ${esc(b.firstName)},\n\nJust wanted to follow up with you and wondered if you have had any further thoughts about booking me for your ${b.eventType||'event'}? I'm still available on ${eventDateFmt} and would love the opportunity to play for you and your guests! If you have any questions about anything, or if anything has changed, let me know!\n\nI look forward to hearing from you!\n\nBest wishes,\n${settings.name||'Elijah'}`;
 
   let html='';
 

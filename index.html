@@ -571,14 +571,9 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <h3>Data Management</h3>
           <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--cream2);">
             <label style="font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:10px;">🎲 Auto-fill Test Data</label>
-            <p style="font-size:12px;color:var(--ink3);margin-bottom:10px;">These values are used when you click the Auto-fill button on the New Enquiry form.</p>
+            <p style="font-size:12px;color:var(--ink3);margin-bottom:10px;">Used when clicking Auto-fill on the test booking form. Venue is randomly selected from 50 top venues in the Home Counties &amp; East Anglia. Date is randomly selected from free dates within 2 years.</p>
             <div class="form-grid">
               <div class="form-group"><label>Test Email</label><input type="email" id="set-autofill-email" placeholder="e.g. your@email.com" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Venue</label><input type="text" id="set-autofill-venue" placeholder="e.g. Swynford Manor, Cambridge" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Venue Lat</label><input type="text" id="set-autofill-lat" placeholder="e.g. 52.2271" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Venue Lon</label><input type="text" id="set-autofill-lon" placeholder="e.g. 0.3198" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Venue Miles</label><input type="number" id="set-autofill-miles" placeholder="e.g. 54.3" step="0.1" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Date</label><input type="date" id="set-autofill-date" onchange="saveSettings()"></div>
               <div class="form-group"><label>Test Start Time</label><input type="time" id="set-autofill-starttime" onchange="saveSettings()"></div>
               <div class="form-group"><label>Test End Time</label><input type="time" id="set-autofill-endtime" onchange="saveSettings()"></div>
             </div>
@@ -914,7 +909,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 08:24:14';
+const BUILD_TIME = '04/06/26 08:47:35';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -2491,40 +2486,118 @@ function initCfVenueListeners(){
   if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',cfUpdateDuration);}
   if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',cfUpdateDuration);}
 }
+const CF_TEST_VENUES=[
+  {name:'Hengrave Hall',addr:'Hengrave, Bury St Edmunds, Suffolk IP28 6LZ',lat:52.2847,lon:0.6718},
+  {name:'Woodhall Manor',addr:'Woodhall Road, Sutton, Woodbridge, Suffolk IP12 3JW',lat:52.0851,lon:1.3749},
+  {name:'Bruisyard Hall',addr:'Bruisyard, Saxmundham, Suffolk IP17 2EJ',lat:52.2201,lon:1.4389},
+  {name:'Seckford Hall',addr:'Seckford Hall Road, Great Bealings, Woodbridge, Suffolk IP13 6NU',lat:52.0879,lon:1.2749},
+  {name:'Glemham Hall',addr:'Great Glemham, Saxmundham, Suffolk IP17 2DA',lat:52.2214,lon:1.4641},
+  {name:'Ravenwood Hall',addr:'Rougham Road, Rougham, Bury St Edmunds, Suffolk IP30 9JA',lat:52.2089,lon:0.8217},
+  {name:'Milsoms Kesgrave Hall',addr:'Hall Road, Kesgrave, Ipswich, Suffolk IP5 2PU',lat:52.0601,lon:1.2459},
+  {name:'Preston Tower',addr:'Preston St Mary, Sudbury, Suffolk CO10 9NQ',lat:52.0641,lon:0.8291},
+  {name:'Cliff Barns',addr:'East Ruston Road, Walcott, Norfolk NR12 0NT',lat:52.7901,lon:1.5341},
+  {name:'Holkham Hall',addr:'Wells-next-the-Sea, Norfolk NR23 1AB',lat:52.9611,lon:0.8009},
+  {name:'Barnham Broom Hotel',addr:'Honingham Road, Barnham Broom, Norfolk NR9 4DD',lat:52.5981,lon:1.0691},
+  {name:'Voewood',addr:'High Kelling, Holt, Norfolk NR25 6QS',lat:52.9121,lon:1.0791},
+  {name:'Morston Hall',addr:'Morston, Holt, Norfolk NR25 7AA',lat:52.9581,lon:0.9741},
+  {name:'Assembly House',addr:'Theatre Street, Norwich, Norfolk NR2 1RQ',lat:52.6271,lon:1.2941},
+  {name:'Hunstanton Manor',addr:'Old Hunstanton, Norfolk PE36 6HZ',lat:52.9491,lon:0.4941},
+  {name:'Swynford Manor',addr:'A1304, Six Mile Bottom, Cambridgeshire CB8 0UE',lat:52.2271,lon:0.3198},
+  {name:'Childerley Hall',addr:'Dry Drayton Road, Childerley, Cambridge CB23 2BB',lat:52.2371,lon:0.0091},
+  {name:'Anstey Hall',addr:'Anstey, Royston, Hertfordshire SG8 6EX',lat:52.0361,lon:0.0491},
+  {name:'Blake Hall',addr:'Bobbingworth, Ongar, Essex CM5 0DG',lat:51.7271,lon:0.2341},
+  {name:'Fennes Estate',addr:'Braintree Road, Bocking, Braintree, Essex CM7 5LH',lat:51.9201,lon:0.5891},
+  {name:'Gosfield Hall',addr:'Hall Drive, Gosfield, Braintree, Essex CO9 1SF',lat:51.9421,lon:0.6091},
+  {name:'Crondon Park',addr:'Stock Road, Stock, Ingatestone, Essex CM4 9DP',lat:51.6691,lon:0.4891},
+  {name:'Hedingham Castle',addr:'Castle Hedingham, Halstead, Essex CO9 3DJ',lat:51.9991,lon:0.5991},
+  {name:'Ashridge House',addr:'Little Gaddesden, Berkhamsted, Hertfordshire HP4 1NS',lat:51.8021,lon:-0.5551},
+  {name:'Hanbury Manor',addr:'Ware, Hertfordshire SG12 0SD',lat:51.8291,lon:-0.0221},
+  {name:'Moor Park Mansion',addr:'Moor Park, Rickmansworth, Hertfordshire WD3 1QN',lat:51.6381,lon:-0.4521},
+  {name:'Tewin Bury Farm',addr:'Tewin, Welwyn, Hertfordshire AL6 0JB',lat:51.8391,lon:-0.1711},
+  {name:'Brocket Hall',addr:'Welwyn, Hertfordshire AL8 7XG',lat:51.8161,lon:-0.2291},
+  {name:'Down Hall',addr:"Matching Road, Hatfield Heath, Bishop's Stortford, Essex CM22 7AS",lat:51.8151,lon:0.1731},
+  {name:'Hedsor House',addr:'Hedsor, Taplow, Buckinghamshire SL6 0HX',lat:51.5641,lon:-0.7021},
+  {name:'Cliveden House',addr:'Taplow, Maidenhead, Berkshire SL6 0JF',lat:51.5581,lon:-0.6871},
+  {name:'Latimer Place',addr:'Latimer, Chesham, Buckinghamshire HP5 1UB',lat:51.7041,lon:-0.5421},
+  {name:'Stoke Park',addr:'Park Road, Stoke Poges, Buckinghamshire SL2 4PG',lat:51.5271,lon:-0.5951},
+  {name:'Hartwell House',addr:'Oxford Road, Aylesbury, Buckinghamshire HP17 8NR',lat:51.8121,lon:-0.8481},
+  {name:'Danesfield House',addr:'Henley Road, Medmenham, Marlow, Buckinghamshire SL7 2EY',lat:51.5691,lon:-0.8451},
+  {name:'Coworth Park',addr:'Blacknest Road, Ascot, Berkshire SL5 7SE',lat:51.4181,lon:-0.6491},
+  {name:'Oakley Court',addr:'Windsor Road, Water Oakley, Windsor, Berkshire SL4 5UR',lat:51.4901,lon:-0.6321},
+  {name:'The Vineyard',addr:'Stockcross, Newbury, Berkshire RG20 8JU',lat:51.4141,lon:-1.3951},
+  {name:'Wasing Park',addr:'Wasing, Aldermaston, Reading, Berkshire RG7 4NG',lat:51.3851,lon:-1.1321},
+  {name:'Great Fosters',addr:'Stroude Road, Egham, Surrey TW20 9UR',lat:51.4071,lon:-0.5291},
+  {name:'Pennyhill Park',addr:'London Road, Bagshot, Surrey GU19 5EU',lat:51.3671,lon:-0.7321},
+  {name:'Loseley Park',addr:'Loseley Park, Guildford, Surrey GU3 1HS',lat:51.2261,lon:-0.5891},
+  {name:'Wotton House',addr:'Guildford Road, Dorking, Surrey RH5 6HS',lat:51.2381,lon:-0.3521},
+  {name:'Reigate Hill',addr:'Reigate Hill, Reigate, Surrey RH2 9RP',lat:51.2371,lon:-0.2091},
+  {name:'Hever Castle',addr:'Hever, Edenbridge, Kent TN8 7NG',lat:51.1921,lon:0.1051},
+  {name:'Leeds Castle',addr:'Maidstone, Kent ME17 1PL',lat:51.2521,lon:0.6281},
+  {name:'Lympne Castle',addr:'Lympne, Hythe, Kent CT21 4LQ',lat:51.0811,lon:1.0521},
+  {name:'Chilston Park',addr:'Sandway Road, Lenham, Kent ME17 2BE',lat:51.2471,lon:0.6971},
+  {name:'Easton Lodge',addr:'Dunmow Road, Great Easton, Essex CM6 2BB',lat:51.8831,lon:0.3141},
+  {name:'Pontlands Park',addr:'West Hanningfield Road, Great Baddow, Chelmsford, Essex CM2 8HR',lat:51.7001,lon:0.5101}
+];
+
 function cfAutoFillTest(){
-  // Auto-fill the client booking form with test data from settings
+  // Random name
   const fn=TEST_FIRST_NAMES[Math.floor(Math.random()*TEST_FIRST_NAMES.length)];
   const ln=TEST_SURNAMES[Math.floor(Math.random()*TEST_SURNAMES.length)];
-  // Page 1 fields
   document.getElementById('cf-firstname').value=fn;
   document.getElementById('cf-lastname').value=ln;
   document.getElementById('cf-email').value=settings.autofillEmail||settings.email||'';
   document.getElementById('cf-mobile').value=settings.phone||'';
-  // Page 2 fields
-  const etKeys=Object.keys(settings.eventRates);
-  const et=etKeys[Math.floor(Math.random()*etKeys.length)];
-  const etSel=document.getElementById('cf-eventtype');if(etSel)etSel.value=et;
+  // Random event type
+  const etKeys=Object.keys(settings.eventRates||{});
+  if(etKeys.length){const etSel=document.getElementById('cf-eventtype');if(etSel)etSel.value=etKeys[Math.floor(Math.random()*etKeys.length)];}
   // Times
   const st=document.getElementById('cf-starttime');if(st)st.value=settings.autofillStartTime||'19:00';
   const en=document.getElementById('cf-endtime');if(en)en.value=settings.autofillEndTime||'20:00';
-  // Venue
+  // Random venue from curated list
+  const venue=CF_TEST_VENUES[Math.floor(Math.random()*CF_TEST_VENUES.length)];
   const ve=document.getElementById('cf-venue');
-  if(ve&&settings.autofillVenue){
-    ve.value=settings.autofillVenue;
-    const pc=document.getElementById('cf-postcode');if(pc)pc.value='CB8 7HA';
-    const mi=document.getElementById('cf-miles');
-    if(mi)mi.value=settings.autofillMiles||'54.3';
-    const ms=document.getElementById('cf-mileage-status');
-    if(ms){ms.textContent='✓ '+(settings.autofillMiles||'54.3')+' miles (test)';ms.style.color='var(--green)';}
+  if(ve){
+    ve.value=venue.name+', '+venue.addr;
+    ve.dataset.lat=String(venue.lat);
+    ve.dataset.lon=String(venue.lon);
+    // Calculate mileage from home postcode if available
+    if(settings.homePostcode){
+      cfCalcMilesFromPostcode(settings.homePostcode,venue.lat,venue.lon);
+    } else {
+      // Estimate straight-line from default location
+      const miles=cfHaversineMiles(51.9285,0.9640,venue.lat,venue.lon);
+      const milesCeil=Math.ceil(miles/5)*5;
+      const mi=document.getElementById('cf-miles');if(mi)mi.value=String(milesCeil);
+      const ms=document.getElementById('cf-mileage-status');
+      if(ms){ms.textContent='✓ ~'+milesCeil+' miles (estimated)';ms.style.color='var(--green)';}
+    }
   }
-  // Date
-  if(settings.autofillDate){
-    cfCalSelected=settings.autofillDate;
-    document.getElementById('cf-date').value=settings.autofillDate;
-    const fmt=new Date(settings.autofillDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-    const disp=document.getElementById('cf-cal-display');if(disp){disp.textContent=fmt;disp.style.color='var(--ink)';}
+  // Random free date within 2 years
+  const today=new Date();today.setHours(0,0,0,0);
+  const maxDate=new Date(today);maxDate.setFullYear(maxDate.getFullYear()+2);
+  const bookedSet=new Set([...bookedDates,...freedDates.map(()=>'')].concat(bookedDates));
+  // Build free dates pool (check up to 730 days)
+  const freeDates=[];
+  for(let i=7;i<=730;i++){
+    const d=new Date(today);d.setDate(d.getDate()+i);
+    const iso=d.toISOString().slice(0,10);
+    if(!bookedDates.includes(iso))freeDates.push(iso);
+  }
+  if(freeDates.length){
+    const picked=freeDates[Math.floor(Math.random()*freeDates.length)];
+    cfCalSelected=picked;
+    const df=document.getElementById('cf-date');if(df)df.value=picked;
+    const fmt=new Date(picked+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+    const disp=document.getElementById('cf-cal-display');
+    if(disp){disp.textContent=fmt;disp.style.color='var(--ink)';}
   }
   document.getElementById('cf-notes').value='Test enquiry — auto-generated';
+}
+
+function cfHaversineMiles(lat1,lon1,lat2,lon2){
+  const R=3958.8,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 function cfToggleIntl(on){

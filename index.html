@@ -168,11 +168,18 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 /* shared calendar */
 .cal-trigger-ws{padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);background:var(--white);cursor:pointer;font-size:14px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;transition:border-color 0.15s;}
 .cal-trigger-ws:hover{border-color:#c8bfaf;}
-.cal-popup-shared{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:9999;background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:16px;width:300px;}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.cal-header span{font-weight:600;font-size:14px;}
-.cal-nav{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 8px;border-radius:var(--radius);color:var(--ink3);font-family:inherit;}
-.cal-nav:hover{background:var(--cream2);}
+.cal-popup-shared{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:9999;background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:16px;width:100%;box-sizing:border-box;max-width:100%;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;}
+.cal-header-centre{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;}
+.cal-month-label{font-weight:600;font-size:14px;}
+.cal-year-btn{font-weight:700;font-size:14px;background:none;border:1px solid var(--cream3);border-radius:20px;padding:2px 10px;cursor:pointer;color:var(--ink);font-family:inherit;transition:background 0.15s;}
+.cal-year-btn:hover{background:var(--cream2);}
+.cal-year-picker{display:none;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--white);border:1px solid var(--cream3);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:10000;overflow:hidden;min-width:100px;}
+.cal-year-picker.open{display:block;}
+.cal-year-opt{padding:10px 20px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;color:var(--ink);transition:background 0.1s;}
+.cal-year-opt:hover,.cal-year-opt.active{background:var(--ink);color:var(--cream);}
+.cal-nav{background:none;border:1px solid var(--cream3);border-radius:20px;cursor:pointer;font-size:16px;font-weight:700;padding:4px 14px;color:var(--ink);font-family:inherit;transition:all 0.15s;line-height:1.4;flex-shrink:0;}
+.cal-nav:hover{background:var(--ink);color:var(--cream);border-color:var(--ink);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
 .cal-dow{font-size:10px;font-weight:700;text-align:center;color:var(--ink3);padding:4px 0;text-transform:uppercase;}
 .cal-day{font-size:13px;text-align:center;padding:6px 2px;border-radius:6px;cursor:pointer;transition:background 0.1s;}
@@ -337,7 +344,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .fu-checkbox-row .fu-cb-sub{font-size:11px;color:var(--ink3);margin-top:2px;}
 @media(max-width:900px){.pipeline-cols{grid-template-columns:1fr 1fr;}.detail-sections{grid-template-columns:1fr;}.settings-grid{grid-template-columns:1fr;}}
 @media(max-width:400px){.nav-tab{font-size:10px;padding:4px 6px;}.app-header{padding:0 8px;}.logout-btn{padding:5px 6px;}}
-@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.cal-popup-shared{width:94vw;}.modal-overlay{padding:0!important;}.modal-scroll-wrap{width:100%!important;}.modal{width:100%!important;margin:0!important;border-radius:0!important;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
+@media(max-width:600px){.pipeline-cols{grid-template-columns:1fr;}.app-body{padding:16px;}.form-grid{grid-template-columns:1fr;}.et-cols{grid-template-columns:1fr;}.dm-grid{grid-template-columns:repeat(2,1fr);}.cf-grid{grid-template-columns:1fr;}.modal-overlay{padding:0!important;}.modal-scroll-wrap{width:100%!important;}.modal{width:100%!important;margin:0!important;border-radius:0!important;}.inner-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap!important;padding-bottom:2px;}.inner-tabs::-webkit-scrollbar{display:none;}.inner-tab{white-space:nowrap;font-size:11px;padding:6px 10px;}.detail-sections{grid-template-columns:1fr!important;}.quote-results-grid{grid-template-columns:repeat(2,1fr)!important;}}
 </style>
 </head>
 <body>
@@ -902,7 +909,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 10:27:04';
+const BUILD_TIME = '04/06/26 10:45:02';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -1406,9 +1413,15 @@ function renderCalPopup(popupId, year, month, selectedDate, onPickFn, navFn) {
   const todayStr = today.toISOString().split('T')[0];
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
+  const curYear=new Date().getFullYear();
+  const yearOpts=[curYear,curYear+1,curYear+2].map(y=>`<div class="cal-year-opt${y===year?' active':''}" onclick="event.stopPropagation();${navFn}(0,'year',${y})">${y}</div>`).join('');
   let html=`<div class="cal-header">
     <button class="cal-nav" onclick="event.stopPropagation();${navFn}(-1)">‹</button>
-    <span>${months[month]} ${year}</span>
+    <div class="cal-header-centre" style="position:relative;">
+      <span class="cal-month-label">${months[month]}</span>
+      <button class="cal-year-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('open')">${year}</button>
+      <div class="cal-year-picker">${yearOpts}</div>
+    </div>
     <button class="cal-nav" onclick="event.stopPropagation();${navFn}(1)">›</button>
   </div><div class="cal-grid">
     <div class="cal-dow">Mo</div><div class="cal-dow">Tu</div><div class="cal-dow">We</div>
@@ -1437,11 +1450,13 @@ function renderCalPopup(popupId, year, month, selectedDate, onPickFn, navFn) {
 // ═══════════════════════════════════════════════════
 let wsCalYear=new Date().getFullYear(),wsCalMonth=new Date().getMonth(),wsCalSelected='',wsCalOpen=false;
 function wsToggleCal(e){e.stopPropagation();if(!wsCalOpen){renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');document.getElementById('ws-cal-popup').style.display='block';wsCalOpen=true;}else{document.getElementById('ws-cal-popup').style.display='none';wsCalOpen=false;}}
-function wsNavCal(dir){wsCalMonth+=dir;if(wsCalMonth<0){wsCalMonth=11;wsCalYear--;}if(wsCalMonth>11){wsCalMonth=0;wsCalYear++;}renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
+function wsNavCal(dir,type,val){if(type==='year'){wsCalYear=val;const picker=document.querySelector('#ws-cal-popup .cal-year-picker');if(picker)picker.classList.remove('open');}else{wsCalMonth+=dir;if(wsCalMonth<0){wsCalMonth=11;wsCalYear--;}if(wsCalMonth>11){wsCalMonth=0;wsCalYear++;}}renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
 function wsPickDate(ds){wsCalSelected=ds;wsCalOpen=false;document.getElementById('nq-date').value=ds;document.getElementById('ws-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});document.getElementById('ws-cal-display').textContent=fmt;document.getElementById('ws-cal-display').style.color='var(--ink)';renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
 document.addEventListener('click',function(e){
   if(wsCalOpen){const p=document.getElementById('ws-cal-popup'),t=document.getElementById('ws-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';wsCalOpen=false;}}
   if(cfCalOpen){const p=document.getElementById('cf-cal-popup'),t=document.getElementById('cf-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';cfCalOpen=false;}}
+  // Close year pickers on outside click
+  document.querySelectorAll('.cal-year-picker.open').forEach(yp=>{if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');});
 });
 
 // ═══════════════════════════════════════════════════
@@ -2419,7 +2434,7 @@ function cfGoToP1(){cfShowPage('cf-page-1');cfSetProgress(1);}
 function cfShowPage(id){document.querySelectorAll('.cf-form-page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 function cfSetProgress(step){for(let i=1;i<=2;i++){const el=document.getElementById('cf-prog-'+i);el.className='progress-step '+(i<step?'done':i===step?'active':'pending');}document.getElementById('cf-prog-line').className='progress-line'+(step>1?' done':'');}
 function cfToggleCal(e){e.stopPropagation();if(!cfCalOpen){renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');document.getElementById('cf-cal-popup').style.display='block';cfCalOpen=true;}else{document.getElementById('cf-cal-popup').style.display='none';cfCalOpen=false;}}
-function cfNavCal(dir){cfCalMonth+=dir;if(cfCalMonth<0){cfCalMonth=11;cfCalYear--;}if(cfCalMonth>11){cfCalMonth=0;cfCalYear++;}renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');}
+function cfNavCal(dir,type,val){if(type==='year'){cfCalYear=val;const picker=document.querySelector('#cf-cal-popup .cal-year-picker');if(picker)picker.classList.remove('open');}else{cfCalMonth+=dir;if(cfCalMonth<0){cfCalMonth=11;cfCalYear--;}if(cfCalMonth>11){cfCalMonth=0;cfCalYear++;}}renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');}
 function cfPickDate(ds){cfCalSelected=ds;cfCalOpen=false;document.getElementById('cf-date').value=ds;document.getElementById('cf-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});const disp=document.getElementById('cf-cal-display');disp.textContent=fmt;disp.style.color='var(--ink)';document.getElementById('cf-cal-trigger').classList.remove('cf-err');document.getElementById('cf-e-date').style.display='none';renderCalPopup('cf-cal-popup',cfCalYear,cfCalMonth,cfCalSelected,'cfPickDate','cfNavCal');}
 let cfAcTimer=null;
 function initCfVenueListeners(){

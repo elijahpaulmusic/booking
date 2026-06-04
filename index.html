@@ -574,15 +574,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <label style="font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:10px;">🎲 Auto-fill Test Data</label>
             <p style="font-size:12px;color:var(--ink3);margin-bottom:10px;">Used when clicking Auto-fill on the test booking form. Venue is randomly selected from 50 top venues in the Home Counties &amp; East Anglia. Date is randomly selected from free dates within 2 years.</p>
             <div class="form-grid">
-              <div class="form-group"><label>Test Email</label><input type="email" id="set-autofill-email" placeholder="e.g. your@email.com" onchange="saveSettings()"></div>
-              <div class="form-group"><label>Test Phone</label><input type="tel" id="set-autofill-phone" placeholder="e.g. 07519 356742" onchange="saveSettings()"></div>
-              <div class="form-group" style="grid-column:1/-1;">
-                <label>Start &amp; End Time</label>
-                <div style="display:flex;gap:8px;">
-                  <input type="time" id="set-autofill-starttime" onchange="saveSettings()" style="flex:1;">
-                  <input type="time" id="set-autofill-endtime" onchange="saveSettings()" style="flex:1;">
-                </div>
-              </div>
+              <div class="form-group" style="grid-column:1/-1;"><label>Test Email</label><input type="email" id="set-autofill-email" placeholder="e.g. your@email.com" onchange="saveSettings()"></div>
             </div>
           </div>
           <p class="card-desc">All data is stored locally in your browser. Nothing sent to any server.</p>
@@ -906,7 +898,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 09:39:28';
+const BUILD_TIME = '04/06/26 09:49:04';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -2346,7 +2338,6 @@ function showView(name){document.querySelectorAll('.view').forEach(v=>v.classLis
 // ═══════════════════════════════════════════════════
 function populateSettings(){document.getElementById('set-name').value=settings.name||'';document.getElementById('set-email').value=settings.email||'';document.getElementById('set-homepostcode').value=settings.homePostcode||'';document.getElementById('set-sortcode').value=settings.sortCode||'';document.getElementById('set-account').value=settings.account||'';document.getElementById('set-phone').value=settings.phone||'';document.getElementById('set-invoicename').value=settings.invoiceName||'';const autofillEl=document.getElementById('set-autofill-email');
   if(autofillEl)autofillEl.value=settings.autofillEmail||'';
-  [['set-autofill-starttime','autofillStartTime'],['set-autofill-endtime','autofillEndTime'],['set-autofill-phone','autofillPhone']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=settings[k]||'';});
   document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();renderCalRefreshNudge();}
 function renderEtEditor(){const entries=Object.entries(settings.eventRates),half=Math.ceil(entries.length/2);let c1='',c2='';entries.forEach(([name,price],i)=>{const row=`<div class="et-row"><input class="et-name" value="${escHtml(name)}" data-orig="${escHtml(name)}" onchange="renameEt(this)"><span class="et-currency">£</span><input class="et-price" type="number" value="${price}" data-name="${escHtml(name)}" onchange="updateEtPrice(this)"><button class="et-del" onclick="deleteEt('${escHtml(name)}')" title="Delete">×</button></div>`;if(i<half)c1+=row;else c2+=row;});document.getElementById('et-editor').innerHTML=`<div>${c1}</div><div>${c2}</div>`;rebuildEventTypeSelect();cfRebuildEventTypes();}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -2367,8 +2358,7 @@ function sendPasswordReset(){
 }
 function saveSettings(){settings.name=document.getElementById('set-name').value;settings.email=document.getElementById('set-email').value;settings.homePostcode=document.getElementById('set-homepostcode').value;settings.sortCode=document.getElementById('set-sortcode').value;settings.account=document.getElementById('set-account').value;settings.phone=document.getElementById('set-phone').value;
   const autofillEmailEl=document.getElementById('set-autofill-email');
-  if(autofillEmailEl)settings.autofillEmail=autofillEmailEl.value;
-  [['set-autofill-starttime','autofillStartTime'],['set-autofill-endtime','autofillEndTime'],['set-autofill-phone','autofillPhone']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)settings[k]=el.value;});settings.invoiceName=document.getElementById('set-invoicename').value;settings.rates.paSax=parseFloat(document.getElementById('rate-pa-sax').value)||30;settings.rates.saxDj=parseFloat(document.getElementById('rate-sax-dj').value)||270;settings.rates.mileage=parseFloat(document.getElementById('rate-mileage').value)||1.1;settings.rates.ext1=parseFloat(document.getElementById('rate-ext1').value)||60;settings.rates.extHr=parseFloat(document.getElementById('rate-exthr').value)||100;settings.rates.dep1amount=parseFloat(document.getElementById('rate-dep1').value)||100;settings.rates.dep2amount=parseFloat(document.getElementById('rate-dep2').value)||150;settings.rates.dep3amount=parseFloat(document.getElementById('rate-dep3').value)||200;settings.rates.dep4amount=parseFloat(document.getElementById('rate-dep4').value)||250;document.querySelectorAll('.et-price').forEach(el=>{const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;});for(let i=0;i<7;i++){const el=document.getElementById('dow-'+i);if(el)settings.dayRates[i]=parseFloat(el.value)||0;}for(let i=0;i<12;i++){const el=document.getElementById('month-'+i);if(el)settings.monthRates[i]=parseFloat(el.value)||0;}saveData();rebuildEventTypeSelect();cfRebuildEventTypes();showToast('Settings saved','success',1500);showSaveFlash();}
+  if(autofillEmailEl)settings.autofillEmail=autofillEmailEl.value;settings.invoiceName=document.getElementById('set-invoicename').value;settings.rates.paSax=parseFloat(document.getElementById('rate-pa-sax').value)||30;settings.rates.saxDj=parseFloat(document.getElementById('rate-sax-dj').value)||270;settings.rates.mileage=parseFloat(document.getElementById('rate-mileage').value)||1.1;settings.rates.ext1=parseFloat(document.getElementById('rate-ext1').value)||60;settings.rates.extHr=parseFloat(document.getElementById('rate-exthr').value)||100;settings.rates.dep1amount=parseFloat(document.getElementById('rate-dep1').value)||100;settings.rates.dep2amount=parseFloat(document.getElementById('rate-dep2').value)||150;settings.rates.dep3amount=parseFloat(document.getElementById('rate-dep3').value)||200;settings.rates.dep4amount=parseFloat(document.getElementById('rate-dep4').value)||250;document.querySelectorAll('.et-price').forEach(el=>{const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;});for(let i=0;i<7;i++){const el=document.getElementById('dow-'+i);if(el)settings.dayRates[i]=parseFloat(el.value)||0;}for(let i=0;i<12;i++){const el=document.getElementById('month-'+i);if(el)settings.monthRates[i]=parseFloat(el.value)||0;}saveData();rebuildEventTypeSelect();cfRebuildEventTypes();showToast('Settings saved','success',1500);showSaveFlash();}
 
 // ═══════════════════════════════════════════════════
 // ICAL / CALENDAR SYNC
@@ -2547,13 +2537,22 @@ function cfAutoFillTest(){
   document.getElementById('cf-firstname').value=fn;
   document.getElementById('cf-lastname').value=ln;
   document.getElementById('cf-email').value=settings.autofillEmail||settings.email||'';
-  document.getElementById('cf-mobile').value=settings.autofillPhone||settings.phone||'';
+  document.getElementById('cf-mobile').value=settings.phone||'';
   // Random event type
   const etKeys=Object.keys(settings.eventRates||{});
   if(etKeys.length){const etSel=document.getElementById('cf-eventtype');if(etSel)etSel.value=etKeys[Math.floor(Math.random()*etKeys.length)];}
-  // Times
-  const st=document.getElementById('cf-starttime');if(st)st.value=settings.autofillStartTime||'19:00';
-  const en=document.getElementById('cf-endtime');if(en)en.value=settings.autofillEndTime||'20:00';
+  // Random start time from valid options
+  const START_TIMES=['12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00'];
+  const pickedStart=START_TIMES[Math.floor(Math.random()*START_TIMES.length)];
+  const [sh,sm]=pickedStart.split(':').map(Number);
+  // End time: at least 1hr after start, max 23:30
+  const minEnd=sh*60+sm+60;
+  const maxEnd=23*60+30;
+  const endMins=minEnd+Math.floor(Math.random()*Math.max(1,(maxEnd-minEnd)/30+1))*30;
+  const clampedEnd=Math.min(endMins,maxEnd);
+  const pickedEnd=String(Math.floor(clampedEnd/60)).padStart(2,'0')+':'+String(clampedEnd%60).padStart(2,'0');
+  const st=document.getElementById('cf-starttime');if(st)st.value=pickedStart;
+  const en=document.getElementById('cf-endtime');if(en)en.value=pickedEnd;
   // Random venue from curated list
   const venue=CF_TEST_VENUES[Math.floor(Math.random()*CF_TEST_VENUES.length)];
   const ve=document.getElementById('cf-venue');
@@ -2808,8 +2807,15 @@ function autoFillTestEnquiry(){
   const etSel=document.getElementById('nq-eventtype');
   if(etSel){etSel.value=et;}
   // Times
-  const st=document.getElementById('nq-starttime');if(st)st.value=settings.autofillStartTime||'19:00';
-  const et2=document.getElementById('nq-endtime');if(et2)et2.value=settings.autofillEndTime||'20:00';
+  const WS_START_TIMES=['12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00'];
+  const wsPickedStart=WS_START_TIMES[Math.floor(Math.random()*WS_START_TIMES.length)];
+  const [wsh,wsm]=wsPickedStart.split(':').map(Number);
+  const wsMinEnd=wsh*60+wsm+60,wsMaxEnd=23*60+30;
+  const wsEndMins=wsMinEnd+Math.floor(Math.random()*Math.max(1,(wsMaxEnd-wsMinEnd)/30+1))*30;
+  const wsClampedEnd=Math.min(wsEndMins,wsMaxEnd);
+  const wsPickedEnd=String(Math.floor(wsClampedEnd/60)).padStart(2,'0')+':'+String(wsClampedEnd%60).padStart(2,'0');
+  const st=document.getElementById('nq-starttime');if(st)st.value=wsPickedStart;
+  const et2=document.getElementById('nq-endtime');if(et2)et2.value=wsPickedEnd;
   // Venue
   const venueEl=document.getElementById('nq-venue');
   if(venueEl&&settings.autofillVenue){

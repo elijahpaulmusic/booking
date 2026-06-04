@@ -906,7 +906,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 09:27:36';
+const BUILD_TIME = '04/06/26 09:30:19';
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(el)el.textContent='v '+BUILD_TIME;
@@ -1294,6 +1294,8 @@ function showWorkstation(){
 
 function showBookingForm(preselect){
   document.title='Elijah Paul — Booking Form';
+  // Always show the booking form layer first (hides workstation login behind it)
+  showLayer('layer-form');
   // #book/test requires auth — check Firebase session
   if(isTestMode()){
     if(window._fbAuth&&window._firebaseReady){

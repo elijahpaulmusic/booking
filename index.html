@@ -1099,25 +1099,31 @@ function manualSync(){
 function syncFromFirebase(callback){
   if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
   const db=window._fbDb,r=window._fbRef,g=window._fbGet;
-  g(r(db)).then(snapshot=>{
-    if(snapshot.exists()){
-      const d=snapshot.val();
-      // Firebase is always the source of truth — overwrite local data completely
-      const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
-      const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
-      const wsIds=new Set(ws.map(b=>b.id));
-      const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
-      bookings=[...ws,...newEnq];
-      // Settings: merge defaults with Firebase (Firebase wins on conflicts)
-      if(d.settings)settings=deepMerge(settings,d.settings);
-      if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates.filter(Boolean):Object.values(d.bookedDates||{}).filter(Boolean);
-      if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates.filter(Boolean):Object.values(d.freedDates||{}).filter(Boolean);
-    } else {
-      // Nothing in Firebase yet — start fresh, discard any stale local data
-      bookings=[];
-      localStorage.removeItem('ep_bookings');
-    }
-    // Write fresh Firebase data back to localStorage (overwrites any stale cache)
+  // Read each node separately to avoid root-level permission issues
+  Promise.all([
+    g(r(db,'bookings')),
+    g(r(db,'enquiries')),
+    g(r(db,'settings')),
+    g(r(db,'bookedDates')),
+    g(r(db,'freedDates'))
+  ]).then(([bSnap,eSnap,sSnap,bdSnap,fdSnap])=>{
+    // Helper: Firebase may store arrays as objects with numeric keys — normalise both
+    const toArr=snap=>{
+      if(!snap||!snap.exists())return[];
+      const v=snap.val();
+      if(Array.isArray(v))return v.filter(Boolean);
+      if(typeof v==='object'&&v!==null)return Object.values(v).filter(Boolean);
+      return[];
+    };
+    const ws=toArr(bSnap);
+    const enq=toArr(eSnap);
+    const wsIds=new Set(ws.map(b=>b&&b.id).filter(Boolean));
+    const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
+    bookings=[...ws,...newEnq];
+    if(sSnap&&sSnap.exists())settings=deepMerge(settings,sSnap.val());
+    bookedDates=toArr(bdSnap);
+    freedDates=toArr(fdSnap);
+    // Overwrite localStorage with fresh Firebase data
     localStorage.setItem('ep_bookings',JSON.stringify(bookings));
     localStorage.setItem('ep_settings',JSON.stringify(settings));
     localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
@@ -1127,7 +1133,7 @@ function syncFromFirebase(callback){
     if(callback)callback();
   }).catch(e=>{
     console.warn('Firebase sync failed, using local cache:',e);
-    showToast('⚠ Using cached data — check connection','error',4000);
+    showToast('⚠ Sync failed — check connection','error',4000);
     runMigrations();
     if(callback)callback();
   });

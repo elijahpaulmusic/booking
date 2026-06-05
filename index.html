@@ -1082,9 +1082,16 @@ function saveEnquiryToFirebase(booking){
 function manualSync(){
   if(!window._fbCurrentUser){showToast('Not logged in','error');return;}
   showToast('Syncing from server…','info',2000);
+  // Clear in-memory data and localStorage so Firebase is the only source
+  bookings=[];
+  localStorage.removeItem('ep_bookings');
+  localStorage.removeItem('ep_settings');
+  localStorage.removeItem('ep_booked_dates');
+  localStorage.removeItem('ep_freed_dates');
   syncFromFirebase(()=>{
     renderPipeline();
     renderArchived();
+    populateSettings();
     showToast('✓ Synced from server','success',2000);
   });
 }
@@ -1108,6 +1115,7 @@ function syncFromFirebase(callback){
     } else {
       // Nothing in Firebase yet — start fresh, discard any stale local data
       bookings=[];
+      localStorage.removeItem('ep_bookings');
     }
     // Write fresh Firebase data back to localStorage (overwrites any stale cache)
     localStorage.setItem('ep_bookings',JSON.stringify(bookings));

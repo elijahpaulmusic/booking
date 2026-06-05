@@ -387,6 +387,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div id="view-pipeline" class="view active">
       <div class="pipeline-header">
         <h1>Booking Pipeline</h1>
+        <button class="btn btn-secondary btn-sm" onclick="manualSync()" title="Sync from server" style="padding:5px 10px;font-size:12px;">↻ Sync</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
         <div style="position:relative;flex:1;max-width:340px;">
@@ -1078,31 +1079,47 @@ function saveEnquiryToFirebase(booking){
 }
 
 // ── Load all data from Firebase (called after login) ─────────────────────
+function manualSync(){
+  if(!window._fbCurrentUser){showToast('Not logged in','error');return;}
+  showToast('Syncing from server…','info',2000);
+  syncFromFirebase(()=>{
+    renderPipeline();
+    renderArchived();
+    showToast('✓ Synced from server','success',2000);
+  });
+}
+
 function syncFromFirebase(callback){
   if(!window._firebaseReady||!window._fbDb){if(callback)callback();return;}
   const db=window._fbDb,r=window._fbRef,g=window._fbGet;
   g(r(db)).then(snapshot=>{
     if(snapshot.exists()){
       const d=snapshot.val();
+      // Firebase is always the source of truth — overwrite local data completely
       const ws=d.bookings?(Array.isArray(d.bookings)?d.bookings:Object.values(d.bookings||{})):[];
       const enq=d.enquiries?(Array.isArray(d.enquiries)?d.enquiries:Object.values(d.enquiries||{})):[];
       const wsIds=new Set(ws.map(b=>b.id));
       const newEnq=enq.filter(b=>b&&b.id&&!wsIds.has(b.id));
       bookings=[...ws,...newEnq];
+      // Settings: merge defaults with Firebase (Firebase wins on conflicts)
       if(d.settings)settings=deepMerge(settings,d.settings);
       if(d.bookedDates)bookedDates=Array.isArray(d.bookedDates)?d.bookedDates.filter(Boolean):Object.values(d.bookedDates||{}).filter(Boolean);
       if(d.freedDates)freedDates=Array.isArray(d.freedDates)?d.freedDates.filter(Boolean):Object.values(d.freedDates||{}).filter(Boolean);
-      localStorage.setItem('ep_bookings',JSON.stringify(bookings));
-      localStorage.setItem('ep_settings',JSON.stringify(settings));
-      localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
-      localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
+    } else {
+      // Nothing in Firebase yet — start fresh, discard any stale local data
+      bookings=[];
     }
+    // Write fresh Firebase data back to localStorage (overwrites any stale cache)
+    localStorage.setItem('ep_bookings',JSON.stringify(bookings));
+    localStorage.setItem('ep_settings',JSON.stringify(settings));
+    localStorage.setItem('ep_booked_dates',JSON.stringify(bookedDates));
+    localStorage.setItem('ep_freed_dates',JSON.stringify(freedDates));
     runMigrations();
-    // Clean up enquiries that have already been merged into bookings
     if(window._fbCurrentUser)_fbCleanEnquiries();
     if(callback)callback();
   }).catch(e=>{
-    console.warn('Firebase sync failed:',e);
+    console.warn('Firebase sync failed, using local cache:',e);
+    showToast('⚠ Using cached data — check connection','error',4000);
     runMigrations();
     if(callback)callback();
   });

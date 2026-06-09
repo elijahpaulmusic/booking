@@ -2240,7 +2240,7 @@ function renderInvoices(b){
         </div>
       </div>
       <div class="invoice-parties">
-        <div class="invoice-party"><h5>From</h5><p>'+(settings.name||'Elijah Paul')+'<br>'+(settings.email||'info@elijahpaul.com')+'<br>'+(settings.phone||'07519 356742')+'</p></div>
+        <div class="invoice-party"><h5>From</h5><p>${settings.name||'Elijah Paul'}<br>${settings.email||'info@elijahpaul.com'}<br>${settings.phone||'07519 356742'}</p></div>
         <div class="invoice-party"><h5>To</h5><p>${esc(b.firstName)} ${esc(b.lastName)}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
       </div>
       <table class="invoice-table">
@@ -2356,7 +2356,8 @@ function downloadICS(){
 // ═══════════════════════════════════════════════════
 // TABS & VIEWS
 // ═══════════════════════════════════════════════════
-function showTab(id){document.querySelectorAll('#detail-modal .inner-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>t.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>{if(t.getAttribute('onclick')===`showTab('${id}')`)t.classList.add('active');});const wrap=document.querySelector('#detail-modal .modal');if(wrap)wrap.scrollTop=0;const wrap2=document.querySelector('#detail-modal .modal-scroll-wrap');if(wrap2)wrap2.scrollTop=0;}
+function showTab(id){document.querySelectorAll('#detail-modal .inner-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>t.classList.remove('active'));document.getElementById(id)?.classList.add('active');document.querySelectorAll('#detail-modal .inner-tab').forEach(t=>{if(t.getAttribute('onclick')===`showTab('${id}')`)t.classList.add('active');});const wrap=document.querySelector('#detail-modal .modal');if(wrap)wrap.scrollTop=0;const wrap2=document.querySelector('#detail-modal .modal-scroll-wrap');if(wrap2)wrap2.scrollTop=0;// Re-render invoice when switching to invoice tab
+if(id==='tab-invoice'){const b=bookings.find(x=>x.id===currentBookingId);if(b)renderInvoices(b);}}
 function showInvoiceTab(id,btn){['invoice-deposit','invoice-balance'].forEach(p=>document.getElementById(p).classList.remove('active'));document.getElementById(id)?.classList.add('active');btn.closest('.inner-tabs').querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name)?.classList.add('active');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>{if(t.getAttribute('onclick')===`showView('${name}')`)t.classList.add('active');});if(name==='pipeline')renderPipeline();if(name==='settings')populateSettings();if(name==='archived')renderArchived();if(name==='new-enquiry'){
     document.getElementById('ws-enquiry-p1').style.display='block';

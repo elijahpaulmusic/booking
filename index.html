@@ -1955,18 +1955,7 @@ function renderOtherTab(b){
   const disp=document.getElementById('chosen-price-display');
   const notes=document.getElementById('detail-invoice-notes');
   const pt=document.getElementById('detail-provisional-timings');
-  // Populate dropdown with actual calculated prices
-  if(sel){
-    const quotes=calcAllQuotes(b);
-    const labels=['60x minutes','90x minutes','2x hours','3x hours'];
-    const vals=[1,1.5,2,3];
-    sel.innerHTML='<option value="">Not yet chosen</option>'+
-      vals.map((v,i)=>{
-        const q=quotes[i];
-        const label=q?`${labels[i]} — £${q.price} (dep £${q.deposit})`:labels[i];
-        return `<option value="${v}"${b.chosenOption==v?'selected':''}>${label}</option>`;
-      }).join('');
-  }
+  if(sel)sel.value=b.chosenOption||'';
   if(notes)notes.value=b.invoiceNotes||'';
   if(pt)pt.value=b.provisionalTimings||'';
   if(disp){

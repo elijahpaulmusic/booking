@@ -2410,21 +2410,56 @@ function renderCalendarTab(b){
 
 function downloadICS(){
   const{summary,desc,b,arriveTime}=window._currentICS;
+  if(!b.startTime){showToast('No start time set — add Provisional Timings first','error');return;}
   const[sH,sM]=b.startTime.split(':').map(Number);
-  let eH,eM;
+  let eH=sH+1,eM=sM;
   if(b.endTime){[eH,eM]=b.endTime.split(':').map(Number);}
-  else{eH=sH+Math.floor(b.duration);eM=sM+Math.round((b.duration%1)*60);}
-  // Arrive time for calendar start (1hr before performance)
+  else if(b.duration){eH=sH+Math.floor(b.duration);eM=sM+Math.round((b.duration%1)*60);}
   const[aH,aM]=arriveTime.split(':').map(Number);
   const dt=new Date(b.eventDate+'T12:00:00');
   const pad=n=>String(n).padStart(2,'0');
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
-  // Escape special chars in description for iCal format
-  const icsDesc=desc.replace(/\n/g,'\\n').replace(/,/g,'\\,');
-  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//${settings.name||'Elijah Paul Music'}//EN\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${summary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${b.venue||''}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:info@elijahpaul.com\r\nSUMMARY:Gig in 14 days — ${summary}\r\nDESCRIPTION:${summary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days — ${summary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  // Fold long lines per RFC 5545 (max 75 octets, continue with CRLF + SPACE)
+  const fold=str=>{
+    const out=[];let line='';
+    for(const ch of str){
+      if((line+ch).length>75){out.push(line+'\r\n ');line=ch;}
+      else{line+=ch;}
+    }
+    out.push(line);
+    return out.join('');
+  };
+  // Escape special ICS characters
+  const icsEsc=s=>(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  // Use UTC floating time (no TZID) — universally compatible
+  const ics=[
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    `PRODID:-//${icsEsc(settings.name||'Elijah Paul Music')}//EN`,
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${y}${mo}${d}-${b.id||Date.now()}@elijahpaul.com`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,
+    `DTSTART:${y}${mo}${d}T${pad(aH)}${pad(aM)}00`,
+    `DTEND:${y}${mo}${d}T${pad(eH)}${pad(eM)}00`,
+    fold(`SUMMARY:${icsEsc(summary)}`),
+    fold(`DESCRIPTION:${icsEsc(desc)}`),
+    fold(`LOCATION:${icsEsc((b.venue||'')+(b.postcode?' '+b.postcode:''))}`),
+    'BEGIN:VALARM',
+    'TRIGGER:-P14DT0H0M0S',
+    'ACTION:DISPLAY',
+    fold(`DESCRIPTION:Gig in 14 days: ${icsEsc(summary)}`),
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
-  a.download=`${b.firstName}_${b.lastName}_gig.ics`;a.click();
+  a.href=URL.createObjectURL(blob);
+  a.download=`${b.firstName||'gig'}_${b.lastName||''}_${y}${mo}${d}.ics`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
 }
 
 // ═══════════════════════════════════════════════════

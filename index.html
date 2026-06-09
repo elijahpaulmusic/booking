@@ -1955,11 +1955,11 @@ function renderOtherTab(b){
   const disp=document.getElementById('chosen-price-display');
   const notes=document.getElementById('detail-invoice-notes');
   const pt=document.getElementById('detail-provisional-timings');
-  if(sel)sel.value=b.chosenDuration||'';
+  if(sel)sel.value=b.chosenOption||'';
   if(notes)notes.value=b.invoiceNotes||'';
   if(pt)pt.value=b.provisionalTimings||'';
   if(disp){
-    if(b.chosenDuration&&b.agreedPrice){
+    if(b.chosenOption&&b.chosenOption!=='not_chosen'&&b.agreedPrice){
       const dep=calcDeposit(b.agreedPrice);
       disp.innerHTML=`<span style="font-size:15px;font-weight:700;color:var(--ink);">£${b.agreedPrice}</span> <span style="color:var(--ink3);">· deposit: £${dep}</span>`;
     }else{disp.innerHTML='';}
@@ -2107,8 +2107,18 @@ function saveChosenOption(){
   const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
   const sel=document.getElementById('detail-chosen-option');if(!sel)return;
   b.chosenOption=sel.value;
+  b.chosenDuration=sel.value; // keep legacy key in sync
+  // Calculate and set agreedPrice from chosen duration
+  if(b.chosenOption&&b.chosenOption!==''){
+    const dur=parseFloat(b.chosenOption);
+    const quotes=calcAllQuotes(b);
+    const dMap={1:quotes[0],1.5:quotes[1],2:quotes[2],3:quotes[3]};
+    b.agreedPrice=dMap[dur]||null;
+  } else {
+    b.agreedPrice=null;
+  }
   // Lock rate snapshot when option is first chosen
-  if(b.chosenOption&&b.chosenOption!=='not_chosen'&&!b.rateSnapshot){
+  if(b.chosenOption&&b.chosenOption!==''&&!b.rateSnapshot){
     b.rateSnapshot={
       paSax:settings.rates.paSax,
       saxDj:settings.rates.saxDj,
@@ -2125,7 +2135,16 @@ function saveChosenOption(){
       lockedAt:new Date().toISOString()
     };
   }
-  saveData();renderDetailsTab(b);
+  saveData();
+  renderDetailsTab(b);
+  renderInvoices(b);
+  renderOtherTab(b);
+  // Show save flash
+  const chosenFlash=document.getElementById('chosen-option-flash');
+  if(chosenFlash){
+    chosenFlash.style.opacity='1';
+    setTimeout(()=>{if(chosenFlash)chosenFlash.style.opacity='0';},2000);
+  }
 }
 function scheduleProvTimingsValidation(){
   clearTimeout(window._provTimer);

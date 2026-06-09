@@ -2419,45 +2419,47 @@ function downloadICS(){
   const dt=new Date(b.eventDate+'T12:00:00');
   const pad=n=>String(n).padStart(2,'0');
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
-  // Fold long lines per RFC 5545 (max 75 octets, continue with CRLF + SPACE)
-  const fold=str=>{
-    const out=[];let line='';
-    for(const ch of str){
-      if((line+ch).length>75){out.push(line+'\r\n ');line=ch;}
-      else{line+=ch;}
-    }
-    out.push(line);
-    return out.join('');
-  };
-  // Escape special ICS characters
-  const icsEsc=s=>(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
-  // Use UTC floating time (no TZID) — universally compatible
-  const ics=[
+  const now=new Date();
+  const dtstamp=now.getUTCFullYear()+pad(now.getUTCMonth()+1)+pad(now.getUTCDate())+'T'+pad(now.getUTCHours())+pad(now.getUTCMinutes())+pad(now.getUTCSeconds())+'Z';
+  // Escape per RFC 5545
+  const icsEsc=s=>(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  // Fold at 75 octets per RFC 5545
+  const fold=s=>{const lines=[];let cur='';for(const ch of s){if((cur+ch).length>75){lines.push(cur);cur=' '+ch;}else{cur+=ch;}}lines.push(cur);return lines.join('\r\n');};
+  // Strip non-ASCII from SUMMARY to maximise compatibility
+  const safeSum=summary.replace(/[^\x00-\x7F]/g,c=>{
+    if(c==='£')return 'GBP';
+    if(c==='—'||c==='–')return '-';
+    return '';
+  });
+  const uid=`${y}${mo}${d}-${b.id||Date.now()}@elijahpaul.com`;
+  const location=icsEsc((b.venue||'')+(b.postcode?' '+b.postcode:''));
+  const lines=[
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    `PRODID:-//${icsEsc(settings.name||'Elijah Paul Music')}//EN`,
+    'PRODID:-//Elijah Paul Music//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${y}${mo}${d}-${b.id||Date.now()}@elijahpaul.com`,
-    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,
+    `UID:${uid}`,
+    `DTSTAMP:${dtstamp}`,
     `DTSTART:${y}${mo}${d}T${pad(aH)}${pad(aM)}00`,
     `DTEND:${y}${mo}${d}T${pad(eH)}${pad(eM)}00`,
-    fold(`SUMMARY:${icsEsc(summary)}`),
+    fold(`SUMMARY:${icsEsc(safeSum)}`),
     fold(`DESCRIPTION:${icsEsc(desc)}`),
-    fold(`LOCATION:${icsEsc((b.venue||'')+(b.postcode?' '+b.postcode:''))}`),
+    fold(`LOCATION:${location}`),
     'BEGIN:VALARM',
-    'TRIGGER:-P14DT0H0M0S',
+    'TRIGGER:-P14D',
     'ACTION:DISPLAY',
-    fold(`DESCRIPTION:Gig in 14 days: ${icsEsc(summary)}`),
+    fold(`DESCRIPTION:Gig in 14 days: ${icsEsc(safeSum)}`),
     'END:VALARM',
     'END:VEVENT',
-    'END:VCALENDAR'
+    'END:VCALENDAR',
+    ''
   ].join('\r\n');
-  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const blob=new Blob([lines],{type:'text/calendar;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`${b.firstName||'gig'}_${b.lastName||''}_${y}${mo}${d}.ics`;
+  a.download=`${(b.firstName||'gig').replace(/\s/g,'_')}_${(b.lastName||'').replace(/\s/g,'_')}_${y}${mo}${d}.ics`;
   document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
 }

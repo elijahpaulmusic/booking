@@ -2148,9 +2148,18 @@ function saveChosenOption(){
     };
   }
   saveData();
-  renderDetailsTab(b);
-  renderInvoices(b);
-  renderOtherTab(b);
+  renderPipeline();
+  // Re-render detail-content (Booking section shows chosen option + deposit)
+  const bFresh=bookings.find(x=>x.id===currentBookingId);
+  if(bFresh){
+    const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};
+    const dl=bFresh.eventDate?new Date(bFresh.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
+    const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};
+    const detailContent=document.getElementById('detail-content');
+    if(detailContent)detailContent.innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(bFresh.firstName)} ${esc(bFresh.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${bFresh.email}" style="color:var(--gold-dim)">${esc(bFresh.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(bFresh.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(bFresh.notes)||'—'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[bFresh.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(bFresh.chosenDuration&&typeof bFresh.agreedPrice==='number')?durationShort(bFresh.chosenDuration)+' — £'+bFresh.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof bFresh.agreedPrice==='number')?'£'+calcDeposit(bFresh.agreedPrice):'—'}</span></div></div>${renderCalcSection(bFresh)}</div>`;
+    renderInvoices(bFresh);
+    renderOtherTab(bFresh);
+  }
   // Show save flash
   const chosenFlash=document.getElementById('chosen-option-flash');
   if(chosenFlash){

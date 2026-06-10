@@ -913,7 +913,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '09/06/26'; // fallback only
+const BUILD_TIME = '10/06/26'; // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -1993,11 +1993,20 @@ function renderOtherTab(b){
     }else{disp.innerHTML='';}
   }
 }
+function deServiceChange(sel){
+  // Auto-set PA based on service (can still be overridden manually)
+  const pa=document.getElementById('de-pa');
+  if(!pa)return;
+  if(sel.value==='sax_bt'||sel.value==='combo'){pa.checked=true;}
+  else if(sel.value==='sax_dj'){pa.checked=false;}
+}
 function toggleDetailEdit(){
   const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
   const btn=document.getElementById('detail-edit-btn');
   if(btn.dataset.mode==='edit'){
     // Save mode — read all editable fields back to booking
+    const newService=(document.getElementById('de-service')||{value:b.service}).value||b.service;
+    if(newService!==b.service){b.service=newService;b.paRequired=paFromService(newService);}
     b.firstName=(document.getElementById('de-firstname')||{value:b.firstName}).value.trim()||b.firstName;
     b.lastName=(document.getElementById('de-lastname')||{value:b.lastName}).value.trim()||b.lastName;
     b.email=(document.getElementById('de-email')||{value:b.email}).value.trim()||b.email;
@@ -2046,6 +2055,7 @@ function renderDetailContentEdit(b){
       <div class="detail-row"><span class="lbl">Miles</span><span class="val"><input id="de-miles" type="number" step="0.1" style="${inputStyle}" value="${b.miles||''}"></span></div>
     </div>
     <div class="detail-section"><h4>Performance</h4>
+      <div class="detail-row"><span class="lbl">Service</span><span class="val"><select id="de-service" style="${inputStyle}" onchange="deServiceChange(this)"><option value="sax_bt"${b.service==='sax_bt'?' selected':''}>Sax with Backing Tracks (PA)</option><option value="sax_dj"${b.service==='sax_dj'?' selected':''}>Sax with Client's DJ</option><option value="combo"${b.service==='combo'?' selected':''}>COMBO</option></select></span></div>
       <div class="detail-row"><span class="lbl">Start Time</span><span class="val"><input id="de-starttime" type="time" style="${inputStyle}" value="${b.startTime||''}"></span></div>
       <div class="detail-row"><span class="lbl">End Time</span><span class="val"><input id="de-endtime" type="time" style="${inputStyle}" value="${b.endTime||''}"></span></div>
       <div class="detail-row"><span class="lbl">PA Required</span><span class="val"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input id="de-pa" type="checkbox" style="width:16px;height:16px;accent-color:var(--ink);"${b.paRequired?' checked':''}> Yes</label></span></div>
@@ -2368,23 +2378,43 @@ function downloadInvoicePDF(type, refNum){
 // CALENDAR TAB
 // ═══════════════════════════════════════════════════
 function renderCalendarTab(b){
-  if(!b.eventDate||!b.startTime){document.getElementById('calendar-content').innerHTML='<p style="color:var(--ink3);font-size:13px;padding:16px 0;">No event date/time set yet.</p>';return;}
+  const calEl=document.getElementById('calendar-content');
+  // Require provisional timings to be filled in
+  const provTimes=(b.provisionalTimings||'').trim();
+  if(!b.eventDate||!provTimes){
+    calEl.innerHTML=`<div style="background:var(--cream2);border:1px solid var(--cream3);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--ink3);line-height:1.6;">
+      <strong style="color:var(--ink);">Provisional Timings required</strong><br>
+      Please fill in the <strong>Provisional Timings</strong> field on the <strong>Other Invoice Details</strong> tab before downloading a calendar event.<br><br>
+      <span style="font-size:12px;">This ensures the correct start and end times are used for the calendar event.</span>
+    </div>`;
+    return;
+  }
   const sl={sax_bt:'Sax + Backing Tracks',sax_dj:"Sax with Client's DJ",combo:'Combo Performance'};
-  // Title: service label — name — fee
   const titleLabels={sax_bt:'SOLO SAX',sax_dj:'SAX AND DJ',combo:'SOLO SAX AND DJ'};
   const feeStr=b.agreedPrice?` — £${b.agreedPrice}`:'';
   const summary=(titleLabels[b.service]||'PERFORMANCE')+' — '+b.firstName+' '+b.lastName+feeStr;
-  // Set times = chosen option label + provisional timings
   const chosenLabel=b.chosenDuration?durationShort(b.chosenDuration)+' ':'';
-  const setTimes=(chosenLabel+(b.provisionalTimings||'')).trim();
-  // Arrive time = 1 hour before first HH:MM in provisional timings
-  const firstTimeMatch=(b.provisionalTimings||'').match(/(\d{1,2}):(\d{2})/);
+  const setTimes=(chosenLabel+provTimes).trim();
+  // Extract ALL HH:MM times from provisional timings
+  const allTimes=[...provTimes.matchAll(/(\d{1,2}):(\d{2})/g)];
+  let calStartTime=b.startTime||'',calEndTime=b.endTime||'';
+  if(allTimes.length>=2){
+    // First time = start, last time = end
+    calStartTime=allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2];
+    calEndTime=allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2];
+  } else if(allTimes.length===1){
+    calStartTime=allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2];
+    calEndTime=calStartTime;
+  }
+  // Arrive time = 1hr before first time in provisional timings
   let arriveTime='';
-  if(firstTimeMatch){
-    const ftH=parseInt(firstTimeMatch[1]),ftM=parseInt(firstTimeMatch[2]);
+  if(allTimes.length>0){
+    const ftH=parseInt(allTimes[0][1]),ftM=parseInt(allTimes[0][2]);
     const arrH=ftH-1<0?23:ftH-1;
     arriveTime=`${String(arrH).padStart(2,'0')}:${String(ftM).padStart(2,'0')}`;
   }
+  // Store calStartTime/calEndTime on _currentICS for downloadICS to use
+  b._calStart=calStartTime;b._calEnd=calEndTime;
   const milesBoth=b.miles?((b.miles)*2).toFixed(1):'—';
   const priceLine=b.agreedPrice?`£${b.agreedPrice} agreed (deposit: £${calcDeposit(b.agreedPrice)})${b.chosenDuration?' — '+durationShort(b.chosenDuration):''}` :'Price TBC';
   const contactMethod=b.contactMethods&&b.contactMethods.length?b.contactMethods[0]:'';
@@ -2424,10 +2454,11 @@ function renderCalendarTab(b){
 function downloadICS(){
   const{summary,desc,b,arriveTime}=window._currentICS;
   if(!b.eventDate||!b.startTime){showToast('No event date or start time set','error');return;}
-  const[sH,sM]=b.startTime.split(':').map(Number);
-  let eH,eM;
-  if(b.endTime){[eH,eM]=b.endTime.split(':').map(Number);}
-  else{eH=sH+Math.floor(b.duration||1);eM=sM+Math.round(((b.duration||1)%1)*60);}
+  // Use times from provisional timings (set by renderCalendarTab)
+  const startStr=b._calStart||b.startTime||'19:00';
+  const endStr=b._calEnd||b.endTime||'20:00';
+  const[sH,sM]=startStr.split(':').map(Number);
+  const[eH,eM]=endStr.split(':').map(Number);
   let aH=sH,aM=sM;
   if(arriveTime&&arriveTime.includes(':')){[aH,aM]=arriveTime.split(':').map(Number);}
   const dt=new Date(b.eventDate+'T12:00:00');

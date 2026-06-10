@@ -913,7 +913,7 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '10/06/26'; // fallback only
+const BUILD_TIME = '10/06/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -1953,23 +1953,8 @@ function openBooking(id){
   if(!b)return;
   // Lock body scroll — iOS Safari requires position:fixed technique
   window._scrollY=window.scrollY||window.pageYOffset;
-  document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${esc(b.firstName)} ${esc(b.lastName)}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};renderDetailContent(b);document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';const email=generateQuoteEmail(b);
-  const smsMsg=encodeURIComponent(`Hi ${esc(b.firstName)}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
-  const mobile=(b.mobile||'').replace(/\s+/g,'');
-  const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
-  const smsSent=b.smsSent||false;
-  const smsSection=mobile
-    ? `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--cream2);">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <a href="${smsHref}" style="display:inline-block;padding:7px 16px;background:var(--ink);color:var(--cream);border-radius:var(--radius);font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;">📱 Send Text To Client In Messages...</a>
-          <label id="sms-label-${b.id}" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid ${smsSent?'#B8DFC8':'var(--cream3)'};border-radius:var(--radius);background:${smsSent?'#E8F5EE':'var(--cream2)'};cursor:pointer;user-select:none;transition:all 0.2s;">
-            <input type="checkbox" id="sms-sent-cb" ${smsSent?'checked disabled':''} style="width:16px;height:16px;accent-color:#1E7E4B;cursor:pointer;" onchange="markSmsSent('${b.id}',this)">
-            <span style="font-size:13px;font-weight:500;color:${smsSent?'#1E7E4B':'var(--ink2)'};">Text Sent?</span>
-          </label>
-        </div>
-      </div>`
-    : `<div style="margin-top:12px;font-size:12px;color:var(--ink3);">No mobile number on file — add one in Details to enable SMS.</div>`;
-  document.getElementById('quote-email-content').innerHTML=`<div class="quote-output-header"><h3>Quote Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('modal-email-out')">Copy Email</button></div><div class="quote-output" id="modal-email-out">${email}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${esc(b.email)}" style="color:var(--gold-dim);">${esc(b.email)}</a></p>${smsSection}`;renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
+  document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${esc(b.firstName)} ${esc(b.lastName)}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));renderDetailContent(b);document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';
+  renderQuoteTab(b);renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
   // Restore contact method checkboxes
   setTimeout(()=>{
     document.querySelectorAll('input[name="contact-method"]').forEach(cb=>{
@@ -1977,6 +1962,19 @@ function openBooking(id){
     });
   },0);
   showTab('tab-detail');document.getElementById('detail-modal').classList.add('open');}
+
+function renderQuoteTab(b){
+  const email=generateQuoteEmail(b);
+  const smsMsg=encodeURIComponent(`Hi ${esc(b.firstName)}, thanks for filling out my booking form! I have just emailed you through some quotes. If not received, double check that it's not gone into your spam/junk folders. Let me know if you have any questions and I'll be happy to help. I look forward to hearing from you soon! Best wishes, ${settings.name||'Elijah Paul'} 🎷🎉`);
+  const mobile=(b.mobile||'').replace(/\s+/g,'');
+  const smsHref=mobile?`sms:${mobile}&body=${smsMsg}`:'';
+  const smsSent=b.smsSent||false;
+  const smsSection=mobile
+    ?`<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--cream2);"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><a href="${smsHref}" style="display:inline-block;padding:7px 16px;background:var(--ink);color:var(--cream);border-radius:var(--radius);font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;">📱 Send Text To Client In Messages...</a><label id="sms-label-${b.id}" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid ${smsSent?'#B8DFC8':'var(--cream3)'};border-radius:var(--radius);background:${smsSent?'#E8F5EE':'var(--cream2)'};cursor:pointer;user-select:none;transition:all 0.2s;"><input type="checkbox" id="sms-sent-cb" ${smsSent?'checked disabled':''} style="width:16px;height:16px;accent-color:#1E7E4B;cursor:pointer;" onchange="markSmsSent('${b.id}',this)"><span style="font-size:13px;font-weight:500;color:${smsSent?'#1E7E4B':'var(--ink2)'};">Text Sent?</span></label></div></div>`
+    :`<div style="margin-top:12px;font-size:12px;color:var(--ink3);">No mobile number on file — add one in Details to enable SMS.</div>`;
+  const el=document.getElementById('quote-email-content');
+  if(el)el.innerHTML=`<div class="quote-output-header"><h3>Quote Email</h3><button class="btn btn-secondary btn-sm" onclick="copyById('modal-email-out')">Copy Email</button></div><div class="quote-output" id="modal-email-out">${email}</div><p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${esc(b.email)}" style="color:var(--gold-dim);">${esc(b.email)}</a></p>${smsSection}`;
+}
 
 function renderOtherTab(b){
   const sel=document.getElementById('detail-chosen-option');
@@ -2022,8 +2020,14 @@ function toggleDetailEdit(){
     b.paRequired=(document.getElementById('de-pa')||{checked:b.paRequired}).checked;
     saveData();renderPipeline();
     btn.dataset.mode='';btn.textContent='✏ Edit';btn.classList.replace('btn-primary','btn-secondary');
-    // Re-render view mode
+    // Re-render all tabs so service/field changes propagate everywhere
     renderDetailContent(b);
+    renderQuoteTab(b);
+    renderBookingEmailTab(b);
+    renderCalendarTab(b);
+    renderFollowUpTab(b);
+    renderOtherTab(b);
+    renderInvoices(b);
     showToast('Details saved','success',1500);
   } else {
     // Edit mode — replace detail-content with editable fields

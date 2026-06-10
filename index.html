@@ -913,10 +913,23 @@ let settings = {
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '04/06/26 15:32:56'
+const BUILD_TIME = '09/06/26'; // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
-  if(el)el.textContent='v '+BUILD_TIME;
+  if(!el)return;
+  // Fetch the Last-Modified header of this very file from the server
+  fetch(window.location.href,{method:'HEAD',cache:'no-store'})
+    .then(r=>{
+      const lm=r.headers.get('Last-Modified');
+      if(lm){
+        const d=new Date(lm);
+        const pad=n=>String(n).padStart(2,'0');
+        el.textContent='v '+pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(-2)+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+      } else {
+        el.textContent='v '+BUILD_TIME;
+      }
+    })
+    .catch(()=>{el.textContent='v '+BUILD_TIME;});
 });
 
 // ── Schema version — increment this when data structure changes ──────────
@@ -2410,43 +2423,26 @@ function renderCalendarTab(b){
 
 function downloadICS(){
   const{summary,desc,b,arriveTime}=window._currentICS;
-  if(!b.eventDate){showToast('No event date set','error');return;}
-  if(!b.startTime){showToast('No start time set — add Provisional Timings first','error');return;}
+  if(!b.eventDate||!b.startTime){showToast('No event date or start time set','error');return;}
   const[sH,sM]=b.startTime.split(':').map(Number);
-  let eH=sH+1,eM=sM;
+  let eH,eM;
   if(b.endTime){[eH,eM]=b.endTime.split(':').map(Number);}
-  else if(b.duration){eH=sH+Math.floor(b.duration);eM=sM+Math.round((b.duration%1)*60);}
-  const[aH,aM]=arriveTime?arriveTime.split(':').map(Number):[sH-1>=0?sH-1:0,sM];
+  else{eH=sH+Math.floor(b.duration||1);eM=sM+Math.round(((b.duration||1)%1)*60);}
+  let aH=sH,aM=sM;
+  if(arriveTime&&arriveTime.includes(':')){[aH,aM]=arriveTime.split(':').map(Number);}
   const dt=new Date(b.eventDate+'T12:00:00');
   const pad=n=>String(n).padStart(2,'0');
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
-  // Simple escaping — no line folding (avoids Apple Calendar parse issues)
-  const icsEsc=s=>(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
-  // Safe ASCII summary
-  const safeSum=summary.replace(/£/g,'GBP').replace(/[—–]/g,'-').replace(/[^\x00-\x7F]/g,'');
-  const ics=`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Elijah Paul Music//EN
-CALSCALE:GREGORIAN
-BEGIN:VEVENT
-DTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00
-DTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00
-SUMMARY:${icsEsc(safeSum)}
-DESCRIPTION:${icsEsc(desc)}
-LOCATION:${icsEsc((b.venue||'')+(b.postcode?' '+b.postcode:''))}
-BEGIN:VALARM
-TRIGGER:-P14D
-ACTION:DISPLAY
-DESCRIPTION:Gig in 14 days - ${icsEsc(safeSum)}
-END:VALARM
-END:VEVENT
-END:VCALENDAR`;
-  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  // Strip non-ASCII — Apple Calendar rejects ICS with unicode in property values
+  const ascii=s=>(s||'').replace(/£/g,'GBP').replace(/[—–]/g,'-').replace(/[^\x00-\x7F]/g,'');
+  const icsDesc=ascii(desc).replace(/\n/g,'\\n').replace(/,/g,'\\,');
+  const safeSummary=ascii(summary);
+  const myEmail=settings.email||'info@elijahpaul.com';
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${safeSummary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${ascii(b.venue||'')}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:${myEmail}\r\nSUMMARY:Gig in 14 days - ${safeSummary}\r\nDESCRIPTION:${safeSummary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days - ${safeSummary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`${(b.firstName||'gig').replace(/\s/g,'_')}_${(b.lastName||'').replace(/\s/g,'_')}_${y}${mo}${d}.ics`;
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download=`${b.firstName||'gig'}_${b.lastName||''}_gig.ics`;
+  a.click();
 }
 
 // ═══════════════════════════════════════════════════

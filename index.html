@@ -2840,15 +2840,16 @@ function cfValidate(){let ok=true;
   // Honeypot — bots fill this in, humans don't
   const hp=document.getElementById('cf-honeypot');
   if(hp&&hp.value){console.warn('Bot submission rejected');return false;}
+  // Collect all field states first, apply visual styling only at the end —
+  // prevents any visible flash on fields that are actually valid
+  const pending=[];
   // Int'l number validation
   const isIntl=document.getElementById('cf-intl-toggle')?.checked;
   if(isIntl){
     const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');
     const icv=ic?ic.value.trim():'',inumv=inum?inum.value.trim():'';
-    if(ic)ic.classList.toggle('cf-err',!icv);
-    if(inum)inum.classList.toggle('cf-err',!inumv);
-    document.getElementById('cf-e-intl-code').style.display=icv?'none':'block';
-    document.getElementById('cf-e-intl-number').style.display=inumv?'none':'block';
+    pending.push([ic,!icv],[inum,!inumv]);
+    pending.push([document.getElementById('cf-e-intl-code'),!icv,'err-display'],[document.getElementById('cf-e-intl-number'),!inumv,'err-display']);
     if(!icv||!inumv)ok=false;
   }
   const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-eventtype',err:'cf-e-eventtype'}];
@@ -2859,40 +2860,48 @@ function cfValidate(){let ok=true;
     if(mobileEl)mobileEl.value=(mobileEl.value||'').replace(/[^0-9]/g,'');
     const mobileDigits=mobileEl?.value||'';
     const mobileErr=document.getElementById('cf-e-mobile');
-    if(!mobileDigits||mobileDigits.length!==11){
-      if(mobileEl)mobileEl.classList.add('cf-err');
-      if(mobileErr)mobileErr.style.display='block';
-      ok=false;
-    } else {
-      if(mobileEl)mobileEl.classList.remove('cf-err');
-      if(mobileErr)mobileErr.style.display='none';
-    }
-  }fields.forEach(({id,err,isEmail})=>{const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim(),invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));el.classList.toggle('cf-err',invalid);errEl.style.display=invalid?'block':'none';if(invalid)ok=false;});
+    const mobileInvalid=!mobileDigits||mobileDigits.length!==11;
+    pending.push([mobileEl,mobileInvalid],[mobileErr,mobileInvalid,'err-display']);
+    if(mobileInvalid)ok=false;
+  }
+  fields.forEach(({id,err,isEmail})=>{
+    const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim();
+    const invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));
+    pending.push([el,invalid],[errEl,invalid,'err-display']);
+    if(invalid)ok=false;
+  });
   if(isIntl){
     const ic=document.getElementById('cf-intl-code'),inum=document.getElementById('cf-intl-number');
     const icv=ic?ic.value.trim():'',inumv=inum?inum.value.trim():'';
-    if(ic)ic.classList.toggle('cf-err',!icv);
-    if(inum)inum.classList.toggle('cf-err',!inumv);
-    document.getElementById('cf-e-intl-code').style.display=icv?'none':'block';
-    document.getElementById('cf-e-intl-number').style.display=inumv?'none':'block';
+    pending.push([ic,!icv],[inum,!inumv]);
+    pending.push([document.getElementById('cf-e-intl-code'),!icv,'err-display'],[document.getElementById('cf-e-intl-number'),!inumv,'err-display']);
     if(!icv||!inumv)ok=false;
   }
   const isManual=document.getElementById('cf-manual-toggle')?.checked;
   if(isManual){
     const mv=document.getElementById('cf-manual-venue'),mp=document.getElementById('cf-manual-postcode');
     const mvv=mv?mv.value.trim():'',mpv=mp?mp.value.trim():'';
-    if(mv)mv.classList.toggle('cf-err',!mvv);
-    if(mp)mp.classList.toggle('cf-err',!mpv);
-    document.getElementById('cf-e-manual-venue').style.display=mvv?'none':'block';
-    document.getElementById('cf-e-manual-postcode').style.display=mpv?'none':'block';
+    pending.push([mv,!mvv],[mp,!mpv]);
+    pending.push([document.getElementById('cf-e-manual-venue'),!mvv,'err-display'],[document.getElementById('cf-e-manual-postcode'),!mpv,'err-display']);
     if(!mvv||!mpv)ok=false;
-    // Clear autofill error
-    document.getElementById('cf-e-venue').style.display='none';
+    pending.push([document.getElementById('cf-e-venue'),false,'err-display']);
   } else {
     const venueEl=document.getElementById('cf-venue'),venueErr=document.getElementById('cf-e-venue'),venueVal=venueEl.value.trim();
-    venueEl.classList.toggle('cf-err',!venueVal);venueErr.style.display=venueVal?'none':'block';
+    pending.push([venueEl,!venueVal],[venueErr,!venueVal,'err-display']);
     if(!venueVal)ok=false;
-  }const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');if(!dateVal){trigger.classList.add('cf-err');dateErr.style.display='block';ok=false;}else{trigger.classList.remove('cf-err');dateErr.style.display='none';}return ok;}
+  }
+  const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');
+  pending.push([trigger,!dateVal],[dateErr,!dateVal,'err-display']);
+  if(!dateVal)ok=false;
+  // Apply all visual error states in one pass — no flash on valid fields,
+  // since each field's final correct state is set exactly once
+  pending.forEach(([el,invalid,mode])=>{
+    if(!el)return;
+    if(mode==='err-display')el.style.display=invalid?'block':'none';
+    else el.classList.toggle('cf-err',invalid);
+  });
+  return ok;
+}
 async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
 const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',isManualAddr=(document.getElementById('cf-manual-toggle')?.checked||false),venue=isManualAddr?(document.getElementById('cf-manual-venue')?.value.trim()||''):document.getElementById('cf-venue').value.trim(),postcode=isManualAddr?(document.getElementById('cf-manual-postcode')?.value.trim().toUpperCase()||''):document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
@@ -2907,7 +2916,6 @@ MOBILE:       ${mobile}
 SERVICE:      ${CF_SERVICE_LABELS[service]||service}
 DATE:         ${dateLong}
 EVENT TYPE:   ${eventType}
-PREFERRED:    ${before5pm?'Before 5pm':'After 5pm'}
 
 VENUE:        ${venue}
 POSTCODE:     ${postcode}
@@ -2920,7 +2928,6 @@ function buildEmailHtml(isClient,firstName,serviceLabel,dateLong,startTime,endTi
   const detailRows=[
     ['Package',serviceLabel],
     ['Date',dateLong],
-    ['Preferred slot',timeOfDay(startTime)==='day'?'Before 5pm':'After 5pm'],
     ['Event type',eventType],
     ['Venue',venue],
     ['Postcode',postcode],

@@ -719,12 +719,10 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <div class="cf-field-err" id="cf-e-eventtype">Required</div>
           </div>
           <div class="cf-group full">
-            <label>Rough start and end time of performance (24 hour clock) — if you would like Elijah to play multiple sets throughout the day, select the start time of the first set, and the finish time of the last set:</label>
-            <div class="time-pair">
-              <div class="cf-group"><label style="font-size:11px;">Start time</label><input type="time" id="cf-starttime"></div>
-              <div class="cf-group"><label style="font-size:11px;">End time</label><input type="time" id="cf-endtime"></div>
-              <div class="dur-hint" id="cf-dur-hint"></div>
-            </div>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;" for="cf-before5pm">
+              <input type="checkbox" id="cf-before5pm" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;accent-color:var(--ink);cursor:pointer;">
+              <span>Would you like Elijah to start performing before 5pm?</span>
+            </label>
           </div>
         </div>
       </div>
@@ -2607,10 +2605,42 @@ const CF_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax 
 const CF_SERVICE_EMAIL={sax_bt:'Sax and Backing Tracks',sax_dj:'Sax and DJ',combo:'Solo Sax Combo'};
 function cfRebuildEventTypes(){const sel=document.getElementById('cf-eventtype');if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
 function cfSelectService(val){cfService=val;document.querySelectorAll('[id^="cf-opt-"]').forEach(el=>el.classList.remove('selected'));document.getElementById('cf-opt-'+val).classList.add('selected');document.getElementById('cf-service-error').style.display='none';}
+function cfSaveSession(){
+  try{
+    const data={
+      service:cfService,
+      firstname:document.getElementById('cf-firstname')?.value||'',
+      lastname:document.getElementById('cf-lastname')?.value||'',
+      email:document.getElementById('cf-email')?.value||'',
+      mobile:document.getElementById('cf-mobile')?.value||'',
+      venue:document.getElementById('cf-venue')?.value||'',
+      eventtype:document.getElementById('cf-eventtype')?.value||'',
+      before5pm:document.getElementById('cf-before5pm')?.checked||false,
+      notes:document.getElementById('cf-notes')?.value||''
+    };
+    sessionStorage.setItem('cf_session',JSON.stringify(data));
+  }catch(e){}
+}
+function cfRestoreSession(){
+  try{
+    const raw=sessionStorage.getItem('cf_session');
+    if(!raw)return;
+    const data=JSON.parse(raw);
+    if(data.service){cfSelectService(data.service);}
+    if(data.firstname){const el=document.getElementById('cf-firstname');if(el)el.value=data.firstname;}
+    if(data.lastname){const el=document.getElementById('cf-lastname');if(el)el.value=data.lastname;}
+    if(data.email){const el=document.getElementById('cf-email');if(el)el.value=data.email;}
+    if(data.mobile){const el=document.getElementById('cf-mobile');if(el)el.value=data.mobile;}
+    if(data.venue){const el=document.getElementById('cf-venue');if(el)el.value=data.venue;}
+    if(data.eventtype){const el=document.getElementById('cf-eventtype');if(el)el.value=data.eventtype;}
+    if(data.before5pm){const el=document.getElementById('cf-before5pm');if(el)el.checked=true;}
+    if(data.notes){const el=document.getElementById('cf-notes');if(el)el.value=data.notes;}
+  }catch(e){}
+}
 function cfBindSessionSave(){
-  ['cf-firstname','cf-lastname','cf-email','cf-mobile','cf-venue','cf-eventtype','cf-starttime','cf-endtime','cf-notes'].forEach(id=>{
+  ['cf-firstname','cf-lastname','cf-email','cf-mobile','cf-venue','cf-eventtype','cf-notes','cf-before5pm'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el&&!el.dataset.sessionBound){el.addEventListener('input',cfSaveSession);el.dataset.sessionBound='1';}
+    if(el&&!el.dataset.sessionBound){el.addEventListener(el.type==='checkbox'?'change':'input',cfSaveSession);el.dataset.sessionBound='1';}
   });
   // Also save on service card click
   document.querySelectorAll('.service-card').forEach(card=>{
@@ -2636,10 +2666,7 @@ function initCfVenueListeners(){
   cfVenueEl.addEventListener('input',function(){clearTimeout(cfAcTimer);const val=this.value.trim();if(val.length<3){cfAcDrop.style.display='none';return;}cfAcTimer=setTimeout(()=>runAC(val,cfAcDrop,cfSelectAddress),380);});
   cfVenueEl.addEventListener('blur',()=>setTimeout(()=>cfAcDrop.style.display='none',200));
   // Time field listeners
-  const st=document.getElementById('cf-starttime');
-  const et=document.getElementById('cf-endtime');
-  if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',cfUpdateDuration);}
-  if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',cfUpdateDuration);}
+
 }
 const CF_TEST_VENUES=[
   {name:'Hengrave Hall',addr:'Hengrave, Bury St Edmunds, Suffolk IP28 6LZ',lat:52.2847,lon:0.6718},
@@ -2705,18 +2732,8 @@ function cfAutoFillTest(){
   // Random event type
   const etKeys=Object.keys(settings.eventRates||{});
   if(etKeys.length){const etSel=document.getElementById('cf-eventtype');if(etSel)etSel.value=etKeys[Math.floor(Math.random()*etKeys.length)];}
-  // Random start time from valid options
-  const START_TIMES=['12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00'];
-  const pickedStart=START_TIMES[Math.floor(Math.random()*START_TIMES.length)];
-  const [sh,sm]=pickedStart.split(':').map(Number);
-  // End time: at least 1hr after start, max 23:30
-  const minEnd=sh*60+sm+60;
-  const maxEnd=23*60+30;
-  const endMins=minEnd+Math.floor(Math.random()*Math.max(1,(maxEnd-minEnd)/30+1))*30;
-  const clampedEnd=Math.min(endMins,maxEnd);
-  const pickedEnd=String(Math.floor(clampedEnd/60)).padStart(2,'0')+':'+String(clampedEnd%60).padStart(2,'0');
-  const st=document.getElementById('cf-starttime');if(st)st.value=pickedStart;
-  const en=document.getElementById('cf-endtime');if(en)en.value=pickedEnd;
+  // Random before-5pm preference
+  const before5pmCb=document.getElementById('cf-before5pm');if(before5pmCb)before5pmCb.checked=Math.random()<0.5;
   // Random venue from curated list
   const venue=CF_TEST_VENUES[Math.floor(Math.random()*CF_TEST_VENUES.length)];
   const ve=document.getElementById('cf-venue');
@@ -2819,7 +2836,6 @@ async function cfCalcMilesFromPostcode(postcode){
 
 function cfSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const v=document.getElementById('cf-venue');const d=document.getElementById('cf-ac-dropdown');if(v)v.value=parts.join(', ')||res.display_name;document.getElementById('cf-postcode').value=(addr.postcode||'').toUpperCase();if(d)d.style.display='none';document.getElementById('cf-e-venue').style.display='none';if(res.lat&&res.lon)cfCalcMiles(parseFloat(res.lat),parseFloat(res.lon));}
 async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));const hData=await hRes.json();let hLat=51.8619169,hLon=0.9573077;if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const rd=await route.json();if(rd.code==='Ok'){document.getElementById('cf-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}}catch(e){}}
-function cfUpdateDuration(){const s=document.getElementById('cf-starttime').value,e=document.getElementById('cf-endtime').value,hint=document.getElementById('cf-dur-hint');if(!s||!e){hint.textContent='';return;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;hint.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();}
 function cfValidate(){let ok=true;
   // Honeypot — bots fill this in, humans don't
   const hp=document.getElementById('cf-honeypot');
@@ -2878,7 +2894,7 @@ function cfValidate(){let ok=true;
     if(!venueVal)ok=false;
   }const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');if(!dateVal){trigger.classList.add('cf-err');dateErr.style.display='block';ok=false;}else{trigger.classList.remove('cf-err');dateErr.style.display='none';}return ok;}
 async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
-const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,startTime=document.getElementById('cf-starttime').value,endTime=document.getElementById('cf-endtime').value,isManualAddr=(document.getElementById('cf-manual-toggle')?.checked||false),venue=isManualAddr?(document.getElementById('cf-manual-venue')?.value.trim()||''):document.getElementById('cf-venue').value.trim(),postcode=isManualAddr?(document.getElementById('cf-manual-postcode')?.value.trim().toUpperCase()||''):document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
+const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',isManualAddr=(document.getElementById('cf-manual-toggle')?.checked||false),venue=isManualAddr?(document.getElementById('cf-manual-venue')?.value.trim()||''):document.getElementById('cf-venue').value.trim(),postcode=isManualAddr?(document.getElementById('cf-manual-postcode')?.value.trim().toUpperCase()||''):document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -2891,8 +2907,7 @@ MOBILE:       ${mobile}
 SERVICE:      ${CF_SERVICE_LABELS[service]||service}
 DATE:         ${dateLong}
 EVENT TYPE:   ${eventType}
-START TIME:   ${startTime}
-END TIME:     ${endTime}
+PREFERRED:    ${before5pm?'Before 5pm':'After 5pm'}
 
 VENUE:        ${venue}
 POSTCODE:     ${postcode}
@@ -2926,8 +2941,7 @@ try{
   await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:firstName,subject:clientSubject,message:clientMessage,html_message:clientMessage,reply_to:settings.email||MY_EMAIL});
   await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email||MY_EMAIL,to_name:settings.name||'Elijah',subject:mySubject,message:myMessage,html_message:myMessage,reply_to:email});
   const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
-  let durMins=0;if(startTime&&endTime){const[sh,sm]=startTime.split(':').map(Number),[eh,em]=endTime.split(':').map(Number);durMins=(eh*60+em)-(sh*60+sm);if(durMins<=0)durMins+=1440;}
-  const newBooking={id:genId(),isTest:isTestMode(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:durMins?durMins/60:1,startTime,endTime,paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:isTestMode()?'test':'web'};
+  const newBooking={id:genId(),isTest:isTestMode(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:1,startTime,endTime:'',paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:isTestMode()?'test':'web'};
   bookings.push(newBooking);saveData();saveEnquiryToFirebase(newBooking);
   document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
   document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;

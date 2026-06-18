@@ -1706,6 +1706,7 @@ function fuQuoteFollowUpAgain(id,wasOverdue){
 function fuQuoteSetDelete(id){
   const b=bookings.find(x=>x.id===id);if(!b)return;
   b.followUpState='followed_up_delete';b.pendingArchive=reminderDate(b.followUpDays);b.followUpColor='blue';
+  b.followUpDate=reminderDate(b.followUpDays); // clear overdue state so nudge bar updates immediately
   saveData();renderPipeline();renderFollowUpTab(b);
 }
 
@@ -1719,7 +1720,7 @@ function fuDepositFollowedUp(id){
 }
 function fuDepositFollowedUpAgain(id){
   const b=bookings.find(x=>x.id===id);if(!b)return;
-  b.followUpDate=reminderDate();
+  b.followUpDate=reminderDate(b.followUpDays);
   b.followUpState='followed_up_again';
   b.pendingArchive=null;
   b.followUpColor='blue';
@@ -1807,7 +1808,22 @@ function renderPipeline(){
   if(searchEl&&searchEl.value.trim()){filterPipeline(searchEl.value);return;}
   renderPipelineWithData(bookings.filter(b=>b.stage!=='archived'));
 }
-function renderPipelineWithData(data){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);for(const[stage,list]of Object.entries(cols)){const el=document.getElementById('col-'+stage);document.getElementById('count-'+stage).textContent=list.length;if(!list.length){el.innerHTML='<div class="empty-col">No bookings</div>';continue;}list.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));el.innerHTML=list.map(b=>cardHtml(b)).join('');}const today=new Date();today.setHours(0,0,0,0);const nudges=bookings.filter(b=>{if(!b.followUpDate)return false;if(b.stage==='archived'||b.stage==='booked')return false;return isReminderDue(b.followUpDate);});const nb=document.getElementById('nudge-bar');if(nudges.length){nb.style.display='flex';document.getElementById('nudge-items').innerHTML=nudges.map(b=>`<span class="nudge-item overdue" onclick="openBooking('${b.id}')">${esc(b.firstName)} ${esc(b.lastName)}</span>`).join(' ');}else nb.style.display='none';renderCalRefreshNudge();
+function renderPipelineWithData(data){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);
+  // Enquiry: newest enquiry at the bottom (oldest first)
+  cols.enquiry.sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
+  // Quote Sent / Deposit Pending: next action required order —
+  // whichever follow-up is due soonest sits at the top, most recently
+  // actioned (furthest-away follow-up) sits at the bottom
+  const fuSort=(a,b)=>{
+    const af=a.followUpDate?new Date(a.followUpDate).getTime():Infinity;
+    const bf=b.followUpDate?new Date(b.followUpDate).getTime():Infinity;
+    return af-bf;
+  };
+  cols.quote.sort(fuSort);
+  cols.deposit.sort(fuSort);
+  // Booked: soonest event date at the top
+  cols.booked.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  for(const[stage,list]of Object.entries(cols)){const el=document.getElementById('col-'+stage);document.getElementById('count-'+stage).textContent=list.length;if(!list.length){el.innerHTML='<div class="empty-col">No bookings</div>';continue;}el.innerHTML=list.map(b=>cardHtml(b)).join('');}const today=new Date();today.setHours(0,0,0,0);const nudges=bookings.filter(b=>{if(!b.followUpDate)return false;if(b.stage==='archived'||b.stage==='booked')return false;return isReminderDue(b.followUpDate);});const nb=document.getElementById('nudge-bar');if(nudges.length){nb.style.display='flex';document.getElementById('nudge-items').innerHTML=nudges.map(b=>`<span class="nudge-item overdue" onclick="openBooking('${b.id}')">${esc(b.firstName)} ${esc(b.lastName)}</span>`).join(' ');}else nb.style.display='none';renderCalRefreshNudge();
   ['col-enquiry','col-quote','col-deposit','col-booked'].forEach(colId=>{
     if(collapseState[colId]){
       const cards=document.getElementById(colId);

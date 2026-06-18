@@ -1808,7 +1808,19 @@ function renderPipeline(){
   if(searchEl&&searchEl.value.trim()){filterPipeline(searchEl.value);return;}
   renderPipelineWithData(bookings.filter(b=>b.stage!=='archived'));
 }
-function renderPipelineWithData(data){runAutoArchiveCheck();const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);
+function renderPipelineWithData(data){runAutoArchiveCheck();
+  // Defensive repair: any booking with a followUpState or pendingArchive set,
+  // but whose followUpDate is still stuck overdue (a leftover from before this
+  // was fixed), gets its followUpDate corrected so it stops haunting the nudge bar
+  let repaired=false;
+  bookings.forEach(b=>{
+    if((b.followUpState||b.pendingArchive)&&b.followUpDate&&isReminderDue(b.followUpDate)&&(b.stage==='quote'||b.stage==='deposit')){
+      b.followUpDate=b.pendingArchive||reminderDate(b.followUpDays);
+      repaired=true;
+    }
+  });
+  if(repaired)saveData();
+  const cols={enquiry:[],quote:[],deposit:[],booked:[]};for(const b of bookings)if(b.stage!=='archived'&&cols[b.stage])cols[b.stage].push(b);
   // Enquiry: newest enquiry at the bottom (oldest first)
   cols.enquiry.sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   // Quote Sent / Deposit Pending: next action required order —

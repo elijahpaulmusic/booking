@@ -1812,11 +1812,14 @@ function renderPipelineWithData(data){runAutoArchiveCheck();const cols={enquiry:
   // Enquiry: newest enquiry at the bottom (oldest first)
   cols.enquiry.sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   // Quote Sent / Deposit Pending: next action required order —
-  // whichever follow-up is due soonest sits at the top, most recently
-  // actioned (furthest-away follow-up) sits at the bottom
+  // whichever reminder is due soonest sits at the top, most recently
+  // actioned (furthest-away reminder) sits at the bottom.
+  // If "Set to delete" is active, pendingArchive is the real countdown
+  // shown to the user, so it takes priority over followUpDate for sorting.
+  const nextActionDate=b=>b.pendingArchive||b.followUpDate;
   const fuSort=(a,b)=>{
-    const af=a.followUpDate?new Date(a.followUpDate).getTime():Infinity;
-    const bf=b.followUpDate?new Date(b.followUpDate).getTime():Infinity;
+    const af=nextActionDate(a)?new Date(nextActionDate(a)).getTime():Infinity;
+    const bf=nextActionDate(b)?new Date(nextActionDate(b)).getTime():Infinity;
     return af-bf;
   };
   cols.quote.sort(fuSort);

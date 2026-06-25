@@ -1511,7 +1511,7 @@ function renderCalPopup(popupId, year, month, selectedDate, onPickFn, navFn) {
 let wsCalYear=new Date().getFullYear(),wsCalMonth=new Date().getMonth(),wsCalSelected='',wsCalOpen=false;
 function wsToggleCal(e){e.stopPropagation();if(!wsCalOpen){renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');document.getElementById('ws-cal-popup').style.display='block';wsCalOpen=true;}else{document.getElementById('ws-cal-popup').style.display='none';wsCalOpen=false;}}
 function wsNavCal(dir,type,val){if(type==='year'){wsCalYear=val;const picker=document.querySelector('#ws-cal-popup .cal-year-picker');if(picker)picker.classList.remove('open');}else{wsCalMonth+=dir;if(wsCalMonth<0){wsCalMonth=11;wsCalYear--;}if(wsCalMonth>11){wsCalMonth=0;wsCalYear++;}}renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
-function wsPickDate(ds){wsCalSelected=ds;wsCalOpen=false;document.getElementById('nq-date').value=ds;document.getElementById('ws-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});document.getElementById('ws-cal-display').textContent=fmt;document.getElementById('ws-cal-display').style.color='var(--ink)';renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
+function wsPickDate(ds){wsCalSelected=ds;wsCalOpen=false;document.getElementById('neq-date').value=ds;document.getElementById('ws-cal-popup').style.display='none';const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});document.getElementById('ws-cal-display').textContent=fmt;document.getElementById('ws-cal-display').style.color='var(--ink)';renderCalPopup('ws-cal-popup',wsCalYear,wsCalMonth,wsCalSelected,'wsPickDate','wsNavCal');}
 document.addEventListener('click',function(e){
   if(wsCalOpen){const p=document.getElementById('ws-cal-popup'),t=document.getElementById('ws-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';wsCalOpen=false;}}
   if(cfCalOpen){const p=document.getElementById('cf-cal-popup'),t=document.getElementById('cf-cal-trigger');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';cfCalOpen=false;}}
@@ -1523,7 +1523,7 @@ document.addEventListener('click',function(e){
 // WORKSTATION ADDRESS AC
 // ═══════════════════════════════════════════════════
 let wsAcTimer=null;
-function getWsVenueEl(){return document.getElementById('nq-venue');}
+function getWsVenueEl(){return document.getElementById('neq-venue');}
 function getWsAcDrop(){return document.getElementById('ws-ac-dropdown');}
 function initWsVenueListeners(){
   const wsVenueEl=getWsVenueEl();
@@ -1533,8 +1533,8 @@ function initWsVenueListeners(){
   wsVenueEl.addEventListener('input',function(){clearTimeout(wsAcTimer);const val=this.value.trim();if(val.length<3){wsAcDrop.style.display='none';return;}wsAcTimer=setTimeout(()=>runAC(val,wsAcDrop,wsSelectAddress),380);});
   wsVenueEl.addEventListener('blur',()=>setTimeout(()=>wsAcDrop.style.display='none',200));
   // Time field listeners — must be deferred as fields are in a hidden layer at parse time
-  const st=document.getElementById('nq-starttime');
-  const et=document.getElementById('nq-endtime');
+  const st=document.getElementById('neq-starttime');
+  const et=document.getElementById('neq-endtime');
   if(st&&!st._listenerAdded){st._listenerAdded=true;st.addEventListener('change',calcWsDuration);}
   if(et&&!et._listenerAdded){et._listenerAdded=true;et.addEventListener('change',calcWsDuration);}
 }
@@ -1550,9 +1550,9 @@ const WS_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax 
 function wsSelectService(val){wsService=val;document.querySelectorAll('[id^="ws-opt-"]').forEach(el=>el.classList.remove('selected'));document.getElementById('ws-opt-'+val).classList.add('selected');}
 function wsGoToP2(){if(!wsService){showToast('Please select a service type.','error');return;}document.getElementById('ws-enquiry-p1').style.display='none';document.getElementById('ws-enquiry-p2').style.display='block';document.getElementById('ws-service-label').textContent=WS_SERVICE_LABELS[wsService]||'';}
 function wsGoToP1(){document.getElementById('ws-enquiry-p2').style.display='none';document.getElementById('ws-enquiry-p1').style.display='block';}
-function calcWsDuration(){const st=document.getElementById('nq-starttime'),et=document.getElementById('nq-endtime'),d=document.getElementById('ws-dur-display');const s=st?st.value:'',e=et?et.value:'';if(!s||!e){if(d)d.textContent='';return 1;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;if(d)d.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();return mins/60;}
+function calcWsDuration(){const st=document.getElementById('neq-starttime'),et=document.getElementById('neq-endtime'),d=document.getElementById('ws-dur-display');const s=st?st.value:'',e=et?et.value:'';if(!s||!e){if(d)d.textContent='';return 1;}let mins=(parseInt(e)*60+parseInt(e.split(':')[1]))-(parseInt(s)*60+parseInt(s.split(':')[1]));if(mins<=0)mins+=1440;const h=Math.floor(mins/60),m=mins%60;if(d)d.textContent=`Duration: ${h>0?h+'h ':''}${m>0?m+'m':''}`.trim();return mins/60;}
 
-function buildBookingFromForm(){const _ms=document.getElementById('ws-mileage-status');const miles=parseFloat((_ms&&_ms.dataset.miles)||'0')||0,duration=calcWsDuration()||1,service=wsService,paRequired=paFromService(service);return{id:genId(),firstName:document.getElementById('nq-firstname').value.trim(),lastName:document.getElementById('nq-lastname').value.trim(),email:document.getElementById('nq-email').value.trim(),mobile:document.getElementById('nq-mobile').value.trim(),eventDate:document.getElementById('nq-date').value,eventType:document.getElementById('nq-eventtype').value,service,duration,startTime:document.getElementById('nq-starttime').value,endTime:document.getElementById('nq-endtime').value,paRequired,postcode:'',venue:(document.getElementById('nq-venue')||{value:''}).value.trim(),notes:document.getElementById('nq-notes').value.trim(),miles,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null};}
+function buildBookingFromForm(){const _ms=document.getElementById('ws-mileage-status');const miles=parseFloat((_ms&&_ms.dataset.miles)||'0')||0,duration=calcWsDuration()||1,service=wsService,paRequired=paFromService(service);return{id:genId(),firstName:document.getElementById('neq-firstname').value.trim(),lastName:document.getElementById('neq-lastname').value.trim(),email:document.getElementById('neq-email').value.trim(),mobile:document.getElementById('neq-mobile').value.trim(),eventDate:document.getElementById('neq-date').value,eventType:document.getElementById('neq-eventtype').value,service,duration,startTime:document.getElementById('neq-starttime').value,endTime:document.getElementById('neq-endtime').value,paRequired,postcode:'',venue:(document.getElementById('neq-venue')||{value:''}).value.trim(),notes:document.getElementById('neq-notes').value.trim(),miles,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null};}
 
 
 function saveEnquiry(){
@@ -1570,11 +1570,11 @@ function saveEnquiry(){
     saveData();
     renderPipeline();
     showView('pipeline');
-    ['nq-firstname','nq-lastname','nq-email','nq-mobile','nq-date','nq-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['neq-firstname','neq-lastname','neq-email','neq-mobile','neq-date','neq-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     wsCalSelected='';wsCalOpen=false;
     const cald=document.getElementById('ws-cal-display');if(cald){cald.textContent='Select a date…';cald.style.color='var(--ink3)';}
     const calp=document.getElementById('ws-cal-popup');if(calp)calp.style.display='none';
-    const _wv=document.getElementById('nq-venue');if(_wv){_wv.value='';_wv.dataset.lat='';_wv.dataset.lon='';}
+    const _wv=document.getElementById('neq-venue');if(_wv){_wv.value='';_wv.dataset.lat='';_wv.dataset.lon='';}
     const ms=document.getElementById('ws-mileage-status');if(ms){ms.textContent='';ms.className='mileage-status';ms.dataset.miles='0';}
     wsService='';
     document.querySelectorAll('[id^="ws-opt-"]').forEach(el=>el.classList.remove('selected'));
@@ -2542,7 +2542,7 @@ function renameEt(el){const orig=el.dataset.orig,newName=el.value.trim();if(!new
 function updateEtPrice(el){const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;}
 function deleteEt(name){if(!confirm(`Delete event type "${name}"?`))return;delete settings.eventRates[name];renderEtEditor();}
 function addEventType(){settings.eventRates['New Event Type']=0;renderEtEditor();setTimeout(()=>{const inputs=document.querySelectorAll('.et-name');if(inputs.length)inputs[inputs.length-1].focus();},50);}
-function rebuildEventTypeSelect(){const sel=document.getElementById('nq-eventtype'),cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
+function rebuildEventTypeSelect(){const sel=document.getElementById('neq-eventtype'),cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
 function renderDowEditor(){const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];const indices=[1,2,3,4,5,6,0];document.getElementById('dow-editor').innerHTML=days.map((d,i)=>`<div class="dm-item"><label>${d}</label><input type="number" id="dow-${indices[i]}" value="${settings.dayRates[indices[i]]!==undefined?settings.dayRates[indices[i]]:0}"></div>`).join('');}
 function renderMonthEditor(){const months=['January','February','March','April','May','June','July','August','September','October','November','December'];document.getElementById('month-editor').innerHTML=months.map((m,i)=>`<div class="dm-item"><label>${m}</label><input type="number" id="month-${i}" value="${settings.monthRates[i]!==undefined?settings.monthRates[i]:0}"></div>`).join('');}
 function sendPasswordReset(){
@@ -3022,15 +3022,15 @@ function autoFillTestEnquiry(){
   const et=etKeys[Math.floor(Math.random()*etKeys.length)];
   const svc=TEST_SERVICES[Math.floor(Math.random()*TEST_SERVICES.length)];
   // Fill fields
-  document.getElementById('nq-firstname').value=fn;
-  document.getElementById('nq-lastname').value=ln;
-  document.getElementById('nq-email').value=settings.autofillEmail||settings.email||'';
-  document.getElementById('nq-mobile').value=settings.phone||'';
-  document.getElementById('nq-notes').value='Test enquiry — auto-generated';
+  document.getElementById('neq-firstname').value=fn;
+  document.getElementById('neq-lastname').value=ln;
+  document.getElementById('neq-email').value=settings.autofillEmail||settings.email||'';
+  document.getElementById('neq-mobile').value=settings.phone||'';
+  document.getElementById('neq-notes').value='Test enquiry — auto-generated';
   // Date via custom calendar
   wsPickDate(settings.autofillDate||'');
   // Event type
-  const etSel=document.getElementById('nq-eventtype');
+  const etSel=document.getElementById('neq-eventtype');
   if(etSel){etSel.value=et;}
   // Times
   const WS_START_TIMES=['12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00'];
@@ -3040,10 +3040,10 @@ function autoFillTestEnquiry(){
   const wsEndMins=wsMinEnd+Math.floor(Math.random()*Math.max(1,(wsMaxEnd-wsMinEnd)/30+1))*30;
   const wsClampedEnd=Math.min(wsEndMins,wsMaxEnd);
   const wsPickedEnd=String(Math.floor(wsClampedEnd/60)).padStart(2,'0')+':'+String(wsClampedEnd%60).padStart(2,'0');
-  const st=document.getElementById('nq-starttime');if(st)st.value=wsPickedStart;
-  const et2=document.getElementById('nq-endtime');if(et2)et2.value=wsPickedEnd;
+  const st=document.getElementById('neq-starttime');if(st)st.value=wsPickedStart;
+  const et2=document.getElementById('neq-endtime');if(et2)et2.value=wsPickedEnd;
   // Venue
-  const venueEl=document.getElementById('nq-venue');
+  const venueEl=document.getElementById('neq-venue');
   if(venueEl&&settings.autofillVenue){
     venueEl.value=settings.autofillVenue;
     venueEl.dataset.lat=settings.autofillLat||'';
@@ -3074,25 +3074,25 @@ if(document.readyState==='loading'){
 let nqCalYear=new Date().getFullYear(),nqCalMonth=new Date().getMonth(),nqCalSelected='',nqCalOpen=false,nqAcTimer=null;
 
 function openNewEnquiryModal(){
-  ['nq-firstname','nq-lastname','nq-email','nq-mobile','nq-venue','nq-manual-venue','nq-manual-postcode','nq-timings','nq-notes','nq-business-name','nq-business-address'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('nq-date').value='';
-  document.getElementById('nq-cal-display').value='';
-  document.getElementById('nq-postcode').value='';
-  document.getElementById('nq-miles').value='';
-  document.getElementById('nq-mileage-status').textContent='';
-  document.getElementById('nq-deposit').checked=true;
-  document.getElementById('nq-second-gig').checked=false;
-  document.getElementById('nq-before5pm').checked=false;
-  document.getElementById('nq-business').checked=false;
-  document.getElementById('nq-business-fields').style.display='none';
-  document.getElementById('nq-manual-toggle').checked=false;
-  document.getElementById('nq-venue-auto-section').style.display='';
-  document.getElementById('nq-venue-manual-section').style.display='none';
-  document.getElementById('nq-err').style.display='none';
-  const etSel=document.getElementById('nq-eventtype');
+  ['neq-firstname','neq-lastname','neq-email','neq-mobile','neq-venue','neq-manual-venue','neq-manual-postcode','neq-timings','neq-notes','neq-business-name','neq-business-address'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('neq-date').value='';
+  document.getElementById('neq-cal-display').value='';
+  document.getElementById('neq-postcode').value='';
+  document.getElementById('neq-miles').value='';
+  document.getElementById('neq-mileage-status').textContent='';
+  document.getElementById('neq-deposit').checked=true;
+  document.getElementById('neq-second-gig').checked=false;
+  document.getElementById('neq-before5pm').checked=false;
+  document.getElementById('neq-business').checked=false;
+  document.getElementById('neq-business-fields').style.display='none';
+  document.getElementById('neq-manual-toggle').checked=false;
+  document.getElementById('neq-venue-auto-section').style.display='';
+  document.getElementById('neq-venue-manual-section').style.display='none';
+  document.getElementById('neq-err').style.display='none';
+  const etSel=document.getElementById('neq-eventtype');
   etSel.innerHTML='<option value="">Select\u2026</option>';
   Object.keys(settings.eventRates||{}).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;etSel.appendChild(o);});
-  document.getElementById('nq-fee').value='';
+  document.getElementById('neq-fee').value='';
   nqCalSelected='';nqCalYear=new Date().getFullYear();nqCalMonth=new Date().getMonth();
   window._nqScrollY=window.scrollY||window.pageYOffset;
   document.body.style.cssText='position:fixed;top:-'+window._nqScrollY+'px;left:0;right:0;overflow:hidden;';
@@ -3104,13 +3104,13 @@ function closeNewEnquiry(){
   document.body.style.cssText='';
   window.scrollTo(0,window._nqScrollY||0);
 }
-function nqToggleBusiness(cb){document.getElementById('nq-business-fields').style.display=cb.checked?'block':'none';}
+function nqToggleBusiness(cb){document.getElementById('neq-business-fields').style.display=cb.checked?'block':'none';}
 function nqToggleManual(cb){
-  document.getElementById('nq-venue-auto-section').style.display=cb.checked?'none':'';
-  document.getElementById('nq-venue-manual-section').style.display=cb.checked?'':'none';
+  document.getElementById('neq-venue-auto-section').style.display=cb.checked?'none':'';
+  document.getElementById('neq-venue-manual-section').style.display=cb.checked?'':'none';
 }
 function nqToggleCal(){
-  const popup=document.getElementById('nq-cal-popup');if(!popup)return;
+  const popup=document.getElementById('neq-cal-popup');if(!popup)return;
   if(nqCalOpen){popup.style.display='none';nqCalOpen=false;return;}
   nqCalOpen=true;popup.style.display='block';
   nqRenderCal();
@@ -3122,10 +3122,10 @@ function nqNavCal(dir,type,val){
 }
 function nqPickDate(ds){
   nqCalSelected=ds;
-  document.getElementById('nq-date').value=ds;
+  document.getElementById('neq-date').value=ds;
   const fmt=new Date(ds+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-  const disp=document.getElementById('nq-cal-display');if(disp)disp.value=fmt;
-  const popup=document.getElementById('nq-cal-popup');if(popup)popup.style.display='none';
+  const disp=document.getElementById('neq-cal-display');if(disp)disp.value=fmt;
+  const popup=document.getElementById('neq-cal-popup');if(popup)popup.style.display='none';
   nqCalOpen=false;
 }
 function nqRenderCal(){
@@ -3144,11 +3144,11 @@ function nqRenderCal(){
     html+='<div class="cal-day'+(ds===nqCalSelected?' cal-selected':'')+'" onclick="event.stopPropagation();nqPickDate(\''+ds+'\')">'+d+'</div>';
   }
   html+='</div>';
-  const el=document.getElementById('nq-cal-popup');if(el)el.innerHTML=html;
+  const el=document.getElementById('neq-cal-popup');if(el)el.innerHTML=html;
 }
 function nqInitVenue(){
-  const venueEl=document.getElementById('nq-venue');
-  const acDrop=document.getElementById('nq-ac-dropdown');
+  const venueEl=document.getElementById('neq-venue');
+  const acDrop=document.getElementById('neq-ac-dropdown');
   if(!venueEl||venueEl._nqBound)return;
   venueEl._nqBound=true;
   venueEl.addEventListener('input',function(){clearTimeout(nqAcTimer);const val=this.value.trim();if(val.length<3){acDrop.style.display='none';return;}nqAcTimer=setTimeout(()=>runAC(val,acDrop,nqSelectAddress),380);});
@@ -3157,25 +3157,25 @@ function nqInitVenue(){
 function nqSelectAddress(res){
   const addr=res.address||{};
   const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);
-  const v=document.getElementById('nq-venue');if(v)v.value=parts.join(', ')||res.display_name;
-  document.getElementById('nq-postcode').value=(addr.postcode||'').toUpperCase();
-  document.getElementById('nq-ac-dropdown').style.display='none';
+  const v=document.getElementById('neq-venue');if(v)v.value=parts.join(', ')||res.display_name;
+  document.getElementById('neq-postcode').value=(addr.postcode||'').toUpperCase();
+  document.getElementById('neq-ac-dropdown').style.display='none';
   if(res.lat&&res.lon){
     const lat=parseFloat(res.lat),lon=parseFloat(res.lon);
-    const status=document.getElementById('nq-mileage-status');
+    const status=document.getElementById('neq-mileage-status');
     if(settings.homePostcode){
       cfCalcMilesFromPostcode(settings.homePostcode,lat,lon);
       // Mirror result to nq-miles
       setTimeout(()=>{
         const cfMiles=document.getElementById('cf-miles');
         if(cfMiles&&cfMiles.value){
-          document.getElementById('nq-miles').value=cfMiles.value;
+          document.getElementById('neq-miles').value=cfMiles.value;
           if(status)status.textContent='\u2713 '+cfMiles.value+' miles';
         }
       },1500);
     } else {
       const m=Math.ceil(cfHaversineMiles(51.9285,0.9640,lat,lon)/5)*5;
-      document.getElementById('nq-miles').value=m;
+      document.getElementById('neq-miles').value=m;
       if(status)status.textContent='~'+m+' miles (estimated)';
     }
   }
@@ -3189,42 +3189,42 @@ async function nqCalcMilesFromPostcode(postcode){
       const hdata=await hr.json();
       if(hdata.result){
         const m=Math.ceil(cfHaversineMiles(hdata.result.latitude,hdata.result.longitude,data.result.latitude,data.result.longitude)/5)*5;
-        document.getElementById('nq-miles').value=m;
-        document.getElementById('nq-mileage-status').textContent='\u2713 '+m+' miles';
+        document.getElementById('neq-miles').value=m;
+        document.getElementById('neq-mileage-status').textContent='\u2713 '+m+' miles';
       }
     }
   }catch(e){}
 }
 function nqSubmit(){
-  const fn=document.getElementById('nq-firstname').value.trim();
-  const ln=document.getElementById('nq-lastname').value.trim();
-  const email=document.getElementById('nq-email').value.trim();
-  const eventDate=document.getElementById('nq-date').value;
-  const eventType=document.getElementById('nq-eventtype').value;
+  const fn=document.getElementById('neq-firstname').value.trim();
+  const ln=document.getElementById('neq-lastname').value.trim();
+  const email=document.getElementById('neq-email').value.trim();
+  const eventDate=document.getElementById('neq-date').value;
+  const eventType=document.getElementById('neq-eventtype').value;
   const errors=[];
   if(!fn)errors.push('First name required');
   if(!ln)errors.push('Last name required');
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))errors.push('Valid email required');
   if(!eventDate)errors.push('Event date required');
   if(!eventType)errors.push('Event type required');
-  const errEl=document.getElementById('nq-err');
+  const errEl=document.getElementById('neq-err');
   if(errors.length){errEl.innerHTML=errors.join('<br>');errEl.style.display='block';return;}
   errEl.style.display='none';
-  const mobile=document.getElementById('nq-mobile').value.trim();
-  const service=document.getElementById('nq-service').value||'sax_bt';
-  const feeVal=parseFloat(document.getElementById('nq-fee').value)||null;
-  const timings=document.getElementById('nq-timings').value.trim();
-  const notes=document.getElementById('nq-notes').value.trim();
-  const hasDeposit=document.getElementById('nq-deposit').checked;
-  const secondGig=document.getElementById('nq-second-gig').checked;
-  const before5pm=document.getElementById('nq-before5pm').checked;
-  const hasBusiness=document.getElementById('nq-business').checked;
-  const businessName=hasBusiness?document.getElementById('nq-business-name').value.trim():'';
-  const businessAddress=hasBusiness?document.getElementById('nq-business-address').value.trim():'';
-  const isManual=document.getElementById('nq-manual-toggle').checked;
-  const venue=isManual?document.getElementById('nq-manual-venue').value.trim():document.getElementById('nq-venue').value.trim();
-  const postcode=isManual?document.getElementById('nq-manual-postcode').value.trim().toUpperCase():document.getElementById('nq-postcode').value;
-  const miles=parseFloat(document.getElementById('nq-miles').value)||0;
+  const mobile=document.getElementById('neq-mobile').value.trim();
+  const service=document.getElementById('neq-service').value||'sax_bt';
+  const feeVal=parseFloat(document.getElementById('neq-fee').value)||null;
+  const timings=document.getElementById('neq-timings').value.trim();
+  const notes=document.getElementById('neq-notes').value.trim();
+  const hasDeposit=document.getElementById('neq-deposit').checked;
+  const secondGig=document.getElementById('neq-second-gig').checked;
+  const before5pm=document.getElementById('neq-before5pm').checked;
+  const hasBusiness=document.getElementById('neq-business').checked;
+  const businessName=hasBusiness?document.getElementById('neq-business-name').value.trim():'';
+  const businessAddress=hasBusiness?document.getElementById('neq-business-address').value.trim():'';
+  const isManual=document.getElementById('neq-manual-toggle').checked;
+  const venue=isManual?document.getElementById('neq-manual-venue').value.trim():document.getElementById('neq-venue').value.trim();
+  const postcode=isManual?document.getElementById('neq-manual-postcode').value.trim().toUpperCase():document.getElementById('neq-postcode').value;
+  const miles=parseFloat(document.getElementById('neq-miles').value)||0;
   const allTimes=[...timings.matchAll(/(\d{1,2}):(\d{2})/g)];
   const startTime=allTimes.length>0?allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2]:(before5pm?'16:00':'19:00');
   const endTime=allTimes.length>1?allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2]:'';
@@ -3256,8 +3256,8 @@ function nqSubmit(){
 }
 document.addEventListener('click',function(e){
   if(nqCalOpen){
-    const popup=document.getElementById('nq-cal-popup');
-    const trigger=document.getElementById('nq-cal-display');
+    const popup=document.getElementById('neq-cal-popup');
+    const trigger=document.getElementById('neq-cal-display');
     if(popup&&!popup.contains(e.target)&&trigger&&!trigger.contains(e.target)){popup.style.display='none';nqCalOpen=false;}
   }
   document.querySelectorAll('#nq-cal-popup .cal-year-picker.open').forEach(function(yp){if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');});
@@ -3277,18 +3277,18 @@ document.addEventListener('click',function(e){
       <div style="margin-bottom:20px;">
         <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Client Details</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group"><label>First Name *</label><input type="text" id="nq-firstname" placeholder="Jane"></div>
-          <div class="form-group"><label>Last Name *</label><input type="text" id="nq-lastname" placeholder="Smith"></div>
-          <div class="form-group"><label>Email *</label><input type="email" id="nq-email" placeholder="jane@example.com"></div>
-          <div class="form-group"><label>Mobile</label><input type="tel" id="nq-mobile" placeholder="07xxx xxxxxx"></div>
+          <div class="form-group"><label>First Name *</label><input type="text" id="neq-firstname" placeholder="Jane"></div>
+          <div class="form-group"><label>Last Name *</label><input type="text" id="neq-lastname" placeholder="Smith"></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="neq-email" placeholder="jane@example.com"></div>
+          <div class="form-group"><label>Mobile</label><input type="tel" id="neq-mobile" placeholder="07xxx xxxxxx"></div>
         </div>
         <div style="margin-top:10px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
-            <input type="checkbox" id="nq-business" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nqToggleBusiness(this)"> Requires Business Address?
+            <input type="checkbox" id="neq-business" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nqToggleBusiness(this)"> Requires Business Address?
           </label>
-          <div id="nq-business-fields" style="display:none;margin-top:10px;">
-            <div class="form-group"><label>Business Name</label><input type="text" id="nq-business-name" placeholder="Acme Events Ltd"></div>
-            <div class="form-group"><label>Business Address</label><textarea id="nq-business-address" rows="2" placeholder="123 Business Street, London EC1A 1AA" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
+          <div id="neq-business-fields" style="display:none;margin-top:10px;">
+            <div class="form-group"><label>Business Name</label><input type="text" id="neq-business-name" placeholder="Acme Events Ltd"></div>
+            <div class="form-group"><label>Business Address</label><textarea id="neq-business-address" rows="2" placeholder="123 Business Street, London EC1A 1AA" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
           </div>
         </div>
       </div>
@@ -3297,58 +3297,58 @@ document.addEventListener('click',function(e){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="form-group" style="position:relative;">
             <label>Event Date *</label>
-            <input type="text" id="nq-cal-display" placeholder="Select a date&#x2026;" readonly onclick="nqToggleCal()" style="cursor:pointer;background:var(--white);">
-            <input type="hidden" id="nq-date">
-            <div id="nq-cal-popup" class="cal-popup-shared" style="display:none;"></div>
+            <input type="text" id="neq-cal-display" placeholder="Select a date&#x2026;" readonly onclick="nqToggleCal()" style="cursor:pointer;background:var(--white);">
+            <input type="hidden" id="neq-date">
+            <div id="neq-cal-popup" class="cal-popup-shared" style="display:none;"></div>
           </div>
-          <div class="form-group"><label>Event Type *</label><select id="nq-eventtype"><option value="">Select&#x2026;</option></select></div>
+          <div class="form-group"><label>Event Type *</label><select id="neq-eventtype"><option value="">Select&#x2026;</option></select></div>
           <div class="form-group"><label>Service</label>
-            <select id="nq-service">
+            <select id="neq-service">
               <option value="sax_bt">Sax with Backing Tracks (PA)</option>
               <option value="sax_dj">Sax with Client's DJ</option>
               <option value="combo">COMBO</option>
             </select>
           </div>
-          <div class="form-group"><label>Agreed Fee (&#xa3;)</label><input type="number" id="nq-fee" placeholder="e.g. 680" min="0" step="1"></div>
+          <div class="form-group"><label>Agreed Fee (&#xa3;)</label><input type="number" id="neq-fee" placeholder="e.g. 680" min="0" step="1"></div>
         </div>
       </div>
       <div style="margin-bottom:20px;">
         <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Venue</div>
-        <div id="nq-venue-auto-section">
+        <div id="neq-venue-auto-section">
           <div class="form-group" style="position:relative;">
             <label>Venue Name / Address</label>
-            <input type="text" id="nq-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
-            <div id="nq-ac-dropdown" class="ac-dropdown" style="display:none;"></div>
+            <input type="text" id="neq-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
+            <div id="neq-ac-dropdown" class="ac-dropdown" style="display:none;"></div>
           </div>
           <div style="font-size:12px;color:var(--ink3);margin:-6px 0 8px;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-              <input type="checkbox" id="nq-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nqToggleManual(this)"> Can't find it? Enter manually
+              <input type="checkbox" id="neq-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nqToggleManual(this)"> Can't find it? Enter manually
             </label>
           </div>
         </div>
-        <div id="nq-venue-manual-section" style="display:none;">
-          <div class="form-group"><label>Venue Name / Address</label><input type="text" id="nq-manual-venue" placeholder="Full venue name and address"></div>
-          <div class="form-group"><label>Postcode</label><input type="text" id="nq-manual-postcode" placeholder="Postcode" onblur="nqCalcMilesFromPostcode(this.value)"></div>
+        <div id="neq-venue-manual-section" style="display:none;">
+          <div class="form-group"><label>Venue Name / Address</label><input type="text" id="neq-manual-venue" placeholder="Full venue name and address"></div>
+          <div class="form-group"><label>Postcode</label><input type="text" id="neq-manual-postcode" placeholder="Postcode" onblur="nqCalcMilesFromPostcode(this.value)"></div>
         </div>
-        <input type="hidden" id="nq-postcode">
-        <input type="hidden" id="nq-miles">
-        <div id="nq-mileage-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
+        <input type="hidden" id="neq-postcode">
+        <input type="hidden" id="neq-miles">
+        <div id="neq-mileage-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
       </div>
       <div style="margin-bottom:20px;">
         <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Invoice Details</div>
         <div class="form-group">
           <label>Provisional Timings</label>
-          <textarea id="nq-timings" rows="2" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony, 19:30 Drinks, 21:00 First Dance" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
+          <textarea id="neq-timings" rows="2" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony, 19:30 Drinks, 21:00 First Dance" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
           <div style="font-size:11px;color:var(--ink3);margin-top:2px;">First and last HH:MM used for calendar event.</div>
         </div>
-        <div class="form-group"><label>Notes</label><textarea id="nq-notes" rows="2" placeholder="Any additional notes" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
+        <div class="form-group"><label>Notes</label><textarea id="neq-notes" rows="2" placeholder="Any additional notes" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
         <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig? (invoice suffix 02)</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig? (invoice suffix 02)</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
         </div>
       </div>
-      <div id="nq-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;"></div>
+      <div id="neq-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-secondary" onclick="closeNewEnquiry()">Cancel</button>
         <button class="btn btn-primary" onclick="nqSubmit()">Add Enquiry</button>

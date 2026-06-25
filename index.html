@@ -1200,13 +1200,7 @@ function doTestLogin(){
       window._fbCurrentUser=cred.user;
       const overlay=document.getElementById('test-login-overlay');
       if(overlay)overlay.style.display='none';
-      if(isNewMode()){
-        // Sync settings first so initNewForm has event types etc.
-        _newFormActive=true;
-        syncFromFirebase(()=>{showLayer('layer-new-form');setTimeout(initNewForm,100);});
-      } else {
-        showBookingForm(null);
-      }
+      showBookingForm(null);
     })
     .catch(e=>{if(errEl){errEl.textContent='Login failed: '+( e.message||'Check credentials');errEl.style.display='block';}});
 }
@@ -1344,37 +1338,44 @@ function showWorkstation(){
   renderCalRefreshNudge();
 }
 
-let _newFormActive=false;
 function showBookingForm(preselect){
-  if(_newFormActive)return; // don't let retry loop override layer-new-form
   document.title='Elijah Paul — Booking Form';
-  // Always show the booking form layer first (hides workstation login behind it)
+  // #book/new — completely separate auth+render path, never touches layer-form
+  if(isNewMode()){
+    if(!window._fbAuth||!window._firebaseReady){
+      showLayer('layer-new-form'); // show blank while waiting
+      setTimeout(()=>showBookingForm(preselect),300);
+      return;
+    }
+    const user=window._fbCurrentUser||window._fbAuth.currentUser;
+    if(!user){
+      showLayer('layer-new-form');
+      showTestLoginOverlay();
+      return;
+    }
+    // Logged in — sync then show form
+    showLayer('layer-new-form');
+    if(settings&&Object.keys(settings.eventRates||{}).length>0){
+      setTimeout(initNewForm,100);
+    } else {
+      syncFromFirebase(()=>setTimeout(initNewForm,100));
+    }
+    return;
+  }
+  // All other routes — show layer-form first
   showLayer('layer-form');
-  // #book/test and #book/new require auth — check Firebase session
-  if(isTestMode()||isNewMode()){
+  // #book/test requires auth
+  if(isTestMode()){
     if(window._fbAuth&&window._firebaseReady){
       const user=window._fbCurrentUser||window._fbAuth.currentUser;
       if(!user){
-        // Not logged in — show login overlay over the form
         showTestLoginOverlay();
         return;
       }
     } else {
-      // Firebase not ready yet — wait and retry
       setTimeout(()=>showBookingForm(preselect),300);
       return;
     }
-  }
-  if(isNewMode()){
-    _newFormActive=true;
-    showLayer('layer-new-form');
-    // Ensure settings are loaded before init
-    if(settings&&Object.keys(settings.eventRates||{}).length>0){
-      setTimeout(initNewForm,100);
-    } else {
-      syncFromFirebase(()=>{setTimeout(initNewForm,100);});
-    }
-    return;
   }
   setTimeout(()=>{cfRestoreSession();cfBindSessionSave();},100);
   showLayer('layer-form');

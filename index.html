@@ -2408,115 +2408,6 @@ function downloadInvoicePDF(type, refNum){
   const title=(refNum||'Invoice')+' - '+(settings.name||'Elijah Paul')+' Saxophonist';
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:20mm 18mm;}@page:first{margin-top:20mm;}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{font-family:'Open Sans Condensed','Open Sans',sans-serif;max-width:600px;margin:0 auto;color:#1A1814;font-size:13px;line-height:1.6;}#print-tip{background:#1A1814;color:#FAF8F3;padding:10px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}#print-tip button{background:#C9A84C;border:none;color:#1A1814;padding:6px 14px;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;}@media print{#print-tip{display:none!important;}}.invoice-logo{font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:20px;color:#8A6E2F;}.invoice-logo small{display:block;font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:11px;color:#6B6558;font-weight:400;margin-top:2px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}th{font-size:11px;text-transform:uppercase;color:#6B6558;border-bottom:2px solid #E8E3D8;padding:6px 0;text-align:left;}th:last-child,td:last-child{text-align:right;}td{padding:8px 0;border-bottom:1px solid #F2EFE6;font-size:13px;vertical-align:top;}.total-line{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;}.total-line.grand{font-size:15px;font-weight:700;border-top:2px solid #1A1814;margin-top:6px;padding-top:8px;}.invoice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}.invoice-number{text-align:right;}.invoice-number strong{display:block;font-size:18px;font-weight:700;color:#1A1814;margin-top:2px;}.invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}.invoice-party h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B6558;margin-bottom:6px;}.invoice-bank{margin-top:24px;padding-top:16px;border-top:1px solid #F2EFE6;font-size:12px;color:#6B6558;line-height:1.8;}.invoice-totals{text-align:right;padding-top:8px;}</style></head><body><div id="print-tip"><span>⚠ In the print dialog: set <strong>Headers &amp; Footers → Off</strong> to remove browser header/footer from the PDF</span><button onclick="window.print()">Save as PDF</button></div>${el.outerHTML}\x3cscript\x3ewindow.onload=function(){setTimeout(function(){window.print();},400);}\x3c/script\x3e
-<!-- NEW ENQUIRY MODAL -->
-<div class="modal-overlay" id="new-enquiry-modal" onclick="if(event.target===this)closeNewEnquiry()">
-  <div class="modal-scroll-wrap"><div class="modal" style="max-width:600px;">
-    <div class="modal-header">
-      <h2 class="modal-title">New Enquiry</h2>
-      <button class="modal-close" onclick="closeNewEnquiry()">✕</button>
-    </div>
-    <div style="padding:20px 24px 32px;">
-
-      <!-- CLIENT -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Client Details</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group"><label>First Name *</label><input type="text" id="nq-firstname" placeholder="Jane"></div>
-          <div class="form-group"><label>Last Name *</label><input type="text" id="nq-lastname" placeholder="Smith"></div>
-          <div class="form-group"><label>Email *</label><input type="email" id="nq-email" placeholder="jane@example.com"></div>
-          <div class="form-group"><label>Mobile</label><input type="tel" id="nq-mobile" placeholder="07xxx xxxxxx"></div>
-        </div>
-        <!-- Business address -->
-        <div style="margin-top:10px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
-            <input type="checkbox" id="nq-business" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nqToggleBusiness(this)"> Requires Business Address?
-          </label>
-          <div id="nq-business-fields" style="display:none;margin-top:10px;">
-            <div class="form-group"><label>Business Name</label><input type="text" id="nq-business-name" placeholder="Acme Events Ltd"></div>
-            <div class="form-group"><label>Business Address</label><textarea id="nq-business-address" rows="2" placeholder="123 Business Street, London EC1A 1AA" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EVENT -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Event Details</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group" style="position:relative;">
-            <label>Event Date *</label>
-            <input type="text" id="nq-cal-display" placeholder="Select a date…" readonly onclick="nqToggleCal()" style="cursor:pointer;background:var(--white);">
-            <input type="hidden" id="nq-date">
-            <div id="nq-cal-popup" class="cal-popup-shared" style="display:none;"></div>
-          </div>
-          <div class="form-group"><label>Event Type *</label><select id="nq-eventtype"><option value="">Select…</option></select></div>
-          <div class="form-group"><label>Service</label>
-            <select id="nq-service">
-              <option value="sax_bt">Sax with Backing Tracks (PA)</option>
-              <option value="sax_dj">Sax with Client's DJ</option>
-              <option value="combo">COMBO</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Agreed Fee (£)</label><input type="number" id="nq-fee" placeholder="e.g. 680" min="0" step="1"></div>
-        </div>
-      </div>
-
-      <!-- VENUE -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Venue</div>
-        <div id="nq-venue-auto-section">
-          <div class="form-group" style="position:relative;">
-            <label>Venue Name / Address</label>
-            <input type="text" id="nq-venue" placeholder="Start typing a venue name or address…" autocomplete="off">
-            <div id="nq-ac-dropdown" class="ac-dropdown" style="display:none;"></div>
-          </div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:-6px;margin-bottom:8px;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-              <input type="checkbox" id="nq-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nqToggleManual(this)"> Can't find it? Enter manually
-            </label>
-          </div>
-        </div>
-        <div id="nq-venue-manual-section" style="display:none;">
-          <div class="form-group"><label>Venue Name / Address</label><input type="text" id="nq-manual-venue" placeholder="Full venue name and address"></div>
-          <div class="form-group"><label>Postcode</label><input type="text" id="nq-manual-postcode" placeholder="Postcode" onblur="nqCalcMilesFromPostcode(this.value)"></div>
-        </div>
-        <input type="hidden" id="nq-postcode">
-        <input type="hidden" id="nq-miles">
-        <div id="nq-mileage-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
-      </div>
-
-      <!-- INVOICE DETAILS -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Invoice Details</div>
-        <div class="form-group">
-          <label>Provisional Timings</label>
-          <textarea id="nq-timings" rows="2" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony, 19:30 Drinks (1hr), 21:00 First Dance" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
-          <div style="font-size:11px;color:var(--ink3);margin-top:2px;">First and last HH:MM used for calendar event.</div>
-        </div>
-        <div class="form-group"><label>Notes</label><textarea id="nq-notes" rows="2" placeholder="Any additional notes" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
-            <input type="checkbox" id="nq-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
-            <input type="checkbox" id="nq-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig? (invoice suffix 02)
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
-            <input type="checkbox" id="nq-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?
-          </label>
-        </div>
-      </div>
-
-      <div id="nq-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn btn-secondary" onclick="closeNewEnquiry()">Cancel</button>
-        <button class="btn btn-primary" onclick="nqSubmit()">
-          <span id="nq-submit-label">Add Enquiry</span>
-          <span id="nq-submit-spinner" style="display:none;"><span class="spinner"></span></span>
-        </button>
-      </div>
-    </div>
-  </div></div>
-</div>
 </body></html>`);
   w.document.close();
 }
@@ -3180,12 +3071,10 @@ if(document.readyState==='loading'){
 // ═══════════════════════════════════════════════════
 // NEW ENQUIRY MODAL
 // ═══════════════════════════════════════════════════
-let nqCalYear=new Date().getFullYear(), nqCalMonth=new Date().getMonth(), nqCalSelected='', nqCalOpen=false, nqAcTimer=null;
+let nqCalYear=new Date().getFullYear(),nqCalMonth=new Date().getMonth(),nqCalSelected='',nqCalOpen=false,nqAcTimer=null;
 
 function openNewEnquiryModal(){
-  // Reset form
-  ['nq-firstname','nq-lastname','nq-email','nq-mobile','nq-venue','nq-manual-venue','nq-manual-postcode','nq-timings','nq-notes','nq-business-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['nq-business-address'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['nq-firstname','nq-lastname','nq-email','nq-mobile','nq-venue','nq-manual-venue','nq-manual-postcode','nq-timings','nq-notes','nq-business-name','nq-business-address'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nq-date').value='';
   document.getElementById('nq-cal-display').value='';
   document.getElementById('nq-postcode').value='';
@@ -3195,51 +3084,41 @@ function openNewEnquiryModal(){
   document.getElementById('nq-second-gig').checked=false;
   document.getElementById('nq-before5pm').checked=false;
   document.getElementById('nq-business').checked=false;
-  document.getElementById('nq-manual-toggle').checked=false;
   document.getElementById('nq-business-fields').style.display='none';
+  document.getElementById('nq-manual-toggle').checked=false;
   document.getElementById('nq-venue-auto-section').style.display='';
   document.getElementById('nq-venue-manual-section').style.display='none';
   document.getElementById('nq-err').style.display='none';
   const etSel=document.getElementById('nq-eventtype');
-  etSel.innerHTML='<option value="">Select…</option>';
+  etSel.innerHTML='<option value="">Select\u2026</option>';
   Object.keys(settings.eventRates||{}).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;etSel.appendChild(o);});
   document.getElementById('nq-fee').value='';
-  nqCalSelected='';
-  nqCalYear=new Date().getFullYear();
-  nqCalMonth=new Date().getMonth();
-  // Body scroll lock
+  nqCalSelected='';nqCalYear=new Date().getFullYear();nqCalMonth=new Date().getMonth();
   window._nqScrollY=window.scrollY||window.pageYOffset;
   document.body.style.cssText='position:fixed;top:-'+window._nqScrollY+'px;left:0;right:0;overflow:hidden;';
   document.getElementById('new-enquiry-modal').classList.add('open');
-  // Init venue autocomplete
   nqInitVenue();
 }
-
 function closeNewEnquiry(){
   document.getElementById('new-enquiry-modal').classList.remove('open');
   document.body.style.cssText='';
   window.scrollTo(0,window._nqScrollY||0);
 }
-
-function nqToggleBusiness(cb){
-  document.getElementById('nq-business-fields').style.display=cb.checked?'block':'none';
-}
+function nqToggleBusiness(cb){document.getElementById('nq-business-fields').style.display=cb.checked?'block':'none';}
 function nqToggleManual(cb){
   document.getElementById('nq-venue-auto-section').style.display=cb.checked?'none':'';
   document.getElementById('nq-venue-manual-section').style.display=cb.checked?'':'none';
 }
-
-// Calendar
 function nqToggleCal(){
   const popup=document.getElementById('nq-cal-popup');if(!popup)return;
   if(nqCalOpen){popup.style.display='none';nqCalOpen=false;return;}
   nqCalOpen=true;popup.style.display='block';
-  renderCalPopupFree('nq-cal-popup',nqCalYear,nqCalMonth,nqCalSelected,'nqPickDate','nqNavCal');
+  nqRenderCal();
 }
 function nqNavCal(dir,type,val){
   if(type==='year'){nqCalYear=val;const p=document.querySelector('#nq-cal-popup .cal-year-picker');if(p)p.classList.remove('open');}
   else{nqCalMonth+=dir;if(nqCalMonth<0){nqCalMonth=11;nqCalYear--;}if(nqCalMonth>11){nqCalMonth=0;nqCalYear++;}}
-  renderCalPopupFree('nq-cal-popup',nqCalYear,nqCalMonth,nqCalSelected,'nqPickDate','nqNavCal');
+  nqRenderCal();
 }
 function nqPickDate(ds){
   nqCalSelected=ds;
@@ -3249,100 +3128,80 @@ function nqPickDate(ds){
   const popup=document.getElementById('nq-cal-popup');if(popup)popup.style.display='none';
   nqCalOpen=false;
 }
-
-// renderCalPopupFree — no date blocking (any date allowed)
-function renderCalPopupFree(popupId,year,month,selectedDate,onPickFn,navFn){
+function nqRenderCal(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const days=['MO','TU','WE','TH','FR','SA','SU'];
+  const dow=['MO','TU','WE','TH','FR','SA','SU'];
   const curYear=new Date().getFullYear();
-  const yearOpts=[curYear-2,curYear-1,curYear,curYear+1,curYear+2,curYear+3].map(y=>`<div class="cal-year-opt${y===year?' active':''}" onclick="event.stopPropagation();${navFn}(0,'year',${y})">${y}</div>`).join('');
-  let html=`<div class="cal-header">
-    <button class="cal-nav" onclick="event.stopPropagation();${navFn}(-1)">‹</button>
-    <div class="cal-header-centre" style="position:relative;">
-      <span class="cal-month-label">${months[month]}</span>
-      <button class="cal-year-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('open')">${year}</button>
-      <div class="cal-year-picker">${yearOpts}</div>
-    </div>
-    <button class="cal-nav" onclick="event.stopPropagation();${navFn}(1)">›</button>
-  </div><div class="cal-grid">`;
-  days.forEach(d=>{html+=`<div class="cal-dow">${d}</div>`;});
-  const first=new Date(year,month,1).getDay();
+  const yearOpts=[curYear-2,curYear-1,curYear,curYear+1,curYear+2,curYear+3].map(y=>'<div class="cal-year-opt'+(y===nqCalYear?' active':'')+'" onclick="event.stopPropagation();nqNavCal(0,\'year\','+y+')">'+y+'</div>').join('');
+  let html='<div class="cal-header"><button class="cal-nav" onclick="event.stopPropagation();nqNavCal(-1)">\u2039</button><div class="cal-header-centre" style="position:relative;"><span class="cal-month-label">'+months[nqCalMonth]+'</span><button class="cal-year-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle(\'open\')">'+nqCalYear+'</button><div class="cal-year-picker">'+yearOpts+'</div></div><button class="cal-nav" onclick="event.stopPropagation();nqNavCal(1)">\u203a</button></div><div class="cal-grid">';
+  dow.forEach(d=>{html+='<div class="cal-dow">'+d+'</div>';});
+  const first=new Date(nqCalYear,nqCalMonth,1).getDay();
   const blank=(first+6)%7;
   for(let i=0;i<blank;i++)html+='<div></div>';
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isSelected=ds===selectedDate;
-    html+=`<div class="cal-day${isSelected?' cal-selected':''}" onclick="event.stopPropagation();${onPickFn}('${ds}')">${d}</div>`;
+  const dim=new Date(nqCalYear,nqCalMonth+1,0).getDate();
+  for(let d=1;d<=dim;d++){
+    const ds=nqCalYear+'-'+String(nqCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    html+='<div class="cal-day'+(ds===nqCalSelected?' cal-selected':'')+'" onclick="event.stopPropagation();nqPickDate(\''+ds+'\')">'+d+'</div>';
   }
   html+='</div>';
-  const el=document.getElementById(popupId);if(el)el.innerHTML=html;
+  const el=document.getElementById('nq-cal-popup');if(el)el.innerHTML=html;
 }
-
-// Venue autocomplete
 function nqInitVenue(){
   const venueEl=document.getElementById('nq-venue');
   const acDrop=document.getElementById('nq-ac-dropdown');
-  if(!venueEl||venueEl._nqListenerAdded)return;
-  venueEl._nqListenerAdded=true;
-  venueEl.addEventListener('input',function(){
-    clearTimeout(nqAcTimer);const val=this.value.trim();
-    if(val.length<3){acDrop.style.display='none';return;}
-    nqAcTimer=setTimeout(()=>runAC(val,acDrop,nqSelectAddress),380);
-  });
+  if(!venueEl||venueEl._nqBound)return;
+  venueEl._nqBound=true;
+  venueEl.addEventListener('input',function(){clearTimeout(nqAcTimer);const val=this.value.trim();if(val.length<3){acDrop.style.display='none';return;}nqAcTimer=setTimeout(()=>runAC(val,acDrop,nqSelectAddress),380);});
   venueEl.addEventListener('blur',()=>setTimeout(()=>acDrop.style.display='none',200));
 }
 function nqSelectAddress(res){
   const addr=res.address||{};
   const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);
-  const v=document.getElementById('nq-venue');
-  if(v)v.value=parts.join(', ')||res.display_name;
+  const v=document.getElementById('nq-venue');if(v)v.value=parts.join(', ')||res.display_name;
   document.getElementById('nq-postcode').value=(addr.postcode||'').toUpperCase();
   document.getElementById('nq-ac-dropdown').style.display='none';
-  if(res.lat&&res.lon)nqCalcMiles(parseFloat(res.lat),parseFloat(res.lon));
-}
-function nqCalcMiles(lat,lon){
-  const status=document.getElementById('nq-mileage-status');
-  if(!settings.homePostcode){
-    const miles=cfHaversineMiles(51.9285,0.9640,lat,lon);
-    const m=Math.ceil(miles/5)*5;
-    document.getElementById('nq-miles').value=m;
-    if(status)status.textContent='~'+m+' miles (estimated)';
-    return;
+  if(res.lat&&res.lon){
+    const lat=parseFloat(res.lat),lon=parseFloat(res.lon);
+    const status=document.getElementById('nq-mileage-status');
+    if(settings.homePostcode){
+      cfCalcMilesFromPostcode(settings.homePostcode,lat,lon);
+      // Mirror result to nq-miles
+      setTimeout(()=>{
+        const cfMiles=document.getElementById('cf-miles');
+        if(cfMiles&&cfMiles.value){
+          document.getElementById('nq-miles').value=cfMiles.value;
+          if(status)status.textContent='\u2713 '+cfMiles.value+' miles';
+        }
+      },1500);
+    } else {
+      const m=Math.ceil(cfHaversineMiles(51.9285,0.9640,lat,lon)/5)*5;
+      document.getElementById('nq-miles').value=m;
+      if(status)status.textContent='~'+m+' miles (estimated)';
+    }
   }
-  cfCalcMilesFromPostcode(settings.homePostcode,lat,lon).then(m=>{
-    document.getElementById('nq-miles').value=m;
-    if(status)status.textContent='✓ '+m+' miles';
-  }).catch(()=>{
-    const m=Math.ceil(cfHaversineMiles(51.9285,0.9640,lat,lon)/5)*5;
-    document.getElementById('nq-miles').value=m;
-    if(status)status.textContent='~'+m+' miles (estimated)';
-  });
 }
 async function nqCalcMilesFromPostcode(postcode){
   try{
-    const r=await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`);
+    const r=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(postcode));
     const data=await r.json();
     if(data.result&&settings.homePostcode){
-      const hr=await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(settings.homePostcode)}`);
+      const hr=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(settings.homePostcode));
       const hdata=await hr.json();
       if(hdata.result){
-        const miles=Math.ceil(cfHaversineMiles(hdata.result.latitude,hdata.result.longitude,data.result.latitude,data.result.longitude)/5)*5;
-        document.getElementById('nq-miles').value=miles;
-        document.getElementById('nq-mileage-status').textContent='✓ '+miles+' miles';
+        const m=Math.ceil(cfHaversineMiles(hdata.result.latitude,hdata.result.longitude,data.result.latitude,data.result.longitude)/5)*5;
+        document.getElementById('nq-miles').value=m;
+        document.getElementById('nq-mileage-status').textContent='\u2713 '+m+' miles';
       }
     }
   }catch(e){}
 }
-
 function nqSubmit(){
-  // Validate
-  const errors=[];
   const fn=document.getElementById('nq-firstname').value.trim();
   const ln=document.getElementById('nq-lastname').value.trim();
   const email=document.getElementById('nq-email').value.trim();
   const eventDate=document.getElementById('nq-date').value;
   const eventType=document.getElementById('nq-eventtype').value;
+  const errors=[];
   if(!fn)errors.push('First name required');
   if(!ln)errors.push('Last name required');
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))errors.push('Valid email required');
@@ -3351,9 +3210,6 @@ function nqSubmit(){
   const errEl=document.getElementById('nq-err');
   if(errors.length){errEl.innerHTML=errors.join('<br>');errEl.style.display='block';return;}
   errEl.style.display='none';
-  const lbl=document.getElementById('nq-submit-label');const spin=document.getElementById('nq-submit-spinner');
-  if(lbl)lbl.style.display='none';if(spin)spin.style.display='inline-flex';
-
   const mobile=document.getElementById('nq-mobile').value.trim();
   const service=document.getElementById('nq-service').value||'sax_bt';
   const feeVal=parseFloat(document.getElementById('nq-fee').value)||null;
@@ -3369,34 +3225,20 @@ function nqSubmit(){
   const venue=isManual?document.getElementById('nq-manual-venue').value.trim():document.getElementById('nq-venue').value.trim();
   const postcode=isManual?document.getElementById('nq-manual-postcode').value.trim().toUpperCase():document.getElementById('nq-postcode').value;
   const miles=parseFloat(document.getElementById('nq-miles').value)||0;
-
-  // Extract start/end times from provisional timings
   const allTimes=[...timings.matchAll(/(\d{1,2}):(\d{2})/g)];
   const startTime=allTimes.length>0?allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2]:(before5pm?'16:00':'19:00');
   const endTime=allTimes.length>1?allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2]:'';
-
-  // Invoice number
   const dt=eventDate.replace(/-/g,'');
   const invNum=dt+(secondGig?'02':'01');
-
   const booking={
-    id:genId(),
-    source:'manual',
-    firstName:fn,lastName:ln,email,mobile,
-    eventDate,eventType,service,
-    agreedPrice:feeVal,
-    chosenOption:feeVal?String(feeVal):null,
-    chosenDuration:null,
-    paRequired:paFromService(service),
-    venue,postcode,notes,miles,
-    startTime,endTime,duration:1,
-    provisionalTimings:timings,
-    invoiceNotes:notes,
-    invoiceNumber:invNum,
-    hasDeposit,businessName,businessAddress,
-    stage:'enquiry',
-    createdAt:new Date().toISOString(),
-    followUpDate:null,
+    id:genId(),source:'manual',firstName:fn,lastName:ln,email,mobile,
+    eventDate,eventType,service,agreedPrice:feeVal,
+    chosenOption:feeVal?String(feeVal):null,chosenDuration:null,
+    paRequired:paFromService(service),venue,postcode,notes,miles,
+    startTime,endTime,duration:1,provisionalTimings:timings,
+    invoiceNotes:notes,invoiceNumber:invNum,hasDeposit,
+    businessName,businessAddress,stage:'enquiry',
+    createdAt:new Date().toISOString(),followUpDate:null,
     rateSnapshot:feeVal?{
       paSax:settings.rates.paSax,saxDj:settings.rates.saxDj,
       mileage:settings.rates.mileage,ext1:settings.rates.ext1,extHr:settings.rates.extHr,
@@ -3406,32 +3248,113 @@ function nqSubmit(){
       dep3threshold:settings.rates.dep3threshold,lockedAt:new Date().toISOString()
     }:null
   };
-
   bookings.push(booking);
-  saveData();
-  renderPipeline();
+  saveData();renderPipeline();
   closeNewEnquiry();
-  showToast('Enquiry added to pipeline','success',2000);
-  // Open the new booking so invoices are immediately accessible
+  showToast('Enquiry added','success',2000);
   setTimeout(()=>openBooking(booking.id),300);
 }
-
-// Close NQ calendar on outside click
-document.addEventListener('click',e=>{
+document.addEventListener('click',function(e){
   if(nqCalOpen){
     const popup=document.getElementById('nq-cal-popup');
     const trigger=document.getElementById('nq-cal-display');
-    if(popup&&!popup.contains(e.target)&&trigger&&!trigger.contains(e.target)){
-      popup.style.display='none';nqCalOpen=false;
-    }
+    if(popup&&!popup.contains(e.target)&&trigger&&!trigger.contains(e.target)){popup.style.display='none';nqCalOpen=false;}
   }
-  // Close year pickers
-  document.querySelectorAll('#nq-cal-popup .cal-year-picker.open').forEach(yp=>{
-    if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');
-  });
+  document.querySelectorAll('#nq-cal-popup .cal-year-picker.open').forEach(function(yp){if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');});
 });
 
 </script>
 <div id="toast-container"></div>
+
+<!-- NEW ENQUIRY MODAL -->
+<div class="modal-overlay" id="new-enquiry-modal" onclick="if(event.target===this)closeNewEnquiry()">
+  <div class="modal-scroll-wrap"><div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">New Enquiry</h2>
+      <button class="modal-close" onclick="closeNewEnquiry()">&#x2715;</button>
+    </div>
+    <div style="padding:20px 24px 32px;">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Client Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group"><label>First Name *</label><input type="text" id="nq-firstname" placeholder="Jane"></div>
+          <div class="form-group"><label>Last Name *</label><input type="text" id="nq-lastname" placeholder="Smith"></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="nq-email" placeholder="jane@example.com"></div>
+          <div class="form-group"><label>Mobile</label><input type="tel" id="nq-mobile" placeholder="07xxx xxxxxx"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
+            <input type="checkbox" id="nq-business" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nqToggleBusiness(this)"> Requires Business Address?
+          </label>
+          <div id="nq-business-fields" style="display:none;margin-top:10px;">
+            <div class="form-group"><label>Business Name</label><input type="text" id="nq-business-name" placeholder="Acme Events Ltd"></div>
+            <div class="form-group"><label>Business Address</label><textarea id="nq-business-address" rows="2" placeholder="123 Business Street, London EC1A 1AA" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Event Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group" style="position:relative;">
+            <label>Event Date *</label>
+            <input type="text" id="nq-cal-display" placeholder="Select a date&#x2026;" readonly onclick="nqToggleCal()" style="cursor:pointer;background:var(--white);">
+            <input type="hidden" id="nq-date">
+            <div id="nq-cal-popup" class="cal-popup-shared" style="display:none;"></div>
+          </div>
+          <div class="form-group"><label>Event Type *</label><select id="nq-eventtype"><option value="">Select&#x2026;</option></select></div>
+          <div class="form-group"><label>Service</label>
+            <select id="nq-service">
+              <option value="sax_bt">Sax with Backing Tracks (PA)</option>
+              <option value="sax_dj">Sax with Client's DJ</option>
+              <option value="combo">COMBO</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Agreed Fee (&#xa3;)</label><input type="number" id="nq-fee" placeholder="e.g. 680" min="0" step="1"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Venue</div>
+        <div id="nq-venue-auto-section">
+          <div class="form-group" style="position:relative;">
+            <label>Venue Name / Address</label>
+            <input type="text" id="nq-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
+            <div id="nq-ac-dropdown" class="ac-dropdown" style="display:none;"></div>
+          </div>
+          <div style="font-size:12px;color:var(--ink3);margin:-6px 0 8px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="nq-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nqToggleManual(this)"> Can't find it? Enter manually
+            </label>
+          </div>
+        </div>
+        <div id="nq-venue-manual-section" style="display:none;">
+          <div class="form-group"><label>Venue Name / Address</label><input type="text" id="nq-manual-venue" placeholder="Full venue name and address"></div>
+          <div class="form-group"><label>Postcode</label><input type="text" id="nq-manual-postcode" placeholder="Postcode" onblur="nqCalcMilesFromPostcode(this.value)"></div>
+        </div>
+        <input type="hidden" id="nq-postcode">
+        <input type="hidden" id="nq-miles">
+        <div id="nq-mileage-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Invoice Details</div>
+        <div class="form-group">
+          <label>Provisional Timings</label>
+          <textarea id="nq-timings" rows="2" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony, 19:30 Drinks, 21:00 First Dance" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px;">First and last HH:MM used for calendar event.</div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="nq-notes" rows="2" placeholder="Any additional notes" style="width:100%;padding:8px 10px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig? (invoice suffix 02)</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nq-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
+        </div>
+      </div>
+      <div id="nq-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeNewEnquiry()">Cancel</button>
+        <button class="btn btn-primary" onclick="nqSubmit()">Add Enquiry</button>
+      </div>
+    </div>
+  </div></div>
+</div>
 </body>
 </html>

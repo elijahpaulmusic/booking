@@ -783,6 +783,89 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       </div>
     </div>
 
+    <!-- NEW ENQUIRY PAGE (#book/new) -->
+    <div class="cf-form-page" id="cf-page-new">
+      <div class="cf-header" style="text-align:center;">
+        <p style="font-size:12px;color:var(--ink3);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-top:8px;">New Enquiry</p>
+      </div>
+      <div style="max-width:480px;margin:0 auto;padding:0 0 60px;">
+        <div class="cf-card">
+          <h3 class="cf-section-title">Client Details</h3>
+          <div class="cf-group"><label>FIRST NAME *</label><input type="text" id="nf-firstname" placeholder="Jane" autocomplete="given-name"></div>
+          <div class="cf-group"><label>LAST NAME *</label><input type="text" id="nf-lastname" placeholder="Smith" autocomplete="family-name"></div>
+          <div class="cf-group"><label>EMAIL ADDRESS *</label><input type="email" id="nf-email" placeholder="jane@example.com" autocomplete="email"></div>
+          <div class="cf-group"><label>MOBILE NUMBER</label><input type="tel" id="nf-mobile" placeholder="07xxx xxxxxx" autocomplete="tel"></div>
+          <div class="cf-group" style="margin-top:8px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="nf-business" style="width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--ink);" onchange="nfToggleBusiness(this)">
+              <span style="font-weight:600;font-size:13px;">Requires Business Address?</span>
+            </label>
+            <div id="nf-business-fields" style="display:none;margin-top:10px;">
+              <div class="cf-group"><label>BUSINESS NAME</label><input type="text" id="nf-business-name" placeholder="Acme Events Ltd"></div>
+              <div class="cf-group"><label>BUSINESS ADDRESS</label><textarea id="nf-business-address" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;" placeholder="123 Business Street, London EC1A 1AA"></textarea></div>
+            </div>
+          </div>
+        </div>
+        <div class="cf-card">
+          <h3 class="cf-section-title">Event Details</h3>
+          <div class="cf-group" style="position:relative;">
+            <label>EVENT DATE *</label>
+            <input type="text" id="nf-cal-display" placeholder="Select a date&#x2026;" readonly onclick="nfToggleCal()" style="cursor:pointer;background:var(--white);">
+            <input type="hidden" id="nf-date">
+            <div id="nf-cal-popup" class="cal-popup-shared" style="display:none;"></div>
+          </div>
+          <div class="cf-group"><label>EVENT TYPE *</label><select id="nf-eventtype"><option value="">Select&#x2026;</option></select></div>
+          <div class="cf-group"><label>SERVICE</label>
+            <select id="nf-service">
+              <option value="sax_bt">Sax with Backing Tracks (PA)</option>
+              <option value="sax_dj">Sax with Client&apos;s DJ</option>
+              <option value="combo">COMBO</option>
+            </select>
+          </div>
+          <div class="cf-group"><label>AGREED FEE (&#xa3;)</label><input type="number" id="nf-fee" placeholder="e.g. 680" min="0" step="1"></div>
+        </div>
+        <div class="cf-card">
+          <h3 class="cf-section-title">Venue</h3>
+          <div id="nf-venue-auto">
+            <div class="cf-group" style="position:relative;">
+              <label>VENUE NAME / ADDRESS</label>
+              <input type="text" id="nf-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
+              <div id="nf-ac-drop" class="ac-dropdown" style="display:none;"></div>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" id="nf-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nfToggleManual(this)"> Can&apos;t find it? Enter manually
+            </label>
+          </div>
+          <div id="nf-venue-manual" style="display:none;">
+            <div class="cf-group"><label>VENUE NAME / ADDRESS</label><input type="text" id="nf-manual-venue" placeholder="Full venue name and address"></div>
+            <div class="cf-group"><label>POSTCODE</label><input type="text" id="nf-manual-postcode" placeholder="Postcode" onblur="nfManualPostcode(this.value)"></div>
+          </div>
+          <input type="hidden" id="nf-postcode">
+          <input type="hidden" id="nf-miles">
+          <div id="nf-miles-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
+        </div>
+        <div class="cf-card">
+          <h3 class="cf-section-title">Invoice Details</h3>
+          <div class="cf-group">
+            <label>PROVISIONAL TIMINGS</label>
+            <textarea id="nf-timings" rows="3" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony (30 mins), 19:30 Drinks Reception (1hr), 21:00 First Dance" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
+            <div style="font-size:11px;color:var(--ink3);margin-top:4px;">First and last HH:MM used for calendar event.</div>
+          </div>
+          <div class="cf-group"><label>NOTES</label><textarea id="nf-notes" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig?</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
+          </div>
+        </div>
+        <div id="nf-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+        <button class="cf-btn cf-btn-primary" onclick="nfSubmit()">
+          <span id="nf-submit-label">Add Enquiry</span>
+          <span id="nf-submit-spinner" style="display:none;"><span class="spinner"></span></span>
+        </button>
+      </div>
+    </div>
+
   </div><!-- /cf-page -->
 </div><!-- /layer-form -->
 
@@ -1340,32 +1423,10 @@ function showWorkstation(){
 
 function showBookingForm(preselect){
   document.title='Elijah Paul — Booking Form';
-  // #book/new — completely separate auth+render path, never touches layer-form
-  if(isNewMode()){
-    if(!window._fbAuth||!window._firebaseReady){
-      showLayer('layer-new-form'); // show blank while waiting
-      setTimeout(()=>showBookingForm(preselect),300);
-      return;
-    }
-    const user=window._fbCurrentUser||window._fbAuth.currentUser;
-    if(!user){
-      showLayer('layer-new-form');
-      showTestLoginOverlay();
-      return;
-    }
-    // Logged in — sync then show form
-    showLayer('layer-new-form');
-    if(settings&&Object.keys(settings.eventRates||{}).length>0){
-      setTimeout(initNewForm,100);
-    } else {
-      syncFromFirebase(()=>setTimeout(initNewForm,100));
-    }
-    return;
-  }
-  // All other routes — show layer-form first
+  // All routes show layer-form
   showLayer('layer-form');
-  // #book/test requires auth
-  if(isTestMode()){
+  // #book/test and #book/new require auth
+  if(isTestMode()||isNewMode()){
     if(window._fbAuth&&window._firebaseReady){
       const user=window._fbCurrentUser||window._fbAuth.currentUser;
       if(!user){
@@ -1376,6 +1437,11 @@ function showBookingForm(preselect){
       setTimeout(()=>showBookingForm(preselect),300);
       return;
     }
+  }
+  // #book/new — show new enquiry page inside layer-form
+  if(isNewMode()){
+    syncFromFirebase(()=>{cfShowPage('cf-page-new');initNewForm();});
+    return;
   }
   setTimeout(()=>{cfRestoreSession();cfBindSessionSave();},100);
   showLayer('layer-form');
@@ -3448,8 +3514,11 @@ function nfSubmit(){
   bookings.push(booking);
   saveData();
   // Show success and close tab after short delay
-  const layer=document.getElementById('layer-new-form');
-  if(layer)layer.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:var(--cream);gap:16px;"><div style="font-size:48px;">&#x1F3B7;</div><h2 style="font-family:\'Open Sans Condensed\',sans-serif;font-weight:700;">Enquiry Added!</h2><p style="color:var(--ink3);font-size:14px;">'+fn+' '+ln+' has been added to the pipeline.<br>You can close this tab.</p></div>';
+  // Show success
+  document.getElementById('cf-success-heading').textContent='Enquiry Added!';
+  document.getElementById('cf-success-body').innerHTML=fn+' '+ln+' has been added to the pipeline.<br>You can close this tab.';
+  document.getElementById('cf-success-name').textContent='';
+  cfShowPage('cf-page-success');
 }
 
 </script>
@@ -3546,86 +3615,5 @@ function nfSubmit(){
   </div></div>
 </div>
 
-<!-- NEW BOOKING FORM LAYER (#book/new) -->
-<div id="layer-new-form" class="layer" style="background:var(--cream);">
-  <div class="cf-header">
-    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBARXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAu6ADAAQAAAABAAAAqgAAAAD/4gfYSUNDX1BST0ZJTEUAAQEAAAfIYXBwbAIgAABtbnRyUkdCIFhZWiAH2QACABkACwAaAAthY3NwQVBQTAAAAABhcHBsAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWFwcGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtkZXNjAAABCAAAAG9kc2NtAAABeAAABYpjcHJ0AAAHBAAAADh3dHB0AAAHPAAAABRyWFlaAAAHUAAAABRnWFlaAAAHZAAAABRiWFlaAAAHeAAAABRyVFJDAAAHjAAAAA5jaGFkAAAHnAAAACxiVFJDAAAHjAAAAA5nVFJDAAAHjAAAAA5kZXNjAAAAAAAAABRHZW5lcmljIFJHQiBQcm9maWxlAAAAAAAAAAAAAAAUR2VuZXJpYyBSR0IgUHJvZmlsZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbWx1YwAAAAAAAAAfAAAADHNrU0sAAAAoAAABhGRhREsAAAAkAAABrGNhRVMAAAAkAAAB0HZpVk4AAAAkAAAB9HB0QlIAAAAmAAACGHVrVUEAAAAqAAACPmZyRlUAAAAoAAACaGh1SFUAAAAoAAACkHpoVFcAAAASAAACuGtvS1IAAAAWAAACym5iTk8AAAAmAAAC4GNzQ1oAAAAiAAADBmhlSUwAAAAeAAADKHJvUk8AAAAkAAADRmRlREUAAAAsAAADaml0SVQAAAAoAAADlnN2U0UAAAAmAAAC4HpoQ04AAAASAAADvmphSlAAAAAaAAAD0GVsR1IAAAAiAAAD6nB0UE8AAAAmAAAEDG5sTkwAAAAoAAAEMmVzRVMAAAAmAAAEDHRoVEgAAAAkAAAEWnRyVFIAAAAiAAAEfmZpRkkAAAAoAAAEoGhySFIAAAAoAAAEyHBsUEwAAAAsAAAE8HJ1UlUAAAAiAAAFHGVuVVMAAAAmAAAFPmFyRUcAAAAmAAAFZABWAWEAZQBvAGIAZQBjAG4A/QAgAFIARwBCACAAcAByAG8AZgBpAGwARwBlAG4AZQByAGUAbAAgAFIARwBCAC0AcAByAG8AZgBpAGwAUABlAHIAZgBpAGwAIABSAEcAQgAgAGcAZQBuAOgAcgBpAGMAQx6lAHUAIABoAOwAbgBoACAAUgBHAEIAIABDAGgAdQBuAGcAUABlAHIAZgBpAGwAIABSAEcAQgAgAEcAZQBuAOkAcgBpAGMAbwQXBDAEMwQwBDsETAQ9BDgEOQAgBD8EQAQ+BEQEMAQ5BDsAIABSAEcAQgBQAHIAbwBmAGkAbAAgAGcA6QBuAOkAcgBpAHEAdQBlACAAUgBWAEIAwQBsAHQAYQBsAOEAbgBvAHMAIABSAEcAQgAgAHAAcgBvAGYAaQBskBp1KABSAEcAQoJyX2ljz4/wx3y8GAAgAFIARwBCACDVBLhc0wzHfABHAGUAbgBlAHIAaQBzAGsAIABSAEcAQgAtAHAAcgBvAGYAaQBsAE8AYgBlAGMAbgD9ACAAUgBHAEIAIABwAHIAbwBmAGkAbAXkBegF1QXkBdkF3AAgAFIARwBCACAF2wXcBdwF2QBQAHIAbwBmAGkAbAAgAFIARwBCACAAZwBlAG4AZQByAGkAYwBBAGwAbABnAGUAbQBlAGkAbgBlAHMAIABSAEcAQgAtAFAAcgBvAGYAaQBsAFAAcgBvAGYAaQBsAG8AIABSAEcAQgAgAGcAZQBuAGUAcgBpAGMAb2ZukBoAUgBHAEJjz4/wZYdO9k4AgiwAIABSAEcAQgAgMNcw7TDVMKEwpDDrA5MDtQO9A7kDugPMACADwAPBA78DxgOvA7sAIABSAEcAQgBQAGUAcgBmAGkAbAAgAFIARwBCACAAZwBlAG4A6QByAGkAYwBvAEEAbABnAGUAbQBlAGUAbgAgAFIARwBCAC0AcAByAG8AZgBpAGUAbA5CDhsOIw5EDh8OJQ5MACAAUgBHAEIAIA4XDjEOSA4nDkQOGwBHAGUAbgBlAGwAIABSAEcAQgAgAFAAcgBvAGYAaQBsAGkAWQBsAGUAaQBuAGUAbgAgAFIARwBCAC0AcAByAG8AZgBpAGkAbABpAEcAZQBuAGUAcgBpAQ0AawBpACAAUgBHAEIAIABwAHIAbwBmAGkAbABVAG4AaQB3AGUAcgBzAGEAbABuAHkAIABwAHIAbwBmAGkAbAAgAFIARwBCBB4EMQRJBDgEOQAg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" alt="Elijah Paul Saxophonist" style="height:80px;width:auto;display:block;margin:0 auto;">
-    <p style="text-align:center;font-size:12px;color:var(--ink3);margin-top:6px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">New Enquiry</p>
-  </div>
-  <div style="max-width:480px;margin:0 auto;padding:0 16px 60px;">
-    <div class="cf-card">
-      <h3 class="cf-section-title">Client Details</h3>
-      <div class="cf-group"><label>FIRST NAME *</label><input type="text" id="nf-firstname" placeholder="Jane" autocomplete="given-name"></div>
-      <div class="cf-group"><label>LAST NAME *</label><input type="text" id="nf-lastname" placeholder="Smith" autocomplete="family-name"></div>
-      <div class="cf-group"><label>EMAIL ADDRESS *</label><input type="email" id="nf-email" placeholder="jane@example.com" autocomplete="email"></div>
-      <div class="cf-group"><label>MOBILE NUMBER</label><input type="tel" id="nf-mobile" placeholder="07xxx xxxxxx" autocomplete="tel"></div>
-      <div class="cf-group" style="margin-top:8px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="nf-business" style="width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--ink);" onchange="nfToggleBusiness(this)">
-          <span style="font-weight:600;font-size:13px;">Requires Business Address?</span>
-        </label>
-        <div id="nf-business-fields" style="display:none;margin-top:10px;">
-          <div class="cf-group"><label>BUSINESS NAME</label><input type="text" id="nf-business-name" placeholder="Acme Events Ltd"></div>
-          <div class="cf-group"><label>BUSINESS ADDRESS</label><textarea id="nf-business-address" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;" placeholder="123 Business Street, London EC1A 1AA"></textarea></div>
-        </div>
-      </div>
-    </div>
-    <div class="cf-card">
-      <h3 class="cf-section-title">Event Details</h3>
-      <div class="cf-group" style="position:relative;">
-        <label>EVENT DATE *</label>
-        <input type="text" id="nf-cal-display" placeholder="Select a date&#x2026;" readonly onclick="nfToggleCal()" style="cursor:pointer;background:var(--white);">
-        <input type="hidden" id="nf-date">
-        <div id="nf-cal-popup" class="cal-popup-shared" style="display:none;"></div>
-      </div>
-      <div class="cf-group"><label>EVENT TYPE *</label><select id="nf-eventtype"><option value="">Select&#x2026;</option></select></div>
-      <div class="cf-group"><label>SERVICE</label>
-        <select id="nf-service">
-          <option value="sax_bt">Sax with Backing Tracks (PA)</option>
-          <option value="sax_dj">Sax with Client&apos;s DJ</option>
-          <option value="combo">COMBO</option>
-        </select>
-      </div>
-      <div class="cf-group"><label>AGREED FEE (&#xa3;)</label><input type="number" id="nf-fee" placeholder="e.g. 680" min="0" step="1"></div>
-    </div>
-    <div class="cf-card">
-      <h3 class="cf-section-title">Venue</h3>
-      <div id="nf-venue-auto" class="cf-group" style="position:relative;">
-        <label>VENUE NAME / ADDRESS</label>
-        <input type="text" id="nf-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
-        <div id="nf-ac-drop" class="ac-dropdown" style="display:none;"></div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;cursor:pointer;">
-          <input type="checkbox" id="nf-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nfToggleManual(this)"> Can&apos;t find it? Enter manually
-        </label>
-      </div>
-      <div id="nf-venue-manual" style="display:none;">
-        <div class="cf-group"><label>VENUE NAME / ADDRESS</label><input type="text" id="nf-manual-venue" placeholder="Full venue name and address"></div>
-        <div class="cf-group"><label>POSTCODE</label><input type="text" id="nf-manual-postcode" placeholder="Postcode" onblur="nfManualPostcode(this.value)"></div>
-      </div>
-      <input type="hidden" id="nf-postcode">
-      <input type="hidden" id="nf-miles">
-      <div id="nf-miles-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
-    </div>
-    <div class="cf-card">
-      <h3 class="cf-section-title">Invoice Details</h3>
-      <div class="cf-group">
-        <label>PROVISIONAL TIMINGS</label>
-        <textarea id="nf-timings" rows="3" placeholder="e.g. 17:00 Arrive, 18:00 Ceremony (30 mins), 19:30 Drinks Reception (1hr), 21:00 First Dance" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea>
-        <div style="font-size:11px;color:var(--ink3);margin-top:4px;">First and last HH:MM used for calendar event.</div>
-      </div>
-      <div class="cf-group"><label>NOTES</label><textarea id="nf-notes" rows="2" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:13px;resize:vertical;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;"></textarea></div>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig?</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
-      </div>
-    </div>
-    <div id="nf-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
-    <button class="cf-btn cf-btn-primary" onclick="nfSubmit()">
-      <span id="nf-submit-label">Add Enquiry</span>
-      <span id="nf-submit-spinner" style="display:none;"><span class="spinner"></span></span>
-    </button>
-  </div>
-</div><!-- /layer-new-form -->
 </body>
 </html>

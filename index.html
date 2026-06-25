@@ -1202,6 +1202,7 @@ function doTestLogin(){
       if(overlay)overlay.style.display='none';
       if(isNewMode()){
         // Sync settings first so initNewForm has event types etc.
+        _newFormActive=true;
         syncFromFirebase(()=>{showLayer('layer-new-form');setTimeout(initNewForm,100);});
       } else {
         showBookingForm(null);
@@ -1343,11 +1344,13 @@ function showWorkstation(){
   renderCalRefreshNudge();
 }
 
+let _newFormActive=false;
 function showBookingForm(preselect){
+  if(_newFormActive)return; // don't let retry loop override layer-new-form
   document.title='Elijah Paul — Booking Form';
   // Always show the booking form layer first (hides workstation login behind it)
   showLayer('layer-form');
-  // #book/test requires auth — check Firebase session
+  // #book/test and #book/new require auth — check Firebase session
   if(isTestMode()||isNewMode()){
     if(window._fbAuth&&window._firebaseReady){
       const user=window._fbCurrentUser||window._fbAuth.currentUser;
@@ -1363,6 +1366,7 @@ function showBookingForm(preselect){
     }
   }
   if(isNewMode()){
+    _newFormActive=true;
     showLayer('layer-new-form');
     // Ensure settings are loaded before init
     if(settings&&Object.keys(settings.eventRates||{}).length>0){

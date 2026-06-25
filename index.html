@@ -1200,7 +1200,12 @@ function doTestLogin(){
       window._fbCurrentUser=cred.user;
       const overlay=document.getElementById('test-login-overlay');
       if(overlay)overlay.style.display='none';
-      showBookingForm(null);
+      if(isNewMode()){
+        // Sync settings first so initNewForm has event types etc.
+        syncFromFirebase(()=>{showLayer('layer-new-form');setTimeout(initNewForm,100);});
+      } else {
+        showBookingForm(null);
+      }
     })
     .catch(e=>{if(errEl){errEl.textContent='Login failed: '+( e.message||'Check credentials');errEl.style.display='block';}});
 }
@@ -1357,7 +1362,16 @@ function showBookingForm(preselect){
       return;
     }
   }
-  if(isNewMode()){showLayer('layer-new-form');setTimeout(initNewForm,100);return;}
+  if(isNewMode()){
+    showLayer('layer-new-form');
+    // Ensure settings are loaded before init
+    if(settings&&Object.keys(settings.eventRates||{}).length>0){
+      setTimeout(initNewForm,100);
+    } else {
+      syncFromFirebase(()=>{setTimeout(initNewForm,100);});
+    }
+    return;
+  }
   setTimeout(()=>{cfRestoreSession();cfBindSessionSave();},100);
   showLayer('layer-form');
   initCfVenueListeners();

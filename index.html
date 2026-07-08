@@ -734,26 +734,24 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       </div>
       <div class="cf-card">
         <div class="cf-card-title">Venue</div>
-        <div class="cf-group ac-wrap">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <label style="margin-bottom:0;">Venue Name / Address *</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;white-space:nowrap;">
-              <input type="checkbox" id="cf-manual-toggle" style="accent-color:var(--ink);width:14px;height:14px;" onchange="cfToggleManualAddress(this.checked)">
-              Can't find it? Enter manually
-            </label>
-          </div>
-          <input type="text" id="cf-venue" placeholder="Start typing a venue name or address…" autocomplete="off">
-          <div class="ac-dropdown" id="cf-ac-dropdown"></div>
-          <div id="cf-manual-address" style="display:none;margin-top:8px;">
-            <input type="text" id="cf-manual-venue" placeholder="Venue Name / House Number / House Name *" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;margin-bottom:8px;font-family:inherit;outline:none;box-sizing:border-box;">
-            <div class="cf-field-err" id="cf-e-manual-venue" style="display:none;">Please enter a venue name</div>
-            <input type="text" id="cf-manual-postcode" placeholder="Postcode *" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;" onblur="cfCalcMilesFromPostcode(this.value)">
-            <div class="cf-field-err" id="cf-e-manual-postcode" style="display:none;">Please enter a postcode</div>
-          </div>
-          <input type="hidden" id="cf-postcode">
-          <input type="hidden" id="cf-miles">
-          <div class="cf-field-err" id="cf-e-venue">Please enter a venue</div>
+        <div class="cf-group">
+          <label>Venue Name / House Number *</label>
+          <input type="text" id="cf-venue-name" placeholder="e.g. Swynford Manor, or 12" autocomplete="off" oninput="cfVenueNameInput()">
+          <div class="cf-field-err" id="cf-e-venue-name">Please enter a venue name or house number</div>
         </div>
+        <div class="cf-group">
+          <label>Postcode *</label>
+          <input type="text" id="cf-venue-postcode" placeholder="e.g. CB21 5LS" autocomplete="off" onblur="cfLookupPostcode(this.value)" style="text-transform:uppercase;">
+          <div id="cf-postcode-status" style="font-size:12px;color:var(--ink3);margin-top:4px;min-height:16px;"></div>
+          <div class="cf-field-err" id="cf-e-venue-postcode">Please enter a valid UK postcode</div>
+        </div>
+        <input type="hidden" id="cf-venue">
+        <input type="hidden" id="cf-postcode">
+        <input type="hidden" id="cf-miles">
+        <input type="hidden" id="cf-venue-road">
+        <input type="hidden" id="cf-venue-village">
+        <input type="hidden" id="cf-venue-town">
+        <input type="hidden" id="cf-venue-county">
       </div>
       <div class="cf-card">
         <div class="cf-card-title">Anything else?</div>
@@ -826,23 +824,22 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         </div>
         <div class="cf-card">
           <h3 class="cf-section-title">Venue</h3>
-          <div id="nf-venue-auto">
-            <div class="cf-group" style="position:relative;">
-              <label>VENUE NAME / ADDRESS</label>
-              <input type="text" id="nf-venue" placeholder="Start typing a venue name&#x2026;" autocomplete="off">
-              <div id="nf-ac-drop" class="ac-dropdown" style="display:none;"></div>
-            </div>
-            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;cursor:pointer;">
-              <input type="checkbox" id="nf-manual-toggle" style="width:14px;height:14px;accent-color:var(--ink);" onchange="nfToggleManual(this)"> Can&apos;t find it? Enter manually
-            </label>
+          <div class="cf-group">
+            <label>VENUE NAME / HOUSE NUMBER</label>
+            <input type="text" id="nf-venue-name" placeholder="e.g. Swynford Manor, or 12" autocomplete="off" oninput="nfVenueNameInput()">
           </div>
-          <div id="nf-venue-manual" style="display:none;">
-            <div class="cf-group"><label>VENUE NAME / ADDRESS</label><input type="text" id="nf-manual-venue" placeholder="Full venue name and address"></div>
-            <div class="cf-group"><label>POSTCODE</label><input type="text" id="nf-manual-postcode" placeholder="Postcode" onblur="nfManualPostcode(this.value)"></div>
+          <div class="cf-group">
+            <label>POSTCODE</label>
+            <input type="text" id="nf-venue-postcode" placeholder="e.g. CB21 5LS" autocomplete="off" onblur="nfLookupPostcode(this.value)" style="text-transform:uppercase;">
+            <div id="nf-postcode-status" style="font-size:12px;color:var(--ink3);margin-top:4px;min-height:16px;"></div>
           </div>
+          <input type="hidden" id="nf-venue">
           <input type="hidden" id="nf-postcode">
           <input type="hidden" id="nf-miles">
-          <div id="nf-miles-status" style="font-size:12px;color:var(--ink3);margin-top:4px;"></div>
+          <input type="hidden" id="nf-venue-road">
+          <input type="hidden" id="nf-venue-village">
+          <input type="hidden" id="nf-venue-town">
+          <input type="hidden" id="nf-venue-county">
         </div>
         <div class="cf-card">
           <h3 class="cf-section-title">Invoice Details</h3>
@@ -856,6 +853,14 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig?</label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
+          </div>
+          <div style="margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-custom-deposit" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nfToggleCustomDeposit(this)"> Custom Deposit?</label>
+            <div id="nf-custom-deposit-field" style="display:none;margin-top:8px;">
+              <label style="font-size:11px;color:var(--ink3);">CUSTOM DEPOSIT AMOUNT (&#xa3;)</label>
+              <input type="number" id="nf-custom-deposit-amount" placeholder="e.g. 100" min="0" step="1" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;">
+              <div style="font-size:11px;color:var(--ink3);margin-top:2px;">Overrides the deposit calculated from settings. Balance = agreed fee minus this amount.</div>
+            </div>
           </div>
         </div>
         <div id="nf-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
@@ -947,6 +952,10 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <label>Invoice Notes <span style="font-weight:400;font-size:11px;">(optional — appears on invoices)</span></label>
             <textarea id="detail-invoice-notes" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:13px;min-height:70px;resize:vertical;" placeholder="e.g. ceremony entrance, drinks reception and first dance" oninput="saveInvoiceNotes()"></textarea>
             
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label>Business Address <span style="font-weight:400;font-size:11px;">(optional — appears on invoice, between name and email)</span></label>
+            <textarea id="detail-business-address" style="width:100%;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:'Open Sans Condensed','Open Sans',sans-serif;font-size:13px;min-height:50px;resize:vertical;" placeholder="e.g. Acme Events Ltd, 123 Business Street, London, EC1A 1AA" oninput="saveInvoiceNotes()"></textarea>
           </div>
         </div>
       </div>
@@ -1169,16 +1178,43 @@ function genId(){return 'bk_'+Date.now()+'_'+Math.random().toString(36).slice(2,
 
 // ── Client form: write new enquiry to Firebase without auth ──────────────
 // Uses push() for atomic append — no read-then-write race condition
-function saveEnquiryToFirebase(booking){
+function saveEnquiryToFirebase(booking,onResult){
   if(!window._firebaseReady||!window._fbDb){
     console.warn('Firebase not available for enquiry save');
+    if(onResult)onResult(false);
     return;
   }
-  const db=window._fbDb,r=window._fbRef,p=window._fbPush;
-  if(!p){console.warn('Firebase push not available');return;}
-  p(r(db,'enquiries'),booking)
-    .then(()=>{}) // saved to Firebase
-    .catch(e=>console.error('Firebase enquiry write failed:',e));
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet,g=window._fbGet;
+  // Use a deterministic key from the booking id so we can verify the write
+  const key='enq_'+booking.id;
+  let attempt=0;
+  const maxAttempts=3;
+  function tryWrite(){
+    attempt++;
+    s(r(db,'enquiries/'+key),booking)
+      .then(()=>{
+        // Verify the write actually landed by reading it back
+        return g(r(db,'enquiries/'+key));
+      })
+      .then(snap=>{
+        if(snap&&snap.exists()&&snap.val()&&snap.val().id===booking.id){
+          // Confirmed saved
+          if(onResult)onResult(true);
+        } else {
+          throw new Error('Verification failed — data not found after write');
+        }
+      })
+      .catch(e=>{
+        console.warn('Enquiry write attempt '+attempt+' failed:',e);
+        if(attempt<maxAttempts){
+          setTimeout(tryWrite,1200*attempt); // backoff: 1.2s, 2.4s
+        } else {
+          console.error('Enquiry write failed after '+maxAttempts+' attempts');
+          if(onResult)onResult(false);
+        }
+      });
+  }
+  tryWrite();
 }
 
 // ── Load all data from Firebase (called after login) ─────────────────────
@@ -1425,8 +1461,18 @@ function showBookingForm(preselect){
   document.title='Elijah Paul — Booking Form';
   // All routes show layer-form
   showLayer('layer-form');
-  // #book/test and #book/new require auth
-  if(isTestMode()||isNewMode()){
+  // #book/new — no login required, open form immediately
+  if(isNewMode()){
+    // Load settings/bookings from Firebase (public read for event rates etc.)
+    if(window._firebaseReady&&window._fbDb){
+      syncFromFirebase(()=>{cfShowPage('cf-page-new');initNewForm();});
+    } else {
+      cfShowPage('cf-page-new');initNewForm();
+    }
+    return;
+  }
+  // #book/test requires auth
+  if(isTestMode()){
     if(window._fbAuth&&window._firebaseReady){
       const user=window._fbCurrentUser||window._fbAuth.currentUser;
       if(!user){
@@ -1437,11 +1483,6 @@ function showBookingForm(preselect){
       setTimeout(()=>showBookingForm(preselect),300);
       return;
     }
-  }
-  // #book/new — show new enquiry page inside layer-form
-  if(isNewMode()){
-    syncFromFirebase(()=>{cfShowPage('cf-page-new');initNewForm();});
-    return;
   }
   setTimeout(()=>{cfRestoreSession();cfBindSessionSave();},100);
   showLayer('layer-form');
@@ -2103,9 +2144,11 @@ function renderOtherTab(b){
   const disp=document.getElementById('chosen-price-display');
   const notes=document.getElementById('detail-invoice-notes');
   const pt=document.getElementById('detail-provisional-timings');
+  const ba=document.getElementById('detail-business-address');
   if(sel)sel.value=b.chosenOption||'';
   if(notes)notes.value=b.invoiceNotes||'';
   if(pt)pt.value=b.provisionalTimings||'';
+  if(ba)ba.value=b.businessAddress||'';
   if(disp){
     if(b.chosenOption&&b.chosenOption!==''&&b.agreedPrice){
       const dep=calcDeposit(b.agreedPrice);
@@ -2162,7 +2205,7 @@ function renderDetailContent(b){
   const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
   const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};
-  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof b.agreedPrice==='number')?'£'+calcDeposit(b.agreedPrice):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
+  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof b.agreedPrice==='number')?'£'+((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.agreedPrice)):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
 }
 function renderDetailContentEdit(b){
   const etOptions=Object.keys(settings.eventRates||{}).map(k=>`<option value="${k}"${b.eventType===k?' selected':''}>${k}</option>`).join('');
@@ -2251,7 +2294,8 @@ function renderFollowUpTab(b){
 
     // Follow Up Again? always visible — resets timer silently if not overdue, gives blue border if overdue
     const fuD=b.followUpDays||7;
-    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:12px;color:var(--ink3);font-weight:600;">Remind me in:</span><select id="fu-days-${b.id}" style="padding:4px 8px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:12px;background:var(--white);color:var(--ink);font-family:inherit;" onchange="saveFuDays('${b.id}',this.value)"><option value="3" ${fuD==3?'selected':''}>3 days</option><option value="7" ${fuD==7?'selected':''}>7 days</option><option value="14" ${fuD==14?'selected':''}>14 days</option><option value="30" ${fuD==30?'selected':''}>30 days</option></select></div><div class="fu-checkbox-row" id="fu-again-row-${b.id}" onclick="fuQuoteFollowUpAgain('${b.id}',${isDue})"><input type="checkbox" id="fu-again-cb-${b.id}" onclick="event.stopPropagation();fuQuoteFollowUpAgain('${b.id}',${isDue})"><div><div class="fu-cb-label">Follow Up Again?</div><div class="fu-cb-sub">${isDue?'Resets reminder to '+fuD+' days from today (blue border).':'Resets reminder to '+fuD+' days from today.'}</div></div></div>`;
+    const fuOpts=[1,2,3,4,5,6,7,14,21,28].map(d=>`<option value="${d}" ${fuD==d?'selected':''}>${d} day${d>1?'s':''}</option>`).join('');
+    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:12px;color:var(--ink3);font-weight:600;">Remind me in:</span><select id="fu-days-${b.id}" style="padding:4px 8px;border:1px solid var(--cream3);border-radius:var(--radius);font-size:12px;background:var(--white);color:var(--ink);font-family:inherit;" onchange="saveFuDays('${b.id}',this.value)">${fuOpts}</select></div><div class="fu-checkbox-row" id="fu-again-row-${b.id}" onclick="fuQuoteFollowUpAgain('${b.id}',${isDue})"><input type="checkbox" id="fu-again-cb-${b.id}" onclick="event.stopPropagation();fuQuoteFollowUpAgain('${b.id}',${isDue})"><div><div class="fu-cb-label">Follow Up Again?</div><div class="fu-cb-sub">${isDue?'Resets reminder to '+fuD+' days from today (blue border).':'Resets reminder to '+fuD+' days from today.'}</div></div></div>`;
 
     // "Set to delete" only shown when overdue
     if(isDue&&!pendingArchive){
@@ -2302,22 +2346,11 @@ function moveToStage(stage){
   const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
   const prev=b.stage;
   b.stage=stage;
-  if(stage==='enquiry'){b.followUpDate=null;b.followUpState=null;b.pendingArchive=null;b.followUpColor=null;}
-  if(stage==='enquiry'){b.followUpDate=null;b.followUpState=null;b.pendingArchive=null;b.followUpColor=null;}
-  if(stage==='quote'){
-    b.followUpDate=reminderDate();
-    b.followUpState=null;
-    b.pendingArchive=null;
-  } else if(stage==='deposit'){
-    b.followUpDate=reminderDate();
-    b.followUpState=null;
-    b.pendingArchive=null;
-  } else if(stage==='booked'||stage==='archived'){
-    b.followUpDate=null;
-    b.followUpState=null;
-    b.pendingArchive=null;
-    b.followUpColor=null;
-  }
+  // Always reset reminder + border to nothing when moving between stages
+  b.followUpDate=null;
+  b.followUpState=null;
+  b.pendingArchive=null;
+  b.followUpColor=null;
   document.getElementById('detail-followup').value=b.followUpDate||'';
   saveData();renderPipeline();
   const sm={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓',archived:'Archived'};
@@ -2339,7 +2372,10 @@ function deleteCurrentBooking(){
 function saveFuDays(id,days){
   const b=bookings.find(x=>x.id===id);if(!b)return;
   b.followUpDays=parseInt(days)||7;
-  saveData();
+  // Immediately reset the active reminder to the new value
+  b.followUpDate=reminderDate(b.followUpDays);
+  if(b.pendingArchive)b.pendingArchive=reminderDate(b.followUpDays);
+  saveData();renderPipeline();renderFollowUpTab(b);
 }
 function saveFollowup(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;b.followUpDate=document.getElementById('detail-followup').value||null;saveData();renderPipeline();}
 function setFollowup7(){document.getElementById('detail-followup').value=reminderDate().split('T')[0];}
@@ -2426,6 +2462,8 @@ function saveInvoiceNotes(){
   b.invoiceNotes=document.getElementById('detail-invoice-notes').value;
   const pt=document.getElementById('detail-provisional-timings');
   if(pt)b.provisionalTimings=pt.value;
+  const ba=document.getElementById('detail-business-address');
+  if(ba)b.businessAddress=ba.value;
   saveData();renderInvoices(b);renderCalendarTab(b);
 }
 function saveContactMethod(method,checked){
@@ -2446,8 +2484,26 @@ function saveNotes(){const b=bookings.find(x=>x.id===currentBookingId);if(!b)ret
 // ═══════════════════════════════════════════════════
 // INVOICES
 // ═══════════════════════════════════════════════════
+// Split a business address across two lines at the comma nearest the middle
+function splitAddressTwoLines(addr){
+  if(!addr)return'';
+  const clean=addr.trim();
+  const commaPositions=[];
+  for(let i=0;i<clean.length;i++)if(clean[i]===',')commaPositions.push(i);
+  if(commaPositions.length===0)return esc(clean);
+  // Find comma closest to the middle for roughly equal distribution
+  const mid=clean.length/2;
+  let best=commaPositions[0],bestDist=Math.abs(commaPositions[0]-mid);
+  commaPositions.forEach(p=>{const d=Math.abs(p-mid);if(d<bestDist){bestDist=d;best=p;}});
+  const line1=clean.slice(0,best+1).trim(); // keep the comma on line 1
+  const line2=clean.slice(best+1).trim();
+  return esc(line1)+'<br>'+esc(line2);
+}
 function renderInvoices(b){
-  const price=b.agreedPrice,deposit=price?calcDeposit(price):null,balance=price?price-deposit:null;
+  const price=b.agreedPrice;
+  // Custom deposit overrides calculated deposit if set
+  const deposit=price?(typeof b.customDeposit==='number'&&b.customDeposit>0?b.customDeposit:calcDeposit(price)):null;
+  const balance=price?price-deposit:null;
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
   const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.slice(0,10).replace(/-/g,''):'00000000');
   const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)));
@@ -2479,7 +2535,7 @@ function renderInvoices(b){
       </div>
       <div class="invoice-parties">
         <div class="invoice-party"><h5>From</h5><p>${settings.name||'Elijah Paul'}<br>${settings.email||'info@elijahpaul.com'}<br>${settings.phone||'07519 356742'}</p></div>
-        <div class="invoice-party"><h5>To</h5><p>${esc(b.firstName)} ${esc(b.lastName)}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
+        <div class="invoice-party"><h5>To</h5><p>${esc(b.firstName)} ${esc(b.lastName)}${b.businessAddress?'<br>'+splitAddressTwoLines(b.businessAddress):''}<br>${b.email}${b.mobile?'<br>'+b.mobile:''}</p></div>
       </div>
       <table class="invoice-table">
         <thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead>
@@ -2753,7 +2809,8 @@ function cfSaveSession(){
       lastname:document.getElementById('cf-lastname')?.value||'',
       email:document.getElementById('cf-email')?.value||'',
       mobile:document.getElementById('cf-mobile')?.value||'',
-      venue:document.getElementById('cf-venue')?.value||'',
+      venueName:document.getElementById('cf-venue-name')?.value||'',
+      venuePostcode:document.getElementById('cf-venue-postcode')?.value||'',
       eventtype:document.getElementById('cf-eventtype')?.value||'',
       before5pm:document.getElementById('cf-before5pm')?.checked||false,
       notes:document.getElementById('cf-notes')?.value||''
@@ -2771,14 +2828,15 @@ function cfRestoreSession(){
     if(data.lastname){const el=document.getElementById('cf-lastname');if(el)el.value=data.lastname;}
     if(data.email){const el=document.getElementById('cf-email');if(el)el.value=data.email;}
     if(data.mobile){const el=document.getElementById('cf-mobile');if(el)el.value=data.mobile;}
-    if(data.venue){const el=document.getElementById('cf-venue');if(el)el.value=data.venue;}
+    if(data.venueName){const el=document.getElementById('cf-venue-name');if(el)el.value=data.venueName;}
+    if(data.venuePostcode){const el=document.getElementById('cf-venue-postcode');if(el){el.value=data.venuePostcode;cfLookupPostcode(data.venuePostcode);}}
     if(data.eventtype){const el=document.getElementById('cf-eventtype');if(el)el.value=data.eventtype;}
     if(data.before5pm){const el=document.getElementById('cf-before5pm');if(el)el.checked=true;}
     if(data.notes){const el=document.getElementById('cf-notes');if(el)el.value=data.notes;}
   }catch(e){}
 }
 function cfBindSessionSave(){
-  ['cf-firstname','cf-lastname','cf-email','cf-mobile','cf-venue','cf-eventtype','cf-notes','cf-before5pm'].forEach(id=>{
+  ['cf-firstname','cf-lastname','cf-email','cf-mobile','cf-venue-name','cf-venue-postcode','cf-eventtype','cf-notes','cf-before5pm'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&!el.dataset.sessionBound){el.addEventListener(el.type==='checkbox'?'change':'input',cfSaveSession);el.dataset.sessionBound='1';}
   });
@@ -2876,23 +2934,19 @@ function cfAutoFillTest(){
   const before5pmCb=document.getElementById('cf-before5pm');if(before5pmCb)before5pmCb.checked=Math.random()<0.5;
   // Random venue from curated list
   const venue=CF_TEST_VENUES[Math.floor(Math.random()*CF_TEST_VENUES.length)];
-  const ve=document.getElementById('cf-venue');
-  if(ve){
-    ve.value=venue.name+', '+venue.addr;
-    ve.dataset.lat=String(venue.lat);
-    ve.dataset.lon=String(venue.lon);
-    // Calculate mileage from home postcode if available
-    if(settings.homePostcode){
-      cfCalcMilesFromPostcode(settings.homePostcode,venue.lat,venue.lon);
-    } else {
-      // Estimate straight-line from default location
-      const miles=cfHaversineMiles(51.9285,0.9640,venue.lat,venue.lon);
-      const milesCeil=Math.ceil(miles/5)*5;
-      const mi=document.getElementById('cf-miles');if(mi)mi.value=String(milesCeil);
-      const ms=document.getElementById('cf-mileage-status');
-      if(ms){ms.textContent='✓ ~'+milesCeil+' miles (estimated)';ms.style.color='var(--green)';}
-    }
-  }
+  // Extract postcode from the test venue address (last token pattern)
+  const pcMatch=venue.addr.match(/[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}/i);
+  const testPc=pcMatch?pcMatch[0]:'';
+  const vn=document.getElementById('cf-venue-name');
+  const vpc=document.getElementById('cf-venue-postcode');
+  if(vn)vn.value=venue.name;
+  if(vpc)vpc.value=testPc;
+  // Populate hidden fields and trigger the postcode lookup
+  const vHidden=document.getElementById('cf-venue');
+  if(vHidden)vHidden.value=venue.name+', '+venue.addr;
+  const pcHidden=document.getElementById('cf-postcode');if(pcHidden)pcHidden.value=testPc;
+  if(testPc){cfLookupPostcode(testPc);}
+  else if(settings.homePostcode){cfCalcMilesFromPostcode(settings.homePostcode,venue.lat,venue.lon);}
   // Random free date within 2 years
   const today=new Date();today.setHours(0,0,0,0);
   const maxDate=new Date(today);maxDate.setFullYear(maxDate.getFullYear()+2);
@@ -2976,6 +3030,72 @@ async function cfCalcMilesFromPostcode(postcode){
 
 function cfSelectAddress(res){const addr=res.address||{};const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);const v=document.getElementById('cf-venue');const d=document.getElementById('cf-ac-dropdown');if(v)v.value=parts.join(', ')||res.display_name;document.getElementById('cf-postcode').value=(addr.postcode||'').toUpperCase();if(d)d.style.display='none';document.getElementById('cf-e-venue').style.display='none';if(res.lat&&res.lon)cfCalcMiles(parseFloat(res.lat),parseFloat(res.lon));}
 async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));const hData=await hRes.json();let hLat=51.8619169,hLon=0.9573077;if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${dLon},${dLat}?overview=false`);const rd=await route.json();if(rd.code==='Ok'){document.getElementById('cf-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}}catch(e){}}
+
+// ── Postcode lookup for the two-field venue system (client + internal forms) ──
+// Fills road/village/town/county from postcodes.io and calculates distance.
+// Prefix lets the same logic serve both cf- (client) and nf- (internal) forms.
+async function lookupPostcodeGeneric(postcode,prefix,statusId){
+  const status=statusId?document.getElementById(statusId):null;
+  const pc=(postcode||'').trim();
+  if(!pc){if(status)status.textContent='';return;}
+  if(status){status.textContent='Looking up postcode…';status.style.color='var(--ink3)';}
+  try{
+    const res=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(pc.replace(/\s+/g,'')));
+    const data=await res.json();
+    if(data.status===200&&data.result){
+      const r=data.result;
+      // postcodes.io fields: thoroughfare (road), parish/ward, admin_ward, admin_district (town), admin_county / region
+      const road=r.thoroughfare||r.dependant_thoroughfare||'';
+      const village=(r.parish&&r.parish!==r.admin_district)?r.parish:(r.ward&&r.ward!==r.admin_district?r.ward:'');
+      const town=r.admin_district||r.parliamentary_constituency||'';
+      const county=r.admin_county||r.region||'';
+      document.getElementById(prefix+'-road').value=road;
+      document.getElementById(prefix+'-village').value=village;
+      document.getElementById(prefix+'-town').value=town;
+      document.getElementById(prefix+'-county').value=county;
+      document.getElementById(prefix+'-postcode').value=pc.toUpperCase();
+      // Build full formatted venue string:
+      // Venue Name/House No, Road, Village (if applicable), Town/City, County, Postcode
+      const nameField=document.getElementById(prefix+'-name');
+      const name=nameField?nameField.value.trim():'';
+      const parts=[name,road,village,town,county,pc.toUpperCase()].filter(Boolean);
+      document.getElementById(prefix+'-venue').value=parts.join(', ');
+      // Distance
+      if(status){status.textContent='✓ '+[town,county].filter(Boolean).join(', ');status.style.color='var(--green)';}
+      // Calculate driving distance
+      try{
+        const hRes=await fetch('https://api.postcodes.io/postcodes/'+((settings.homePostcode||'CO79AW').replace(/\s/g,'')));
+        const hData=await hRes.json();
+        let hLat=51.8619169,hLon=0.9573077;
+        if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}
+        const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${r.longitude},${r.latitude}?overview=false`);
+        const rd=await route.json();
+        if(rd.code==='Ok'){document.getElementById(prefix+'-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}
+        else{document.getElementById(prefix+'-miles').value=cfHaversineMiles(hLat,hLon,r.latitude,r.longitude).toFixed(1);}
+      }catch(e){}
+    } else {
+      if(status){status.textContent='⚠ Postcode not found — please check';status.style.color='var(--red)';}
+    }
+  }catch(e){
+    if(status){status.textContent='⚠ Could not look up postcode';status.style.color='var(--red)';}
+  }
+}
+function cfLookupPostcode(pc){lookupPostcodeGeneric(pc,'cf-venue','cf-postcode-status');}
+// Rebuild the full venue string from parts (used when name changes after postcode lookup)
+function cfBuildVenueString(prefix){
+  const name=(document.getElementById(prefix+'-name')||{value:''}).value.trim();
+  const road=(document.getElementById(prefix+'-road')||{value:''}).value;
+  const village=(document.getElementById(prefix+'-village')||{value:''}).value;
+  const town=(document.getElementById(prefix+'-town')||{value:''}).value;
+  const county=(document.getElementById(prefix+'-county')||{value:''}).value;
+  const pc=(document.getElementById(prefix+'-postcode')||{value:''}).value;
+  const parts=[name,road,village,town,county,pc].filter(Boolean);
+  const full=parts.join(', ');
+  const venueField=document.getElementById(prefix+'-venue');
+  if(venueField)venueField.value=full;
+  return full;
+}
+function cfVenueNameInput(){cfBuildVenueString('cf-venue');}
 function cfValidate(){let ok=true;
   // Honeypot — bots fill this in, humans don't
   const hp=document.getElementById('cf-honeypot');
@@ -3017,19 +3137,13 @@ function cfValidate(){let ok=true;
     pending.push([document.getElementById('cf-e-intl-code'),!icv,'err-display'],[document.getElementById('cf-e-intl-number'),!inumv,'err-display']);
     if(!icv||!inumv)ok=false;
   }
-  const isManual=document.getElementById('cf-manual-toggle')?.checked;
-  if(isManual){
-    const mv=document.getElementById('cf-manual-venue'),mp=document.getElementById('cf-manual-postcode');
-    const mvv=mv?mv.value.trim():'',mpv=mp?mp.value.trim():'';
-    pending.push([mv,!mvv],[mp,!mpv]);
-    pending.push([document.getElementById('cf-e-manual-venue'),!mvv,'err-display'],[document.getElementById('cf-e-manual-postcode'),!mpv,'err-display']);
-    if(!mvv||!mpv)ok=false;
-    pending.push([document.getElementById('cf-e-venue'),false,'err-display']);
-  } else {
-    const venueEl=document.getElementById('cf-venue'),venueErr=document.getElementById('cf-e-venue'),venueVal=venueEl.value.trim();
-    pending.push([venueEl,!venueVal],[venueErr,!venueVal,'err-display']);
-    if(!venueVal)ok=false;
-  }
+  // Venue: name/house number + postcode
+  const vNameEl=document.getElementById('cf-venue-name'),vNameVal=vNameEl?vNameEl.value.trim():'';
+  const vPcEl=document.getElementById('cf-venue-postcode'),vPcVal=vPcEl?vPcEl.value.trim():'';
+  pending.push([vNameEl,!vNameVal],[document.getElementById('cf-e-venue-name'),!vNameVal,'err-display']);
+  pending.push([vPcEl,!vPcVal],[document.getElementById('cf-e-venue-postcode'),!vPcVal,'err-display']);
+  if(!vNameVal)ok=false;
+  if(!vPcVal)ok=false;
   const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');
   pending.push([trigger,!dateVal],[dateErr,!dateVal,'err-display']);
   if(!dateVal)ok=false;
@@ -3043,7 +3157,7 @@ function cfValidate(){let ok=true;
   return ok;
 }
 async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
-const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',isManualAddr=(document.getElementById('cf-manual-toggle')?.checked||false),venue=isManualAddr?(document.getElementById('cf-manual-venue')?.value.trim()||''):document.getElementById('cf-venue').value.trim(),postcode=isManualAddr?(document.getElementById('cf-manual-postcode')?.value.trim().toUpperCase()||''):document.getElementById('cf-postcode').value,miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
+const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',venue=(document.getElementById('cf-venue').value.trim()||cfBuildVenueString('cf-venue')),postcode=document.getElementById('cf-postcode').value||document.getElementById('cf-venue-postcode').value.trim().toUpperCase(),miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -3089,9 +3203,21 @@ try{
   await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email||MY_EMAIL,to_name:settings.name||'Elijah',subject:mySubject,message:myMessage,html_message:myMessage,reply_to:email});
   const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
   const newBooking={id:genId(),isTest:isTestMode(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:1,startTime,endTime:'',paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:isTestMode()?'test':'web'};
-  bookings.push(newBooking);saveData();saveEnquiryToFirebase(newBooking);
-  document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
-  document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
+  bookings.push(newBooking);saveData();
+  // Failsafe: wait for verified Firebase write before showing success
+  saveEnquiryToFirebase(newBooking,function(ok){
+    if(ok){
+      document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
+      document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
+    } else {
+      // Write failed after retries — still show success (email sent) but flag it internally
+      document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
+      document.getElementById('cf-success-body').innerHTML=`Your enquiry email has been sent and I'll be in touch within 48 hours.<br><br>A confirmation has been sent to <strong>${email}</strong>.<br><br><span style="font-size:12px;color:#999;">If you don't hear back, please call to confirm your enquiry was received.</span>`;
+    }
+    cfShowPage('cf-page-success');cfSetProgress(3);
+  });
+  // Show success page immediately regardless (write continues in background);
+  // the callback above updates the message once confirmed
   cfShowPage('cf-page-success');cfSetProgress(3);
 }catch(err){const msg=err?.text||err?.message||JSON.stringify(err)||'Unknown error';document.getElementById('cf-submit-err').textContent=`EmailJS error: ${msg}`;document.getElementById('cf-submit-err').style.display='block';document.getElementById('cf-submit-label').style.display='inline';document.getElementById('cf-submit-spinner').style.display='none';btn.disabled=false;}}
 
@@ -3377,27 +3503,43 @@ let nfCalYear=new Date().getFullYear(),nfCalMonth=new Date().getMonth(),nfCalSel
 function initNewForm(){
   document.title='Elijah Paul — New Enquiry';
   nfCalYear=new Date().getFullYear();nfCalMonth=new Date().getMonth();nfCalSelected='';
+  // Hide the shared client-form header + progress bar for the internal form
+  const cfHeader=document.querySelector('#layer-form .cf-page > .cf-header');
+  if(cfHeader)cfHeader.style.display='none';
+  const cfProgress=document.querySelector('#layer-form .cf-page > .progress');
+  if(cfProgress)cfProgress.style.display='none';
+  // Reset fields
+  ['nf-firstname','nf-lastname','nf-email','nf-mobile','nf-venue-name','nf-venue-postcode','nf-timings','nf-notes','nf-business-name','nf-fee','nf-custom-deposit-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ba=document.getElementById('nf-business-address');if(ba)ba.value='';
+  ['nf-date','nf-venue','nf-postcode','nf-miles','nf-venue-road','nf-venue-village','nf-venue-town','nf-venue-county'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('nf-cal-display').value='';
+  const ps=document.getElementById('nf-postcode-status');if(ps)ps.textContent='';
+  document.getElementById('nf-deposit').checked=true;
+  document.getElementById('nf-second-gig').checked=false;
+  document.getElementById('nf-before5pm').checked=false;
+  document.getElementById('nf-business').checked=false;
+  document.getElementById('nf-business-fields').style.display='none';
+  const cd=document.getElementById('nf-custom-deposit');if(cd)cd.checked=false;
+  const cdf=document.getElementById('nf-custom-deposit-field');if(cdf)cdf.style.display='none';
+  const nfErr=document.getElementById('nf-err');if(nfErr)nfErr.style.display='none';
   // Populate event types from settings
   const etSel=document.getElementById('nf-eventtype');
   if(etSel){
     etSel.innerHTML='<option value="">Select\u2026</option>';
     Object.keys(settings.eventRates||{}).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;etSel.appendChild(o);});
   }
-  // Init venue autocomplete
-  const venueEl=document.getElementById('nf-venue');
-  const acDrop=document.getElementById('nf-ac-drop');
-  if(venueEl&&!venueEl._nfBound){
-    venueEl._nfBound=true;
-    venueEl.addEventListener('input',function(){clearTimeout(nfAcTimer);const val=this.value.trim();if(val.length<3){acDrop.style.display='none';return;}nfAcTimer=setTimeout(()=>runAC(val,acDrop,nfSelectAddress),380);});
-    venueEl.addEventListener('blur',()=>setTimeout(()=>acDrop.style.display='none',200));
-  }
   document.addEventListener('click',function nfCalClose(e){
     if(nfCalOpen){const p=document.getElementById('nf-cal-popup'),t=document.getElementById('nf-cal-display');if(p&&!p.contains(e.target)&&t&&!t.contains(e.target)){p.style.display='none';nfCalOpen=false;}}
     document.querySelectorAll('#nf-cal-popup .cal-year-picker.open').forEach(function(yp){if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');});
   });
 }
+function nfLookupPostcode(pc){lookupPostcodeGeneric(pc,'nf-venue','nf-postcode-status');}
+function nfVenueNameInput(){cfBuildVenueString('nf-venue');}
+function nfToggleCustomDeposit(cb){
+  const f=document.getElementById('nf-custom-deposit-field');
+  if(f)f.style.display=cb.checked?'block':'none';
+}
 function nfToggleBusiness(cb){document.getElementById('nf-business-fields').style.display=cb.checked?'block':'none';}
-function nfToggleManual(cb){document.getElementById('nf-venue-auto').style.display=cb.checked?'none':'block';document.getElementById('nf-venue-manual').style.display=cb.checked?'block':'none';}
 function nfToggleCal(){
   const p=document.getElementById('nf-cal-popup');if(!p)return;
   if(nfCalOpen){p.style.display='none';nfCalOpen=false;return;}
@@ -3430,33 +3572,6 @@ function nfRenderCal(){
   html+='</div>';
   const el=document.getElementById('nf-cal-popup');if(el)el.innerHTML=html;
 }
-function nfSelectAddress(res){
-  const addr=res.address||{};
-  const parts=[res.name,addr.road,addr.city||addr.town||addr.village,addr.county].filter(Boolean);
-  const v=document.getElementById('nf-venue');if(v)v.value=parts.join(', ')||res.display_name;
-  document.getElementById('nf-postcode').value=(addr.postcode||'').toUpperCase();
-  document.getElementById('nf-ac-drop').style.display='none';
-  if(res.lat&&res.lon){
-    const lat=parseFloat(res.lat),lon=parseFloat(res.lon);
-    const m=Math.ceil(cfHaversineMiles(51.9285,0.9640,lat,lon)/5)*5;
-    document.getElementById('nf-miles').value=m;
-    const st=document.getElementById('nf-miles-status');
-    if(settings.homePostcode){
-      cfCalcMilesFromPostcode(settings.homePostcode,lat,lon);
-      setTimeout(()=>{const cfM=document.getElementById('cf-miles');if(cfM&&cfM.value){document.getElementById('nf-miles').value=cfM.value;if(st)st.textContent='\u2713 '+cfM.value+' miles';}},1500);
-    } else {if(st)st.textContent='~'+m+' miles (est.)';}
-  }
-}
-function nfManualPostcode(pc){
-  if(!pc.trim())return;
-  fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(pc.trim())).then(r=>r.json()).then(data=>{
-    if(data.result&&settings.homePostcode){
-      fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(settings.homePostcode)).then(r=>r.json()).then(hd=>{
-        if(hd.result){const m=Math.ceil(cfHaversineMiles(hd.result.latitude,hd.result.longitude,data.result.latitude,data.result.longitude)/5)*5;document.getElementById('nf-miles').value=m;const st=document.getElementById('nf-miles-status');if(st)st.textContent='\u2713 '+m+' miles';}
-      });
-    }
-  }).catch(()=>{});
-}
 function nfSubmit(){
   const fn=(document.getElementById('nf-firstname').value||'').trim();
   const ln=(document.getElementById('nf-lastname').value||'').trim();
@@ -3484,11 +3599,17 @@ function nfSubmit(){
   const before5pm=document.getElementById('nf-before5pm').checked;
   const hasBusiness=document.getElementById('nf-business').checked;
   const businessName=hasBusiness?(document.getElementById('nf-business-name').value||'').trim():'';
-  const businessAddress=hasBusiness?(document.getElementById('nf-business-address').value||'').trim():'';
-  const isManual=document.getElementById('nf-manual-toggle').checked;
-  const venue=isManual?(document.getElementById('nf-manual-venue').value||'').trim():(document.getElementById('nf-venue').value||'').trim();
-  const postcode=isManual?(document.getElementById('nf-manual-postcode').value||'').trim().toUpperCase():document.getElementById('nf-postcode').value;
+  const businessAddressRaw=hasBusiness?(document.getElementById('nf-business-address').value||'').trim():'';
+  // Combine business name + address for the invoice Business Address field
+  const businessAddress=hasBusiness?[businessName,businessAddressRaw].filter(Boolean).join(', '):'';
+  // Two-field venue system
+  cfBuildVenueString('nf-venue');
+  const venue=(document.getElementById('nf-venue').value||'').trim();
+  const postcode=(document.getElementById('nf-postcode').value||document.getElementById('nf-venue-postcode').value||'').trim().toUpperCase();
   const miles=parseFloat(document.getElementById('nf-miles').value)||0;
+  // Custom deposit
+  const customDepositOn=document.getElementById('nf-custom-deposit').checked;
+  const customDepositAmount=customDepositOn?(parseFloat(document.getElementById('nf-custom-deposit-amount').value)||null):null;
   const allTimes=[...timings.matchAll(/(\d{1,2}):(\d{2})/g)];
   const startTime=allTimes.length>0?allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2]:(before5pm?'16:00':'19:00');
   const endTime=allTimes.length>1?allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2]:'';
@@ -3501,6 +3622,7 @@ function nfSubmit(){
     startTime,endTime,duration:1,provisionalTimings:timings,
     invoiceNotes:notes,invoiceNumber:dt+(secondGig?'02':'01'),
     hasDeposit,businessName,businessAddress,
+    customDeposit:customDepositAmount,
     stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,
     rateSnapshot:feeVal?{
       paSax:settings.rates.paSax,saxDj:settings.rates.saxDj,mileage:settings.rates.mileage,
@@ -3512,13 +3634,16 @@ function nfSubmit(){
     }:null
   };
   bookings.push(booking);
-  saveData();
-  // Show success and close tab after short delay
-  // Show success
-  document.getElementById('cf-success-heading').textContent='Enquiry Added!';
-  document.getElementById('cf-success-body').innerHTML=fn+' '+ln+' has been added to the pipeline.<br>You can close this tab.';
-  document.getElementById('cf-success-name').textContent='';
-  cfShowPage('cf-page-success');
+  // Write to /enquiries (public, no auth) via the failsafe — merged into
+  // the workstation on next load. Same reliable path as the client form.
+  saveEnquiryToFirebase(booking,function(ok){
+    document.getElementById('cf-success-heading').textContent='Enquiry Added!';
+    document.getElementById('cf-success-body').innerHTML=ok
+      ?(fn+' '+ln+' has been added to the pipeline.<br>You can close this tab.')
+      :(fn+' '+ln+' — saved, but the server confirmation failed. It should still sync; check the workstation.');
+    document.getElementById('cf-success-name').textContent='';
+    cfShowPage('cf-page-success');
+  });
 }
 
 </script>

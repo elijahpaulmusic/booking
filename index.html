@@ -3035,32 +3035,37 @@ async function cfCalcMiles(dLat,dLon){try{const hRes=await fetch('https://api.po
 // Fills road/village/town/county from postcodes.io and calculates distance.
 // Prefix lets the same logic serve both cf- (client) and nf- (internal) forms.
 async function lookupPostcodeGeneric(postcode,prefix,statusId){
+  // prefix is the base ('cf' or 'nf'). Hidden fields are:
+  //   {prefix}-venue-road / -village / -town / -county  (address parts)
+  //   {prefix}-venue-name  (visible name/house number input)
+  //   {prefix}-venue       (full assembled string)
+  //   {prefix}-postcode    (stored postcode)
+  //   {prefix}-miles       (distance)
   const status=statusId?document.getElementById(statusId):null;
   const pc=(postcode||'').trim();
   if(!pc){if(status)status.textContent='';return;}
   if(status){status.textContent='Looking up postcode…';status.style.color='var(--ink3)';}
+  const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   try{
     const res=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(pc.replace(/\s+/g,'')));
     const data=await res.json();
     if(data.status===200&&data.result){
       const r=data.result;
-      // postcodes.io fields: thoroughfare (road), parish/ward, admin_ward, admin_district (town), admin_county / region
       const road=r.thoroughfare||r.dependant_thoroughfare||'';
       const village=(r.parish&&r.parish!==r.admin_district)?r.parish:(r.ward&&r.ward!==r.admin_district?r.ward:'');
       const town=r.admin_district||r.parliamentary_constituency||'';
       const county=r.admin_county||r.region||'';
-      document.getElementById(prefix+'-road').value=road;
-      document.getElementById(prefix+'-village').value=village;
-      document.getElementById(prefix+'-town').value=town;
-      document.getElementById(prefix+'-county').value=county;
-      document.getElementById(prefix+'-postcode').value=pc.toUpperCase();
+      setVal(prefix+'-venue-road',road);
+      setVal(prefix+'-venue-village',village);
+      setVal(prefix+'-venue-town',town);
+      setVal(prefix+'-venue-county',county);
+      setVal(prefix+'-postcode',pc.toUpperCase());
       // Build full formatted venue string:
       // Venue Name/House No, Road, Village (if applicable), Town/City, County, Postcode
-      const nameField=document.getElementById(prefix+'-name');
+      const nameField=document.getElementById(prefix+'-venue-name');
       const name=nameField?nameField.value.trim():'';
       const parts=[name,road,village,town,county,pc.toUpperCase()].filter(Boolean);
-      document.getElementById(prefix+'-venue').value=parts.join(', ');
-      // Distance
+      setVal(prefix+'-venue',parts.join(', '));
       if(status){status.textContent='✓ '+[town,county].filter(Boolean).join(', ');status.style.color='var(--green)';}
       // Calculate driving distance
       try{
@@ -3070,8 +3075,8 @@ async function lookupPostcodeGeneric(postcode,prefix,statusId){
         if(hData.status===200){hLat=hData.result.latitude;hLon=hData.result.longitude;}
         const route=await fetch(`https://router.project-osrm.org/route/v1/driving/${hLon},${hLat};${r.longitude},${r.latitude}?overview=false`);
         const rd=await route.json();
-        if(rd.code==='Ok'){document.getElementById(prefix+'-miles').value=(rd.routes[0].distance/1609.344).toFixed(1);}
-        else{document.getElementById(prefix+'-miles').value=cfHaversineMiles(hLat,hLon,r.latitude,r.longitude).toFixed(1);}
+        if(rd.code==='Ok'){setVal(prefix+'-miles',(rd.routes[0].distance/1609.344).toFixed(1));}
+        else{setVal(prefix+'-miles',cfHaversineMiles(hLat,hLon,r.latitude,r.longitude).toFixed(1));}
       }catch(e){}
     } else {
       if(status){status.textContent='⚠ Postcode not found — please check';status.style.color='var(--red)';}
@@ -3080,22 +3085,24 @@ async function lookupPostcodeGeneric(postcode,prefix,statusId){
     if(status){status.textContent='⚠ Could not look up postcode';status.style.color='var(--red)';}
   }
 }
-function cfLookupPostcode(pc){lookupPostcodeGeneric(pc,'cf-venue','cf-postcode-status');}
+function cfLookupPostcode(pc){lookupPostcodeGeneric(pc,'cf','cf-postcode-status');}
 // Rebuild the full venue string from parts (used when name changes after postcode lookup)
-function cfBuildVenueString(prefix){
-  const name=(document.getElementById(prefix+'-name')||{value:''}).value.trim();
-  const road=(document.getElementById(prefix+'-road')||{value:''}).value;
-  const village=(document.getElementById(prefix+'-village')||{value:''}).value;
-  const town=(document.getElementById(prefix+'-town')||{value:''}).value;
-  const county=(document.getElementById(prefix+'-county')||{value:''}).value;
-  const pc=(document.getElementById(prefix+'-postcode')||{value:''}).value;
-  const parts=[name,road,village,town,county,pc].filter(Boolean);
+// base is 'cf' or 'nf'
+function cfBuildVenueString(base){
+  const name=(document.getElementById(base+'-venue-name')||{value:''}).value.trim();
+  const road=(document.getElementById(base+'-venue-road')||{value:''}).value;
+  const village=(document.getElementById(base+'-venue-village')||{value:''}).value;
+  const town=(document.getElementById(base+'-venue-town')||{value:''}).value;
+  const county=(document.getElementById(base+'-venue-county')||{value:''}).value;
+  const pc=(document.getElementById(base+'-postcode')||{value:''}).value
+    ||(document.getElementById(base+'-venue-postcode')||{value:''}).value;
+  const parts=[name,road,village,town,county,(pc||'').toUpperCase()].filter(Boolean);
   const full=parts.join(', ');
-  const venueField=document.getElementById(prefix+'-venue');
+  const venueField=document.getElementById(base+'-venue');
   if(venueField)venueField.value=full;
   return full;
 }
-function cfVenueNameInput(){cfBuildVenueString('cf-venue');}
+function cfVenueNameInput(){cfBuildVenueString('cf');}
 function cfValidate(){let ok=true;
   // Honeypot — bots fill this in, humans don't
   const hp=document.getElementById('cf-honeypot');
@@ -3157,7 +3164,7 @@ function cfValidate(){let ok=true;
   return ok;
 }
 async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
-const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',venue=(document.getElementById('cf-venue').value.trim()||cfBuildVenueString('cf-venue')),postcode=document.getElementById('cf-postcode').value||document.getElementById('cf-venue-postcode').value.trim().toUpperCase(),miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
+const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',venue=(cfBuildVenueString('cf')||document.getElementById('cf-venue').value.trim()),postcode=document.getElementById('cf-postcode').value||document.getElementById('cf-venue-postcode').value.trim().toUpperCase(),miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 const dateLong=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -3533,8 +3540,8 @@ function initNewForm(){
     document.querySelectorAll('#nf-cal-popup .cal-year-picker.open').forEach(function(yp){if(!yp.closest('.cal-popup-shared').contains(e.target))yp.classList.remove('open');});
   });
 }
-function nfLookupPostcode(pc){lookupPostcodeGeneric(pc,'nf-venue','nf-postcode-status');}
-function nfVenueNameInput(){cfBuildVenueString('nf-venue');}
+function nfLookupPostcode(pc){lookupPostcodeGeneric(pc,'nf','nf-postcode-status');}
+function nfVenueNameInput(){cfBuildVenueString('nf');}
 function nfToggleCustomDeposit(cb){
   const f=document.getElementById('nf-custom-deposit-field');
   if(f)f.style.display=cb.checked?'block':'none';
@@ -3603,7 +3610,7 @@ function nfSubmit(){
   // Combine business name + address for the invoice Business Address field
   const businessAddress=hasBusiness?[businessName,businessAddressRaw].filter(Boolean).join(', '):'';
   // Two-field venue system
-  cfBuildVenueString('nf-venue');
+  cfBuildVenueString('nf');
   const venue=(document.getElementById('nf-venue').value||'').trim();
   const postcode=(document.getElementById('nf-postcode').value||document.getElementById('nf-venue-postcode').value||'').trim().toUpperCase();
   const miles=parseFloat(document.getElementById('nf-miles').value)||0;

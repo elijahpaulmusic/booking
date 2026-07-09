@@ -2516,9 +2516,14 @@ function renderInvoices(b){
     const isD=type==='deposit';
     const amount=isD?deposit:balance;
     const iType=isD?'Deposit Invoice':'Performance Invoice';
-    const note=isD?'Deposit — confirms the booking':'Balance payment (due before event)';
     const refNum=num+(isD?'D':'P');
     if(!price)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Select a Chosen Option in the Other Invoice Details tab to generate invoices.</div>`;
+    // "(Including Speakers)" for PA-based services (Sax+BT and COMBO)
+    const inclSpeakers=(b.service==='sax_bt'||b.service==='combo')?' (Including Speakers)':'';
+    // Description: "Deposit for: " prefix on deposit invoices
+    const descPrefix=isD?'Deposit for: ':'';
+    const descMain=descPrefix+(sl[b.service]||'Performance');
+    const descSub=`${b.venue||''} · ${durationShort(b.chosenDuration||b.duration)}${b.provisionalTimings?' · '+b.provisionalTimings:''}${b.invoiceNotes?' · '+b.invoiceNotes:''}${inclSpeakers}`;
     const termsText=isD?'Terms of business: This invoice must be paid within 14 days from issuing it in order to save the date. Failure to pay within 14 days risks the date being taken by another client. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.':'Terms of business: This invoice can be paid at any time from now, up to 14 days after the performance date. It is preferred that this be paid on, or the day after the performance. Failure to pay after 30 days after the performance has been carried out will result in legal proceedings from the Musician\'s Union. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.';
     const cashNote=isD?'':'<div style="font-weight:700;margin-top:8px;margin-bottom:10px;">Cash also accepted on day of performance.</div>';
     return `<div style="margin-bottom:12px;display:flex;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="downloadInvoicePDF('${type}','${refNum}')">⬇ Download PDF</button></div>
@@ -2540,14 +2545,13 @@ function renderInvoices(b){
       <table class="invoice-table">
         <thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead>
         <tbody>
-          <tr><td>${sl[b.service]||'Performance'}<br><span style="font-size:11px;color:var(--ink3);">${b.venue||''} · ${durationShort(b.chosenDuration||b.duration)}${b.provisionalTimings?' · '+b.provisionalTimings:''}${b.invoiceNotes?' · '+b.invoiceNotes:''}</span></td>
-              <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>—</td></tr>
-          <tr><td style="color:var(--ink3);">${note}</td><td></td><td>£${amount?.toLocaleString()}</td></tr>
-          ${b.paRequired&&isD?'<tr><td style="font-size:12px;color:var(--ink3);">PA Speakers included</td><td></td><td>—</td></tr>':''}
+          <tr><td>${descMain}<br><span style="font-size:11px;color:var(--ink3);">${descSub}</span></td>
+              <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>£${(isD?deposit:price)?.toLocaleString()}</td></tr>
+          ${!isD?`<tr><td style="color:var(--ink3);">Deposit Paid</td><td></td><td>-£${deposit?.toLocaleString()}</td></tr>`:''}
         </tbody>
       </table>
       <div class="invoice-totals">
-        ${isD?`<div class="total-line"><span>Total booking fee</span><span>£${price.toLocaleString()}</span></div><div class="total-line"><span>Balance remaining</span><span>£${balance?.toLocaleString()}</span></div>`:`<div class="total-line"><span>Deposit paid</span><span>£${deposit?.toLocaleString()}</span></div>`}
+        ${isD?`<div class="total-line"><span>Total booking fee</span><span>£${price.toLocaleString()}</span></div><div class="total-line"><span>Balance remaining</span><span>£${balance?.toLocaleString()}</span></div>`:''}
         <div class="total-line grand"><span>${isD?'Deposit due':'Balance due'}</span><span>£${amount?.toLocaleString()}</span></div>
       </div>
       <div class="invoice-bank">

@@ -868,6 +868,14 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               <div style="font-size:11px;color:var(--ink3);margin-top:2px;">Overrides the deposit calculated from settings. Balance = agreed fee minus this amount.</div>
             </div>
           </div>
+          <div style="margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="nf-expenses" style="width:16px;height:16px;accent-color:var(--ink);" onchange="nfToggleExpenses(this)"> Expenses?</label>
+            <div id="nf-expenses-field" style="display:none;margin-top:8px;">
+              <label style="font-size:11px;color:var(--ink3);">EXPENSES AMOUNT (&#xa3;)</label>
+              <input type="number" id="nf-expenses-amount" placeholder="e.g. 50" min="0" step="1" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;">
+              <div style="font-size:11px;color:var(--ink3);margin-top:2px;">Added to the balance invoice as a separate line and included in the Balance Due.</div>
+            </div>
+          </div>
         </div>
         <div id="nf-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
         <div id="nf-save-msg" style="display:none;text-align:center;font-size:13px;color:var(--green);margin-bottom:12px;font-weight:600;"></div>
@@ -2216,7 +2224,7 @@ function renderDetailContent(b){
   const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
   const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};
-  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof b.agreedPrice==='number')?'£'+((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.agreedPrice)):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
+  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof b.agreedPrice==='number'&&b.hasDeposit!==false)?'£'+((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.agreedPrice)):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
 }
 function renderDetailContentEdit(b){
   const etOptions=Object.keys(settings.eventRates||{}).map(k=>`<option value="${k}"${b.eventType===k?' selected':''}>${k}</option>`).join('');
@@ -2512,9 +2520,13 @@ function splitAddressTwoLines(addr){
 }
 function renderInvoices(b){
   const price=b.agreedPrice;
+  // Deposit is skipped entirely if hasDeposit is explicitly false
+  const depositEnabled=b.hasDeposit!==false;
   // Custom deposit overrides calculated deposit if set
-  const deposit=price?(typeof b.customDeposit==='number'&&b.customDeposit>0?b.customDeposit:calcDeposit(price)):null;
-  const balance=price?price-deposit:null;
+  const deposit=(price&&depositEnabled)?(typeof b.customDeposit==='number'&&b.customDeposit>0?b.customDeposit:calcDeposit(price)):null;
+  const expenses=(typeof b.expenses==='number'&&b.expenses>0)?b.expenses:0;
+  // Balance = full fee − deposit (if any) + expenses
+  const balance=price?(price-(deposit||0)+expenses):null;
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
   const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.slice(0,10).replace(/-/g,''):'00000000');
   const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)));
@@ -2529,6 +2541,8 @@ function renderInvoices(b){
     const iType=isD?'Deposit Invoice':'Performance Invoice';
     const refNum=num+(isD?'D':'P');
     if(!price)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Select a Chosen Option in the Other Invoice Details tab to generate invoices.</div>`;
+    // No deposit invoice when deposit is disabled for this booking
+    if(isD&&!depositEnabled)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">No deposit invoice for this booking — deposit was not required.</div>`;
     // "(Including Speakers)" for PA-based services (Sax+BT and COMBO)
     const inclSpeakers=(b.service==='sax_bt'||b.service==='combo')?' (Including Speakers)':'';
     // Description: "Deposit for: " prefix on deposit invoices
@@ -2558,7 +2572,8 @@ function renderInvoices(b){
         <tbody>
           <tr><td>${descMain}<br><span style="font-size:11px;color:var(--ink3);">${descSub}</span></td>
               <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>£${(isD?deposit:price)?.toLocaleString()}</td></tr>
-          ${!isD?`<tr><td style="color:var(--ink3);">Deposit Paid</td><td></td><td>-£${deposit?.toLocaleString()}</td></tr>`:''}
+          ${(!isD&&depositEnabled&&deposit)?`<tr><td style="color:var(--ink3);">Deposit Paid</td><td></td><td>-£${deposit?.toLocaleString()}</td></tr>`:''}
+          ${(!isD&&expenses>0)?`<tr><td style="color:var(--ink3);">Expenses</td><td></td><td>£${expenses.toLocaleString()}</td></tr>`:''}
         </tbody>
       </table>
       <div class="invoice-totals">
@@ -3531,7 +3546,7 @@ function initNewForm(){
   const cfProgress=document.querySelector('#layer-form .cf-page > .progress');
   if(cfProgress)cfProgress.style.display='none';
   // Reset fields
-  ['nf-firstname','nf-lastname','nf-email','nf-mobile','nf-venue-name','nf-venue-postcode','nf-timings','nf-notes','nf-business-name','nf-fee','nf-custom-deposit-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['nf-firstname','nf-lastname','nf-email','nf-mobile','nf-venue-name','nf-venue-postcode','nf-timings','nf-notes','nf-business-name','nf-fee','nf-custom-deposit-amount','nf-expenses-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const ba=document.getElementById('nf-business-address');if(ba)ba.value='';
   ['nf-date','nf-venue','nf-postcode','nf-miles','nf-venue-road','nf-venue-village','nf-venue-town','nf-venue-county'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nf-cal-display').value='';
@@ -3543,6 +3558,8 @@ function initNewForm(){
   document.getElementById('nf-business-fields').style.display='none';
   const cd=document.getElementById('nf-custom-deposit');if(cd)cd.checked=false;
   const cdf=document.getElementById('nf-custom-deposit-field');if(cdf)cdf.style.display='none';
+  const ex=document.getElementById('nf-expenses');if(ex)ex.checked=false;
+  const exf=document.getElementById('nf-expenses-field');if(exf)exf.style.display='none';
   const nfErr=document.getElementById('nf-err');if(nfErr)nfErr.style.display='none';
   const saveMsg=document.getElementById('nf-save-msg');if(saveMsg)saveMsg.style.display='none';
   // Load saved clients into the dropdown
@@ -3562,6 +3579,10 @@ function nfLookupPostcode(pc){lookupPostcodeGeneric(pc,'nf','nf-postcode-status'
 function nfVenueNameInput(){cfBuildVenueString('nf');}
 function nfToggleCustomDeposit(cb){
   const f=document.getElementById('nf-custom-deposit-field');
+  if(f)f.style.display=cb.checked?'block':'none';
+}
+function nfToggleExpenses(cb){
+  const f=document.getElementById('nf-expenses-field');
   if(f)f.style.display=cb.checked?'block':'none';
 }
 function nfToggleBusiness(cb){document.getElementById('nf-business-fields').style.display=cb.checked?'block':'none';}
@@ -3719,6 +3740,9 @@ function nfSubmit(){
   // Custom deposit
   const customDepositOn=document.getElementById('nf-custom-deposit').checked;
   const customDepositAmount=customDepositOn?(parseFloat(document.getElementById('nf-custom-deposit-amount').value)||null):null;
+  // Expenses
+  const expensesOn=document.getElementById('nf-expenses').checked;
+  const expensesAmount=expensesOn?(parseFloat(document.getElementById('nf-expenses-amount').value)||null):null;
   const allTimes=[...timings.matchAll(/(\d{1,2}):(\d{2})/g)];
   const startTime=allTimes.length>0?allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2]:(before5pm?'16:00':'19:00');
   const endTime=allTimes.length>1?allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2]:'';
@@ -3732,6 +3756,7 @@ function nfSubmit(){
     invoiceNotes:notes,invoiceNumber:dt+(secondGig?'02':'01'),
     hasDeposit,businessName,businessAddress,
     customDeposit:customDepositAmount,
+    expenses:expensesAmount,
     stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,
     rateSnapshot:feeVal?{
       paSax:settings.rates.paSax,saxDj:settings.rates.saxDj,mileage:settings.rates.mileage,

@@ -789,6 +789,12 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <div style="max-width:480px;margin:0 auto;padding:0 0 60px;">
         <div class="cf-card">
           <h3 class="cf-section-title">Client Details</h3>
+          <div class="cf-group" id="nf-saved-clients-group" style="display:none;">
+            <label>SAVED CLIENTS</label>
+            <select id="nf-saved-clients" onchange="nfLoadSavedClient(this.value)">
+              <option value="">Select a saved client…</option>
+            </select>
+          </div>
           <div class="cf-group"><label>FIRST NAME *</label><input type="text" id="nf-firstname" placeholder="Jane" autocomplete="given-name"></div>
           <div class="cf-group"><label>LAST NAME *</label><input type="text" id="nf-lastname" placeholder="Smith" autocomplete="family-name"></div>
           <div class="cf-group"><label>EMAIL ADDRESS *</label><input type="email" id="nf-email" placeholder="jane@example.com" autocomplete="email"></div>
@@ -864,6 +870,11 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           </div>
         </div>
         <div id="nf-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+        <div id="nf-save-msg" style="display:none;text-align:center;font-size:13px;color:var(--green);margin-bottom:12px;font-weight:600;"></div>
+        <button class="cf-btn" onclick="nfSaveClient()" style="background:var(--white);color:var(--ink);border:1px solid var(--cream3);margin-bottom:10px;">
+          <span id="nf-save-label">Save Details?</span>
+          <span id="nf-save-spinner" style="display:none;"><span class="spinner"></span></span>
+        </button>
         <button class="cf-btn cf-btn-primary" onclick="nfSubmit()">
           <span id="nf-submit-label">Add Enquiry</span>
           <span id="nf-submit-spinner" style="display:none;"><span class="spinner"></span></span>
@@ -3533,6 +3544,9 @@ function initNewForm(){
   const cd=document.getElementById('nf-custom-deposit');if(cd)cd.checked=false;
   const cdf=document.getElementById('nf-custom-deposit-field');if(cdf)cdf.style.display='none';
   const nfErr=document.getElementById('nf-err');if(nfErr)nfErr.style.display='none';
+  const saveMsg=document.getElementById('nf-save-msg');if(saveMsg)saveMsg.style.display='none';
+  // Load saved clients into the dropdown
+  nfLoadSavedClientsList();
   // Populate event types from settings
   const etSel=document.getElementById('nf-eventtype');
   if(etSel){
@@ -3551,6 +3565,90 @@ function nfToggleCustomDeposit(cb){
   if(f)f.style.display=cb.checked?'block':'none';
 }
 function nfToggleBusiness(cb){document.getElementById('nf-business-fields').style.display=cb.checked?'block':'none';}
+
+// ── Saved Clients (public /savedClients Firebase node, no login) ──
+let nfSavedClients={}; // keyed by client id
+function nfLoadSavedClientsList(){
+  if(!window._firebaseReady||!window._fbDb||!window._fbRef||!window._fbGet)return;
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+  g(r(db,'savedClients')).then(snap=>{
+    nfSavedClients=(snap&&snap.exists())?(snap.val()||{}):{};
+    const sel=document.getElementById('nf-saved-clients');
+    const grp=document.getElementById('nf-saved-clients-group');
+    if(!sel)return;
+    const keys=Object.keys(nfSavedClients);
+    sel.innerHTML='<option value="">Select a saved client…</option>';
+    // Sort alphabetically by last then first name
+    keys.sort((a,b)=>{
+      const ca=nfSavedClients[a],cb=nfSavedClients[b];
+      return ((ca.lastName||'')+' '+(ca.firstName||'')).localeCompare((cb.lastName||'')+' '+(cb.firstName||''));
+    }).forEach(k=>{
+      const c=nfSavedClients[k];
+      const o=document.createElement('option');
+      o.value=k;
+      o.textContent=((c.firstName||'')+' '+(c.lastName||'')).trim()||'(unnamed)';
+      sel.appendChild(o);
+    });
+    if(grp)grp.style.display=keys.length?'block':'none';
+  }).catch(()=>{});
+}
+function nfLoadSavedClient(id){
+  if(!id||!nfSavedClients[id])return;
+  const c=nfSavedClients[id];
+  const set=(fid,v)=>{const el=document.getElementById(fid);if(el)el.value=v||'';};
+  set('nf-firstname',c.firstName);
+  set('nf-lastname',c.lastName);
+  set('nf-email',c.email);
+  set('nf-mobile',c.mobile);
+  // Business address
+  if(c.businessAddress||c.businessName){
+    document.getElementById('nf-business').checked=true;
+    document.getElementById('nf-business-fields').style.display='block';
+    set('nf-business-name',c.businessName);
+    set('nf-business-address',c.businessAddress);
+  } else {
+    document.getElementById('nf-business').checked=false;
+    document.getElementById('nf-business-fields').style.display='none';
+    set('nf-business-name','');
+    set('nf-business-address','');
+  }
+}
+function nfSaveClient(){
+  const firstName=(document.getElementById('nf-firstname').value||'').trim();
+  const lastName=(document.getElementById('nf-lastname').value||'').trim();
+  const email=(document.getElementById('nf-email').value||'').trim();
+  const mobile=(document.getElementById('nf-mobile').value||'').trim();
+  const msg=document.getElementById('nf-save-msg');
+  const err=document.getElementById('nf-err');
+  if(!firstName||!lastName){
+    if(err){err.textContent='Please enter a first and last name before saving.';err.style.display='block';}
+    return;
+  }
+  if(err)err.style.display='none';
+  const hasBusiness=document.getElementById('nf-business').checked;
+  const businessName=hasBusiness?(document.getElementById('nf-business-name').value||'').trim():'';
+  const businessAddress=hasBusiness?(document.getElementById('nf-business-address').value||'').trim():'';
+  const client={firstName,lastName,email,mobile,businessName,businessAddress,savedAt:new Date().toISOString()};
+  // Deterministic key: lowercased name+email so re-saving updates rather than duplicates
+  const key='client_'+(firstName+lastName+email).toLowerCase().replace(/[^a-z0-9]/g,'');
+  const lbl=document.getElementById('nf-save-label');const spin=document.getElementById('nf-save-spinner');
+  if(lbl)lbl.style.display='none';if(spin)spin.style.display='inline-flex';
+  if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef){
+    if(lbl)lbl.style.display='inline';if(spin)spin.style.display='none';
+    if(err){err.textContent='Could not save — no connection. Please try again.';err.style.display='block';}
+    return;
+  }
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+  s(r(db,'savedClients/'+key),client).then(()=>{
+    nfSavedClients[key]=client;
+    nfLoadSavedClientsList();
+    if(lbl)lbl.style.display='inline';if(spin)spin.style.display='none';
+    if(msg){msg.textContent='✓ '+firstName+' '+lastName+' saved to your clients.';msg.style.display='block';setTimeout(()=>{if(msg)msg.style.display='none';},4000);}
+  }).catch(()=>{
+    if(lbl)lbl.style.display='inline';if(spin)spin.style.display='none';
+    if(err){err.textContent='Could not save — please try again.';err.style.display='block';}
+  });
+}
 function nfToggleCal(){
   const p=document.getElementById('nf-cal-popup');if(!p)return;
   if(nfCalOpen){p.style.display='none';nfCalOpen=false;return;}

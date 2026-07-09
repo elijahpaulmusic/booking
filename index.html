@@ -539,6 +539,11 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             
           </div>
         </div>
+        <div class="settings-card full">
+          <h3>Saved Clients</h3>
+          <p class="card-desc">Repeat customers saved from the internal booking form. These appear in the Saved Clients dropdown on that form. Remove any you no longer need with the ✕.</p>
+          <div id="saved-clients-list"><div style="font-size:13px;color:var(--ink3);padding:8px 0;">Loading…</div></div>
+        </div>
         <div class="settings-card">
           <h3>Day of Week Premiums</h3>
           <p class="card-desc">Added to every quote based on the event day.</p>
@@ -2518,6 +2523,13 @@ function splitAddressTwoLines(addr){
   const line2=clean.slice(best+1).trim();
   return esc(line1)+'<br>'+esc(line2);
 }
+// Format money: whole numbers clean (300 -> "300"), non-whole to 2dp (26.6 -> "26.60")
+function fmtMoney(n){
+  if(n===null||n===undefined||isNaN(n))return'0';
+  const num=Number(n);
+  const opts=Number.isInteger(num)?{minimumFractionDigits:0,maximumFractionDigits:0}:{minimumFractionDigits:2,maximumFractionDigits:2};
+  return num.toLocaleString('en-GB',opts);
+}
 function renderInvoices(b){
   const price=b.agreedPrice;
   // Deposit is skipped entirely if hasDeposit is explicitly false
@@ -2571,14 +2583,14 @@ function renderInvoices(b){
         <thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead>
         <tbody>
           <tr><td>${descMain}<br><span style="font-size:11px;color:var(--ink3);">${descSub}</span></td>
-              <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>£${(isD?deposit:price)?.toLocaleString()}</td></tr>
-          ${(!isD&&depositEnabled&&deposit)?`<tr><td style="color:var(--ink3);">Deposit Paid</td><td></td><td>-£${deposit?.toLocaleString()}</td></tr>`:''}
-          ${(!isD&&expenses>0)?`<tr><td style="color:var(--ink3);">Expenses</td><td></td><td>£${expenses.toLocaleString()}</td></tr>`:''}
+              <td style="font-size:12px;color:var(--ink3);">${dl}</td><td>£${fmtMoney(isD?deposit:price)}</td></tr>
+          ${(!isD&&depositEnabled&&deposit)?`<tr><td style="color:var(--ink3);">Deposit Paid</td><td></td><td>-£${fmtMoney(deposit)}</td></tr>`:''}
+          ${(!isD&&expenses>0)?`<tr><td style="color:var(--ink3);">Expenses</td><td></td><td>£${fmtMoney(expenses)}</td></tr>`:''}
         </tbody>
       </table>
       <div class="invoice-totals">
-        ${isD?`<div class="total-line"><span>Total booking fee</span><span>£${price.toLocaleString()}</span></div><div class="total-line"><span>Balance remaining</span><span>£${balance?.toLocaleString()}</span></div>`:''}
-        <div class="total-line grand"><span>${isD?'Deposit due':'Balance due'}</span><span>£${amount?.toLocaleString()}</span></div>
+        ${isD?`<div class="total-line"><span>Total booking fee</span><span>£${fmtMoney(price)}</span></div><div class="total-line"><span>Balance remaining</span><span>£${fmtMoney(balance)}</span></div>`:''}
+        <div class="total-line grand"><span>${isD?'Deposit due':'Balance due'}</span><span>£${fmtMoney(amount)}</span></div>
       </div>
       <div class="invoice-bank">
         <strong style="display:block;margin-bottom:6px;">Payment Details — Bank Transfer (preferred)</strong>
@@ -2726,12 +2738,57 @@ function showView(name){document.querySelectorAll('.view').forEach(v=>v.classLis
 // ═══════════════════════════════════════════════════
 function populateSettings(){document.getElementById('set-name').value=settings.name||'';document.getElementById('set-email').value=settings.email||'';document.getElementById('set-homepostcode').value=settings.homePostcode||'';document.getElementById('set-sortcode').value=settings.sortCode||'';document.getElementById('set-account').value=settings.account||'';document.getElementById('set-phone').value=settings.phone||'';document.getElementById('set-invoicename').value=settings.invoiceName||'';const autofillEl=document.getElementById('set-autofill-email');
   if(autofillEl)autofillEl.value=settings.autofillEmail||'';
-  document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();renderCalRefreshNudge();}
+  document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();renderCalRefreshNudge();renderSavedClientsSettings();}
 function renderEtEditor(){const entries=Object.entries(settings.eventRates),half=Math.ceil(entries.length/2);let c1='',c2='';entries.forEach(([name,price],i)=>{const row=`<div class="et-row"><input class="et-name" value="${escHtml(name)}" data-orig="${escHtml(name)}" onchange="renameEt(this)"><span class="et-currency">£</span><input class="et-price" type="number" value="${price}" data-name="${escHtml(name)}" onchange="updateEtPrice(this)"><button class="et-del" onclick="deleteEt('${escHtml(name)}')" title="Delete">×</button></div>`;if(i<half)c1+=row;else c2+=row;});document.getElementById('et-editor').innerHTML=`<div>${c1}</div><div>${c2}</div>`;rebuildEventTypeSelect();cfRebuildEventTypes();}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function renameEt(el){const orig=el.dataset.orig,newName=el.value.trim();if(!newName||newName===orig)return;const entries=Object.entries(settings.eventRates),newRates={};entries.forEach(([k,v])=>{newRates[k===orig?newName:k]=v;});settings.eventRates=newRates;renderEtEditor();}
 function updateEtPrice(el){const name=el.dataset.name;if(name in settings.eventRates)settings.eventRates[name]=parseFloat(el.value)||0;}
 function deleteEt(name){if(!confirm(`Delete event type "${name}"?`))return;delete settings.eventRates[name];renderEtEditor();}
+
+// ── Saved Clients settings list ──
+function renderSavedClientsSettings(){
+  const wrap=document.getElementById('saved-clients-list');
+  if(!wrap)return;
+  if(!window._firebaseReady||!window._fbDb||!window._fbRef||!window._fbGet){
+    wrap.innerHTML='<div style="font-size:13px;color:var(--ink3);padding:8px 0;">Not connected.</div>';
+    return;
+  }
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+  g(r(db,'savedClients')).then(snap=>{
+    const data=(snap&&snap.exists())?(snap.val()||{}):{};
+    const keys=Object.keys(data);
+    if(!keys.length){
+      wrap.innerHTML='<div style="font-size:13px;color:var(--ink3);padding:8px 0;">No saved clients yet. Use “Save Details?” on the internal booking form to add repeat customers.</div>';
+      return;
+    }
+    keys.sort((a,b)=>{
+      const ca=data[a],cb=data[b];
+      return ((ca.lastName||'')+' '+(ca.firstName||'')).localeCompare((cb.lastName||'')+' '+(cb.firstName||''));
+    });
+    wrap.innerHTML=keys.map(k=>{
+      const c=data[k];
+      const name=((c.firstName||'')+' '+(c.lastName||'')).trim()||'(unnamed)';
+      const sub=[c.email,c.mobile].filter(Boolean).join(' · ');
+      return `<div class="et-row" style="align-items:center;">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${escHtml(name)}</div>
+          ${sub?`<div style="font-size:11px;color:var(--ink3);">${escHtml(sub)}</div>`:''}
+        </div>
+        <button class="et-del" onclick="deleteSavedClient('${escHtml(k)}','${escHtml(name)}')" title="Delete">×</button>
+      </div>`;
+    }).join('');
+  }).catch(()=>{
+    wrap.innerHTML='<div style="font-size:13px;color:var(--ink3);padding:8px 0;">Could not load saved clients.</div>';
+  });
+}
+function deleteSavedClient(key,name){
+  if(!confirm(`Remove "${name}" from Saved Clients?`))return;
+  if(!window._firebaseReady||!window._fbDb||!window._fbRef)return;
+  const db=window._fbDb,r=window._fbRef;
+  r(db,'savedClients/'+key).remove().then(()=>{
+    renderSavedClientsSettings();
+  }).catch(()=>{alert('Could not delete — please try again.');});
+}
 function addEventType(){settings.eventRates['New Event Type']=0;renderEtEditor();setTimeout(()=>{const inputs=document.querySelectorAll('.et-name');if(inputs.length)inputs[inputs.length-1].focus();},50);}
 function rebuildEventTypeSelect(){const sel=document.getElementById('neq-eventtype'),cur=sel.value;sel.innerHTML='<option value="">Select…</option>';for(const name of Object.keys(settings.eventRates)){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===cur)o.selected=true;sel.appendChild(o);}}
 function renderDowEditor(){const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];const indices=[1,2,3,4,5,6,0];document.getElementById('dow-editor').innerHTML=days.map((d,i)=>`<div class="dm-item"><label>${d}</label><input type="number" id="dow-${indices[i]}" value="${settings.dayRates[indices[i]]!==undefined?settings.dayRates[indices[i]]:0}"></div>`).join('');}
@@ -3621,6 +3678,7 @@ function nfLoadSavedClient(id){
   set('nf-lastname',c.lastName);
   set('nf-email',c.email);
   set('nf-mobile',c.mobile);
+  set('nf-notes',c.notes);
   // Business address
   if(c.businessAddress||c.businessName){
     document.getElementById('nf-business').checked=true;
@@ -3649,7 +3707,8 @@ function nfSaveClient(){
   const hasBusiness=document.getElementById('nf-business').checked;
   const businessName=hasBusiness?(document.getElementById('nf-business-name').value||'').trim():'';
   const businessAddress=hasBusiness?(document.getElementById('nf-business-address').value||'').trim():'';
-  const client={firstName,lastName,email,mobile,businessName,businessAddress,savedAt:new Date().toISOString()};
+  const notes=(document.getElementById('nf-notes').value||'').trim();
+  const client={firstName,lastName,email,mobile,businessName,businessAddress,notes,savedAt:new Date().toISOString()};
   // Deterministic key: lowercased name+email so re-saving updates rather than duplicates
   const key='client_'+(firstName+lastName+email).toLowerCase().replace(/[^a-z0-9]/g,'');
   const lbl=document.getElementById('nf-save-label');const spin=document.getElementById('nf-save-spinner');

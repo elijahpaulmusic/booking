@@ -654,32 +654,42 @@ async function runUpdateRepertoire() {
   log.classList.add('visible');
   addLog('Fetching elijahpaul.com/repertoire…', '');
 
-  // Multiple CORS proxies tried in order — if one is down, the next is used
+  // Multiple CORS proxies tried in order - if one is down, the next is used
   const TARGET = 'https://www.elijahpaul.com/repertoire';
   const PROXIES = [
-    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    { name: 'allorigins.win', url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}` },
+    { name: 'corsproxy.io',   url: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
+    { name: 'codetabs.com',   url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}` },
   ];
+
+  // Force a browser repaint between log lines so they appear in real time
+  const flush = () => new Promise(r => setTimeout(r, 30));
 
   // Attempt each proxy until one succeeds
   async function fetchViaProxy(targetUrl) {
     for (let i = 0; i < PROXIES.length; i++) {
-      const proxyUrl = PROXIES[i](targetUrl);
-      addLog(`Trying proxy ${i + 1} of ${PROXIES.length}…`, '');
+      const proxy = PROXIES[i];
+      addLog(`[${i+1}/${PROXIES.length}] Trying ${proxy.name}...`, '');
+      await flush();
       try {
-        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-        if (!res.ok) { addLog(`  Proxy ${i+1} returned HTTP ${res.status}, trying next…`, 'log-warn'); continue; }
+        const res = await fetch(proxy.url(targetUrl), { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) {
+          addLog(`[${i+1}/${PROXIES.length}] ${proxy.name} - HTTP ${res.status} error${i < PROXIES.length-1 ? ', trying next...' : ''}`, 'log-err');
+          await flush();
+          continue;
+        }
         const data = await res.json();
-        // allorigins wraps in .contents; codetabs/corsproxy return raw text
         const html = data.contents || data;
         if (typeof html === 'string' && html.length > 500) {
-          addLog(`✓ Proxy ${i + 1} succeeded.`, 'log-ok');
+          addLog(`[${i+1}/${PROXIES.length}] ${proxy.name} - success!`, 'log-ok');
+          await flush();
           return html;
         }
-        addLog(`  Proxy ${i+1} returned empty content, trying next…`, 'log-warn');
+        addLog(`[${i+1}/${PROXIES.length}] ${proxy.name} - empty response${i < PROXIES.length-1 ? ', trying next...' : ''}`, 'log-err');
+        await flush();
       } catch(e) {
-        addLog(`  Proxy ${i+1} failed: ${e.message}, trying next…`, 'log-warn');
+        addLog(`[${i+1}/${PROXIES.length}] ${proxy.name} - FAILED (${e.message})${i < PROXIES.length-1 ? ', trying next...' : ''}`, 'log-err');
+        await flush();
       }
     }
     return null;

@@ -2086,8 +2086,8 @@ function renderCalcSection(b){
 function renderBookingEmailTab(b){
   const el=document.getElementById('booking-email-content');
   if(!el)return;
-  const dep=b.agreedPrice?calcDeposit(b.agreedPrice):null;
-  const depStr=dep?`£${dep}`:'[deposit amount]';
+  const dep=b.agreedPrice?((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.agreedPrice)):null;
+  const depStr=(b.hasDeposit!==false&&dep)?`£${dep}`:'[deposit amount]';
   const isSaxBT=b.service==='sax_bt';
   const djPara=isSaxBT?'':'\n\nPlease let your DJ know that I\'ll be performing alongside them! Happy to chat to them before the day to discuss requirements if you can share their details with me, or mine with them. You can also send them this link which has all the info they should need: https://www.elijahpaul.com/fordjs';
 
@@ -2097,13 +2097,26 @@ Really glad to hear you would like to proceed with the booking!
 
 Attached is the invoice for the deposit of ${depStr} which confirms the booking once paid as well as the final invoice which can be paid at any time from now up to 14 days after the performance by bank transfer, or in cash on the day if at all easier. For bank transfers, please use the invoice number as the reference.
 
-For ease, you're welcome to pay the deposit using this link: [add payment link here before sending]${djPara}
+For ease, you're welcome to pay the deposit using this link: [add payment link here before sending]
 
-I have added provisional timings to the invoice but these can be changed however you like at any time up to two weeks before the event.
+I have added provisional timings to the invoice but these can be changed however you like at any time up to two weeks before the event.${djPara}
 
-Please don't hesitate to ask if you have any questions and let me know what songs you would like me to play for you once you know! If you're stuck for ideas you're welcome to reference my repertoire list on my website here: https://www.elijahpaul.com/repertoire If I can receive your requests at least 2 days before the date that would be great.
+Send me what songs you would like me to play for you once you know! When you're ready to decide please use this link to select songs for the reception drinks set:
+
+
+And this link for the wedding breakfast set:
+
+
+And this link for the wedding party set alongside your DJ:
+
+
+You can choose any songs you like by searching for them on the "Search Any Song" tab and clicking the + next to the song to add them to the setlist. If you're short for ideas or want a sample setlist as a starting point, you can choose from the "My Repertoire" tab.
+
+Once you're happy with your selection, click the Copy Setlist to Clipboard button and send it to me by email. There's absolutely no rush to make your choices, but if I can receive your requests at least 2 days before the date that would be great!
 
 Also, here's a link to my most up to date PLI and PAT certificates in case you or your venue need them at all: https://www.elijahpaul.com/certificates
+
+If you have any questions, please don't hesitate to ask and I'll be happy to help!
 
 Many thanks, and I look forward to performing for you!
 

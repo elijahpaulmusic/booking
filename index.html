@@ -831,7 +831,6 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
               <option value="combo">COMBO</option>
             </select>
           </div>
-          <div class="cf-group"><label>AGREED FEE (&#xa3;)</label><input type="number" id="nf-fee" placeholder="e.g. 680" min="0" step="1"></div>
         </div>
         <div class="cf-card">
           <h3 class="cf-section-title">Venue</h3>
@@ -967,6 +966,19 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             </select>
           </div>
           <div id="chosen-price-display" style="font-size:13px;color:var(--ink3);margin-bottom:16px;"></div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;">
+              <input type="checkbox" id="detail-custom-fee-toggle" style="width:16px;height:16px;accent-color:var(--ink);" onchange="toggleCustomFee(this)"> Custom Fee?
+            </label>
+            <div id="detail-custom-fee-field" style="display:none;margin-top:8px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:15px;color:var(--ink3);">£</span>
+                <input type="number" id="detail-custom-fee" min="0" step="1" placeholder="e.g. 650" style="width:140px;padding:8px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;" oninput="saveCustomFee()">
+              </div>
+              <div style="font-size:11px;color:var(--ink3);margin-top:4px;">Overrides the Chosen Option's quote figure on both invoices. The chosen duration still appears in the description if one is selected.</div>
+              <div id="detail-custom-fee-err" style="display:none;font-size:12px;color:var(--red);margin-top:6px;font-weight:600;"></div>
+            </div>
+          </div>
           <div class="form-group" style="margin-bottom:16px;">
             <label>Provisional Timings</label>
             <div id="prov-timings-status" style="font-size:12px;margin-bottom:4px;min-height:16px;"></div>
@@ -1854,8 +1866,8 @@ function fuQuoteFollowUpAgain(id,wasOverdue){
   const b=bookings.find(x=>x.id===id);if(!b)return;
   b.followUpDate=reminderDate(b.followUpDays);
   b.followUpState=null;b.pendingArchive=null;
-  // Blue border only if reminder had already fired; silent reset if still running
-  b.followUpColor=wasOverdue?'blue':null;
+  // Blue border whenever Remind Again is used
+  b.followUpColor='blue';
   saveData();renderPipeline();renderFollowUpTab(b);
   // Tick the checkbox then uncheck after 1 second
   const cb=document.getElementById('fu-again-cb-'+id);
@@ -2186,12 +2198,62 @@ function renderOtherTab(b){
   if(notes)notes.value=b.invoiceNotes||'';
   if(pt)pt.value=b.provisionalTimings||'';
   if(ba)ba.value=b.businessAddress||'';
+  // Custom fee state
+  const cfToggle=document.getElementById('detail-custom-fee-toggle');
+  const cfField=document.getElementById('detail-custom-fee-field');
+  const cfInput=document.getElementById('detail-custom-fee');
+  const cfOn=(typeof b.customFee==='number'&&b.customFee>0);
+  if(cfToggle)cfToggle.checked=cfOn;
+  if(cfField)cfField.style.display=cfOn?'block':'none';
+  if(cfInput)cfInput.value=cfOn?b.customFee:'';
+  validateCustomFee(b);
   if(disp){
     if(b.chosenOption&&b.chosenOption!==''&&b.agreedPrice){
       const dep=calcDeposit(b.agreedPrice);
       disp.innerHTML=`<span style="font-size:15px;font-weight:700;color:var(--ink);">£${typeof b.agreedPrice==='number'?b.agreedPrice:'—'}</span> <span style="color:var(--ink3);">· deposit: £${dep}</span>`;
     }else{disp.innerHTML='';}
   }
+}
+function toggleCustomFee(cb){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  const field=document.getElementById('detail-custom-fee-field');
+  if(field)field.style.display=cb.checked?'block':'none';
+  if(!cb.checked){
+    // Turning off — clear the custom fee
+    b.customFee=null;
+    const input=document.getElementById('detail-custom-fee');if(input)input.value='';
+    saveData();validateCustomFee(b);renderInvoices(b);renderDetailContent&&renderDetailContent(b);
+  }
+}
+function saveCustomFee(){
+  const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
+  const input=document.getElementById('detail-custom-fee');
+  const val=parseFloat(input.value);
+  b.customFee=(!isNaN(val)&&val>0)?val:null;
+  saveData();
+  validateCustomFee(b);
+  renderInvoices(b);
+}
+// Returns true if invoices are OK to render, false if blocked by a validation error
+function validateCustomFee(b){
+  const err=document.getElementById('detail-custom-fee-err');
+  if(!err)return true;
+  err.style.display='none';err.textContent='';
+  // Only relevant when a custom fee is set and a deposit applies
+  if(typeof b.customFee==='number'&&b.customFee>0&&b.hasDeposit!==false){
+    const dep=(typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.customFee);
+    if(b.customFee<dep){
+      err.textContent=`⚠ Custom fee (£${b.customFee}) is lower than the deposit (£${dep}). Raise the fee or lower the deposit to generate invoices.`;
+      err.style.display='block';
+      return false;
+    }
+  }
+  return true;
+}
+// The effective fee used on invoices: custom fee overrides chosen-option price
+function effectiveFee(b){
+  if(typeof b.customFee==='number'&&b.customFee>0)return b.customFee;
+  return (typeof b.agreedPrice==='number')?b.agreedPrice:null;
 }
 function deServiceChange(sel){
   // Auto-set PA based on service (can still be overridden manually)
@@ -2242,7 +2304,7 @@ function renderDetailContent(b){
   const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
   const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};
-  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof b.agreedPrice==='number'&&b.hasDeposit!==false)?'£'+((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit(b.agreedPrice)):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
+  document.getElementById('detail-content').innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(b.firstName)} ${esc(b.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${b.email}" style="color:var(--gold-dim)">${esc(b.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(b.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(b.notes)||'—'}</span></div></div><div class="detail-section"><h4>Event</h4><div class="detail-row"><span class="lbl">Date</span><span class="val">${dl}</span></div><div class="detail-row"><span class="lbl">Type</span><span class="val">${esc(b.eventType)||'—'}</span></div><div class="detail-row"><span class="lbl">Venue</span><span class="val">${esc(b.venue)||'—'}</span></div><div class="detail-row"><span class="lbl">Distance</span><span class="val">${b.miles?b.miles.toFixed(1)+' miles':'—'}</span></div></div><div class="detail-section"><h4>Performance</h4><div class="detail-row"><span class="lbl">Service</span><span class="val">${sl[b.service]||'—'}</span></div><div class="detail-row"><span class="lbl">Start</span><span class="val">${b.startTime?(timeOfDay(b.startTime)==='day'?'Before 5pm':'After 5pm'):'—'}</span></div><div class="detail-row"><span class="lbl">PA</span><span class="val">${b.paRequired?'Yes':'No'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[b.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(typeof b.customFee==='number'&&b.customFee>0)?((b.chosenDuration?durationShort(b.chosenDuration)+' — ':'')+'£'+b.customFee+' (custom)'):((b.chosenDuration&&typeof b.agreedPrice==='number')?durationShort(b.chosenDuration)+' — £'+b.agreedPrice:'—')}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${((typeof b.customFee==='number'&&b.customFee>0)||typeof b.agreedPrice==='number')&&b.hasDeposit!==false?'£'+((typeof b.customDeposit==='number'&&b.customDeposit>0)?b.customDeposit:calcDeposit((typeof b.customFee==='number'&&b.customFee>0)?b.customFee:b.agreedPrice)):'—'}</span></div><div class="detail-row"><span class="lbl">Follow Up</span><span class="val">${b.followUpDate?new Date(b.followUpDate).toLocaleDateString('en-GB'):'—'}</span></div></div>${renderCalcSection(b)}</div>`;
 }
 function renderDetailContentEdit(b){
   const etOptions=Object.keys(settings.eventRates||{}).map(k=>`<option value="${k}"${b.eventType===k?' selected':''}>${k}</option>`).join('');
@@ -2383,11 +2445,17 @@ function moveToStage(stage){
   const b=bookings.find(x=>x.id===currentBookingId);if(!b)return;
   const prev=b.stage;
   b.stage=stage;
-  // Always reset reminder + border to nothing when moving between stages
-  b.followUpDate=null;
+  // Clear reminder state first
   b.followUpState=null;
   b.pendingArchive=null;
   b.followUpColor=null;
+  // Quote Sent and Deposit Pending immediately start a fresh reminder (no border);
+  // all other stages clear it entirely
+  if(stage==='quote'||stage==='deposit'){
+    b.followUpDate=reminderDate(b.followUpDays);
+  } else {
+    b.followUpDate=null;
+  }
   document.getElementById('detail-followup').value=b.followUpDate||'';
   saveData();renderPipeline();
   const sm={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓',archived:'Archived'};
@@ -2458,7 +2526,7 @@ function saveChosenOption(){
     const dl=bFresh.eventDate?new Date(bFresh.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
     const sl={sax_bt:'Sax with Backing Tracks (PA)',sax_dj:"Sax with Client's DJ",combo:'COMBO'};
     const detailContent=document.getElementById('detail-content');
-    if(detailContent)detailContent.innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(bFresh.firstName)} ${esc(bFresh.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${bFresh.email}" style="color:var(--gold-dim)">${esc(bFresh.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(bFresh.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(bFresh.notes)||'—'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[bFresh.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(bFresh.chosenDuration&&typeof bFresh.agreedPrice==='number')?durationShort(bFresh.chosenDuration)+' — £'+bFresh.agreedPrice:'—'}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${(typeof bFresh.agreedPrice==='number')?'£'+calcDeposit(bFresh.agreedPrice):'—'}</span></div></div>${renderCalcSection(bFresh)}</div>`;
+    if(detailContent)detailContent.innerHTML=`<div class="detail-sections"><div class="detail-section"><h4>Client</h4><div class="detail-row"><span class="lbl">Name</span><span class="val">${esc(bFresh.firstName)} ${esc(bFresh.lastName)}</span></div><div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${bFresh.email}" style="color:var(--gold-dim)">${esc(bFresh.email)||'—'}</a></span></div><div class="detail-row"><span class="lbl">Mobile</span><span class="val">${esc(bFresh.mobile)||'—'}</span></div><div class="detail-row"><span class="lbl">Notes</span><span class="val" style="max-width:200px;font-size:12px;">${esc(bFresh.notes)||'—'}</span></div></div><div class="detail-section"><h4>Booking</h4><div class="detail-row"><span class="lbl">Stage</span><span class="val">${stageMap[bFresh.stage]}</span></div><div class="detail-row"><span class="lbl">Chosen Option</span><span class="val">${(typeof bFresh.customFee==='number'&&bFresh.customFee>0)?((bFresh.chosenDuration?durationShort(bFresh.chosenDuration)+' — ':'')+'£'+bFresh.customFee+' (custom)'):((bFresh.chosenDuration&&typeof bFresh.agreedPrice==='number')?durationShort(bFresh.chosenDuration)+' — £'+bFresh.agreedPrice:'—')}</span></div><div class="detail-row"><span class="lbl">Deposit</span><span class="val">${((typeof bFresh.customFee==='number'&&bFresh.customFee>0)||typeof bFresh.agreedPrice==='number')&&bFresh.hasDeposit!==false?'£'+((typeof bFresh.customDeposit==='number'&&bFresh.customDeposit>0)?bFresh.customDeposit:calcDeposit((typeof bFresh.customFee==='number'&&bFresh.customFee>0)?bFresh.customFee:bFresh.agreedPrice)):'—'}</span></div></div>${renderCalcSection(bFresh)}</div>`;
     renderInvoices(bFresh);
     renderOtherTab(bFresh);
   }
@@ -2544,14 +2612,17 @@ function fmtMoney(n){
   return num.toLocaleString('en-GB',opts);
 }
 function renderInvoices(b){
-  const price=b.agreedPrice;
+  // Effective fee: custom fee overrides the chosen-option price
+  const price=effectiveFee(b);
   // Deposit is skipped entirely if hasDeposit is explicitly false
   const depositEnabled=b.hasDeposit!==false;
-  // Custom deposit overrides calculated deposit if set
+  // Custom deposit overrides calculated deposit; deposit ladder uses the effective (custom) fee
   const deposit=(price&&depositEnabled)?(typeof b.customDeposit==='number'&&b.customDeposit>0?b.customDeposit:calcDeposit(price)):null;
   const expenses=(typeof b.expenses==='number'&&b.expenses>0)?b.expenses:0;
   // Balance = full fee − deposit (if any) + expenses
   const balance=price?(price-(deposit||0)+expenses):null;
+  // Block invoices if custom fee is below the deposit (and deposit applies)
+  const feeBlocked=(typeof b.customFee==='number'&&b.customFee>0&&depositEnabled&&deposit&&b.customFee<deposit);
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
   const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.slice(0,10).replace(/-/g,''):'00000000');
   const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)));
@@ -2565,15 +2636,19 @@ function renderInvoices(b){
     const amount=isD?deposit:balance;
     const iType=isD?'Deposit Invoice':'Performance Invoice';
     const refNum=num+(isD?'D':'P');
-    if(!price)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Select a Chosen Option in the Other Invoice Details tab to generate invoices.</div>`;
+    if(!price)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Select a Chosen Option or enter a Custom Fee in the Other Invoice Details tab to generate invoices.</div>`;
+    // Blocked: custom fee is lower than the deposit
+    if(feeBlocked)return`<div style="text-align:center;padding:32px;color:var(--red);font-size:13px;">⚠ Custom fee (£${b.customFee}) is lower than the deposit (£${deposit}).<br>Raise the fee or lower the deposit in Other Invoice Details to generate invoices.</div>`;
     // No deposit invoice when deposit is disabled for this booking
     if(isD&&!depositEnabled)return`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">No deposit invoice for this booking — deposit was not required.</div>`;
-    // "(Including Speakers)" for PA-based services (Sax+BT and COMBO)
-    const inclSpeakers=(b.service==='sax_bt'||b.service==='combo')?' (Including Speakers)':'';
+    // "(Including Speakers)" only when PA/speakers are actually required
+    const inclSpeakers=b.paRequired?' (Including Speakers)':'';
     // Description: "Deposit for: " prefix on deposit invoices
     const descPrefix=isD?'Deposit for: ':'';
     const descMain=descPrefix+(sl[b.service]||'Performance');
-    const descSub=`${b.venue||''} · ${durationShort(b.chosenDuration||b.duration)}${b.provisionalTimings?' · '+b.provisionalTimings:''}${b.invoiceNotes?' · '+b.invoiceNotes:''}${inclSpeakers}`;
+    // Duration only shown when a Chosen Option is picked (custom fee alone shows no duration)
+    const durPart=b.chosenDuration?durationShort(b.chosenDuration):'';
+    const descSub=`${b.venue||''}${durPart?' · '+durPart:''}${b.provisionalTimings?' · '+b.provisionalTimings:''}${b.invoiceNotes?' · '+b.invoiceNotes:''}${inclSpeakers}`;
     const termsText=isD?'Terms of business: This invoice must be paid within 14 days from issuing it in order to save the date. Failure to pay within 14 days risks the date being taken by another client. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.':'Terms of business: This invoice can be paid at any time from now, up to 14 days after the performance date. It is preferred that this be paid on, or the day after the performance. Failure to pay after 30 days after the performance has been carried out will result in legal proceedings from the Musician\'s Union. Cancellation of the performance at any time up to the date forfeits this deposit payment. Cancellation on the day of the performance will mean that full amount for the performance must be paid. Payment of the deposit confirms that you agree to these terms.';
     const cashNote=isD?'':'<div style="font-weight:700;margin-top:8px;margin-bottom:10px;">Cash also accepted on day of performance.</div>';
     return `<div style="margin-bottom:12px;display:flex;justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="downloadInvoicePDF('${type}','${refNum}')">⬇ Download PDF</button></div>
@@ -3616,7 +3691,7 @@ function initNewForm(){
   const cfProgress=document.querySelector('#layer-form .cf-page > .progress');
   if(cfProgress)cfProgress.style.display='none';
   // Reset fields
-  ['nf-firstname','nf-lastname','nf-email','nf-mobile','nf-venue-name','nf-venue-postcode','nf-timings','nf-notes','nf-business-name','nf-fee','nf-custom-deposit-amount','nf-expenses-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['nf-firstname','nf-lastname','nf-email','nf-mobile','nf-venue-name','nf-venue-postcode','nf-timings','nf-notes','nf-business-name','nf-custom-deposit-amount','nf-expenses-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const ba=document.getElementById('nf-business-address');if(ba)ba.value='';
   ['nf-date','nf-venue','nf-postcode','nf-miles','nf-venue-road','nf-venue-village','nf-venue-town','nf-venue-county'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nf-cal-display').value='';
@@ -3793,7 +3868,6 @@ function nfSubmit(){
   if(lbl)lbl.style.display='none';if(spin)spin.style.display='inline-flex';
   const mobile=(document.getElementById('nf-mobile').value||'').trim();
   const service=document.getElementById('nf-service').value||'sax_bt';
-  const feeVal=parseFloat(document.getElementById('nf-fee').value)||null;
   const timings=(document.getElementById('nf-timings').value||'').trim();
   const notes=(document.getElementById('nf-notes').value||'').trim();
   const hasDeposit=document.getElementById('nf-deposit').checked;
@@ -3821,8 +3895,9 @@ function nfSubmit(){
   const dt=eventDate.replace(/-/g,'');
   const booking={
     id:genId(),source:'manual',firstName:fn,lastName:ln,email,mobile,
-    eventDate,eventType,service,agreedPrice:feeVal,
-    chosenOption:feeVal?String(feeVal):null,chosenDuration:null,
+    eventDate,eventType,service,agreedPrice:null,
+    customFee:null,
+    chosenOption:null,chosenDuration:null,
     paRequired:paFromService(service),venue,postcode,notes,miles,
     startTime,endTime,duration:1,provisionalTimings:timings,
     invoiceNotes:notes,invoiceNumber:dt+(secondGig?'02':'01'),
@@ -3830,14 +3905,7 @@ function nfSubmit(){
     customDeposit:customDepositAmount,
     expenses:expensesAmount,
     stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,
-    rateSnapshot:feeVal?{
-      paSax:settings.rates.paSax,saxDj:settings.rates.saxDj,mileage:settings.rates.mileage,
-      ext1:settings.rates.ext1,extHr:settings.rates.extHr,
-      dep1amount:settings.rates.dep1amount,dep2amount:settings.rates.dep2amount,
-      dep3amount:settings.rates.dep3amount,dep4amount:settings.rates.dep4amount,
-      dep1threshold:settings.rates.dep1threshold,dep2threshold:settings.rates.dep2threshold,
-      dep3threshold:settings.rates.dep3threshold,lockedAt:new Date().toISOString()
-    }:null
+    rateSnapshot:null
   };
   bookings.push(booking);
   // Write to /enquiries (public, no auth) via the failsafe — merged into

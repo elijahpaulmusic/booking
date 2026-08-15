@@ -2723,7 +2723,7 @@ function renderCalendarTab(b){
   const feeStr=calFee?` — £${calFee}`:'';
   const summary=(titleLabels[b.service]||'PERFORMANCE')+' — '+b.firstName+' '+b.lastName+feeStr;
   // Calendar-specific duration label keeps the "x" (matches the Chosen Option dropdown)
-  const durationX=d=>{if(!d)return'';if(d===1)return'60x minutes';if(d===1.5)return'90x minutes';if(d%1===0)return d+'x hours';return Math.round(d*60)+'x minutes';};
+  const durationX=d=>{if(!d)return'';if(d===1)return'60x minutes:';if(d===1.5)return'90x minutes:';if(d%1===0)return d+'x hours:';return Math.round(d*60)+'x minutes:';};
   const chosenLabel=b.chosenDuration?durationX(b.chosenDuration)+' ':'';
   const setTimes=(chosenLabel+provTimes).trim();
   // Extract ALL HH:MM times from provisional timings
@@ -2749,12 +2749,17 @@ function renderCalendarTab(b){
   const milesBoth=b.miles?((b.miles)*2).toFixed(1):'—';
   const priceLine=b.agreedPrice?`£${b.agreedPrice} agreed (deposit: £${calcDeposit(b.agreedPrice)})${b.chosenDuration?' — '+durationShort(b.chosenDuration):''}` :'Price TBC';
   const contactMethod=b.contactMethods&&b.contactMethods.length?b.contactMethods[0]:'';
+  // Only append the postcode if the venue string doesn't already include it
+  const venueStr=(b.venue||'').trim();
+  const pc=(b.postcode||'').trim();
+  const venueHasPc=pc&&venueStr.toUpperCase().replace(/\s+/g,'').includes(pc.toUpperCase().replace(/\s+/g,''));
+  const exactLocation=venueStr+((pc&&!venueHasPc)?' — '+pc:'');
   const fields=[
     `Phone: ${b.mobile||''}`,
     `Emergency: `,
     `Email: ${b.email||''}`,
     `Other ways we've spoken: ${contactMethod}`,
-    `Exact Location: ${b.venue||''}${b.postcode?' — '+b.postcode:''}`,
+    `Exact Location: ${exactLocation}`,
     `Mileage (both ways): ${milesBoth} miles`,
     `Dresscode: `,
     `Surprise option 1/2: `,
@@ -2789,8 +2794,7 @@ function downloadICS(){
   const endStr=b._calEnd||b.endTime||'20:00';
   const[sH,sM]=startStr.split(':').map(Number);
   const[eH,eM]=endStr.split(':').map(Number);
-  let aH=sH,aM=sM;
-  if(arriveTime&&arriveTime.includes(':')){[aH,aM]=arriveTime.split(':').map(Number);}
+  // Event starts at the first set start time (arrive time still shown in the description)
   const dt=new Date(b.eventDate+'T12:00:00');
   const pad=n=>String(n).padStart(2,'0');
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
@@ -2799,8 +2803,13 @@ function downloadICS(){
   const icsDesc=ascii(desc).replace(/\n/g,'\\n').replace(/,/g,'\\,');
   const safeSummary=ascii(summary);
   const myEmail=settings.email||'info@elijahpaul.com';
+  // Location: avoid duplicating the postcode if the venue already contains it
+  const locVenue=(b.venue||'').trim();
+  const locPc=(b.postcode||'').trim();
+  const locHasPc=locPc&&locVenue.toUpperCase().replace(/\s+/g,'').includes(locPc.toUpperCase().replace(/\s+/g,''));
+  const icsLocation=ascii(locVenue)+((locPc&&!locHasPc)?' '+locPc:'');
   const vtimezone=`BEGIN:VTIMEZONE\r\nTZID:Europe/London\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0100\r\nTZOFFSETTO:+0000\r\nTZNAME:GMT\r\nDTSTART:19701025T020000\r\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10\r\nEND:STANDARD\r\nBEGIN:DAYLIGHT\r\nTZOFFSETFROM:+0000\r\nTZOFFSETTO:+0100\r\nTZNAME:BST\r\nDTSTART:19700329T010000\r\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3\r\nEND:DAYLIGHT\r\nEND:VTIMEZONE`;
-  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\n${vtimezone}\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${safeSummary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${ascii(b.venue||'')}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:${myEmail}\r\nSUMMARY:Gig in 14 days - ${safeSummary}\r\nDESCRIPTION:${safeSummary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days - ${safeSummary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\n${vtimezone}\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(sH)}${pad(sM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${safeSummary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${icsLocation}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:${myEmail}\r\nSUMMARY:Gig in 14 days - ${safeSummary}\r\nDESCRIPTION:${safeSummary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days - ${safeSummary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));
   a.download=`${b.firstName||'gig'}_${b.lastName||''}_gig.ics`;

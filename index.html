@@ -2719,9 +2719,12 @@ function renderCalendarTab(b){
   }
   const sl={sax_bt:'Sax + Backing Tracks',sax_dj:"Sax with Client's DJ",combo:'Combo Performance'};
   const titleLabels={sax_bt:'SOLO SAX',sax_dj:'SAX AND DJ',combo:'SOLO SAX AND DJ'};
-  const feeStr=b.agreedPrice?` — £${b.agreedPrice}`:'';
+  const calFee=effectiveFee(b);
+  const feeStr=calFee?` — £${calFee}`:'';
   const summary=(titleLabels[b.service]||'PERFORMANCE')+' — '+b.firstName+' '+b.lastName+feeStr;
-  const chosenLabel=b.chosenDuration?durationShort(b.chosenDuration)+' ':'';
+  // Calendar-specific duration label keeps the "x" (matches the Chosen Option dropdown)
+  const durationX=d=>{if(!d)return'';if(d===1)return'60x minutes';if(d===1.5)return'90x minutes';if(d%1===0)return d+'x hours';return Math.round(d*60)+'x minutes';};
+  const chosenLabel=b.chosenDuration?durationX(b.chosenDuration)+' ':'';
   const setTimes=(chosenLabel+provTimes).trim();
   // Extract ALL HH:MM times from provisional timings
   const allTimes=[...provTimes.matchAll(/(\d{1,2}):(\d{2})/g)];
@@ -2758,7 +2761,6 @@ function renderCalendarTab(b){
     `Arrive time: ${arriveTime}`,
     `Set times: ${setTimes}`,
     `Song/style requests: `,
-    `Playlist to use: `,
     `Any other info: ${b.notes||''}`,
   ];
   const desc=fields.join('\n');
@@ -2792,15 +2794,15 @@ function downloadICS(){
   const dt=new Date(b.eventDate+'T12:00:00');
   const pad=n=>String(n).padStart(2,'0');
   const y=dt.getFullYear(),mo=pad(dt.getMonth()+1),d=pad(dt.getDate());
-  // Strip non-ASCII — Apple Calendar rejects ICS with unicode in property values
-  const ascii=s=>(s||'').replace(/£/g,'GBP').replace(/[—–]/g,'-').replace(/[^\x00-\x7F]/g,'');
+  // Keep £ (valid UTF-8, accepted by modern calendar apps); strip other non-ASCII
+  const ascii=s=>(s||'').replace(/[—–]/g,'-').replace(/[^\x00-\x7F£]/g,'');
   const icsDesc=ascii(desc).replace(/\n/g,'\\n').replace(/,/g,'\\,');
   const safeSummary=ascii(summary);
   const myEmail=settings.email||'info@elijahpaul.com';
   const vtimezone=`BEGIN:VTIMEZONE\r\nTZID:Europe/London\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0100\r\nTZOFFSETTO:+0000\r\nTZNAME:GMT\r\nDTSTART:19701025T020000\r\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10\r\nEND:STANDARD\r\nBEGIN:DAYLIGHT\r\nTZOFFSETFROM:+0000\r\nTZOFFSETTO:+0100\r\nTZNAME:BST\r\nDTSTART:19700329T010000\r\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3\r\nEND:DAYLIGHT\r\nEND:VTIMEZONE`;
   const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Elijah Paul Music//EN\r\n${vtimezone}\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/London:${y}${mo}${d}T${pad(aH)}${pad(aM)}00\r\nDTEND;TZID=Europe/London:${y}${mo}${d}T${pad(eH)}${pad(eM)}00\r\nSUMMARY:${safeSummary}\r\nDESCRIPTION:${icsDesc}\r\nLOCATION:${ascii(b.venue||'')}${b.postcode?' '+b.postcode:''}\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:EMAIL\r\nATTENDEE:MAILTO:${myEmail}\r\nSUMMARY:Gig in 14 days - ${safeSummary}\r\nDESCRIPTION:${safeSummary} on ${b.eventDate}\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:-P14D\r\nACTION:DISPLAY\r\nDESCRIPTION:Gig in 14 days - ${safeSummary}\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));
   a.download=`${b.firstName||'gig'}_${b.lastName||''}_gig.ics`;
   a.click();
 }

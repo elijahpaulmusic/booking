@@ -544,6 +544,13 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <p class="card-desc">Repeat customers saved from the internal booking form. These appear in the Saved Clients dropdown on that form. Remove any you no longer need with the ✕.</p>
           <div id="saved-clients-list"><div style="font-size:13px;color:var(--ink3);padding:8px 0;">Loading…</div></div>
         </div>
+        <div class="settings-card full">
+          <h3>Import Enquiry</h3>
+          <p class="card-desc">If an enquiry email arrived but the enquiry didn't show up here, paste the recovery code from that email (the <code>EPMBOOKING::…::END</code> block) below and click Import.</p>
+          <textarea id="import-enquiry-input" placeholder="Paste the EPMBOOKING::…::END code here" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:monospace;font-size:12px;min-height:70px;resize:vertical;box-sizing:border-box;"></textarea>
+          <div id="import-enquiry-msg" style="font-size:13px;margin-top:8px;min-height:18px;"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="importEnquiryFromPaste()">Import Enquiry</button>
+        </div>
         <div class="settings-card">
           <h3>Day of Week Premiums</h3>
           <p class="card-desc">Added to every quote based on the event day.</p>
@@ -1253,6 +1260,84 @@ function saveEnquiryToFirebase(booking,onResult){
   tryWrite();
 }
 
+// ── Enquiry import: encode/decode a full enquiry for email recovery ──
+// Builds a URL-safe base64 payload of the enquiry so it can travel in the
+// notification email and be re-imported into the workstation if the live
+// Firebase write ever fails.
+function encodeEnquiryPayload(booking){
+  try{
+    const json=JSON.stringify(booking);
+    // Encode UTF-8 safely, then make base64 URL-safe
+    const b64=btoa(unescape(encodeURIComponent(json)));
+    return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }catch(e){return'';}
+}
+function decodeEnquiryPayload(payload){
+  try{
+    let b64=(payload||'').trim().replace(/-/g,'+').replace(/_/g,'/');
+    while(b64.length%4)b64+='=';
+    const json=decodeURIComponent(escape(atob(b64)));
+    const obj=JSON.parse(json);
+    if(obj&&obj.id&&(obj.firstName||obj.lastName||obj.email))return obj;
+    return null;
+  }catch(e){return null;}
+}
+// Import an enquiry object into the workstation (dedupes on id)
+function importEnquiryObject(obj,onDone){
+  if(!obj||!obj.id){if(onDone)onDone(false,'Invalid enquiry data');return;}
+  // Skip if this enquiry id already exists
+  if(bookings.some(x=>x.id===obj.id)){if(onDone)onDone(false,'already');return;}
+  bookings.push(obj);saveData();
+  saveEnquiryToFirebase(obj,function(ok){
+    if(onDone)onDone(ok,ok?'saved':'savefail');
+  });
+}
+// Handle an #import/<payload> deep link
+function handleImportRoute(){
+  const m=window.location.hash.match(/^#import\/(.+)$/);
+  if(!m)return false;
+  const obj=decodeEnquiryPayload(m[1]);
+  // Clear the hash so a refresh doesn't re-import
+  const clearHash=()=>{history.replaceState(null,'',window.location.pathname+window.location.search);};
+  if(!obj){
+    clearHash();
+    showToast('Could not read enquiry from that link','error',4000);
+    return true;
+  }
+  // Requires login — the import writes to /enquiries which is public, but we
+  // want the workstation open so the result is visible
+  const doImport=()=>{
+    importEnquiryObject(obj,function(ok,status){
+      clearHash();
+      if(status==='already'){showToast('That enquiry is already in your workstation','info',4000);}
+      else if(ok){showToast('Enquiry imported: '+(obj.firstName||'')+' '+(obj.lastName||''),'success',4000);renderPipeline&&renderPipeline();}
+      else{showToast('Imported locally but server save failed — will retry on next sync','error',5000);renderPipeline&&renderPipeline();}
+    });
+  };
+  return {obj,doImport,clearHash};
+}
+// Import an enquiry from a pasted recovery code (Settings → Import Enquiry)
+function importEnquiryFromPaste(){
+  const input=document.getElementById('import-enquiry-input');
+  const msg=document.getElementById('import-enquiry-msg');
+  const raw=(input?input.value:'').trim();
+  if(!raw){if(msg){msg.textContent='Please paste a recovery code first.';msg.style.color='var(--red)';}return;}
+  // Accept: full EPMBOOKING::payload::END block, an #import/ URL, or a bare payload
+  let payload='';
+  const blockM=raw.match(/EPMBOOKING::([^:]+)::END/);
+  const urlM=raw.match(/#import\/(.+)$/);
+  if(blockM)payload=blockM[1];
+  else if(urlM)payload=urlM[1];
+  else payload=raw;
+  const obj=decodeEnquiryPayload(payload);
+  if(!obj){if(msg){msg.textContent='That code could not be read. Make sure you copied the whole EPMBOOKING::…::END block.';msg.style.color='var(--red)';}return;}
+  importEnquiryObject(obj,function(ok,status){
+    if(status==='already'){if(msg){msg.textContent='✓ That enquiry ('+(obj.firstName||'')+' '+(obj.lastName||'')+') is already in your workstation.';msg.style.color='var(--ink3)';}}
+    else if(ok){if(msg){msg.textContent='✓ Imported '+(obj.firstName||'')+' '+(obj.lastName||'')+' into the pipeline.';msg.style.color='var(--green)';}if(input)input.value='';renderPipeline&&renderPipeline();}
+    else{if(msg){msg.textContent='Saved locally but the server write failed — it should sync shortly.';msg.style.color='var(--red)';}renderPipeline&&renderPipeline();}
+  });
+}
+
 // ── Load all data from Firebase (called after login) ─────────────────────
 function manualSync(){
   if(!window._fbCurrentUser){showToast('Not logged in','error');return;}
@@ -1365,6 +1450,8 @@ function init(){
   cfRebuildEventTypes();
   const hash=window.location.hash;
   if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
+  // #import/<payload> — recover an enquiry from a notification email link
+  const importRoute=hash.startsWith('#import/')?handleImportRoute():null;
   showLayer('layer-login');
 
   if(window._firebaseReady&&window._fbOnAuthStateChanged&&window._fbAuth){
@@ -1374,7 +1461,7 @@ function init(){
       if(user){
         window._fbCurrentUser=user;
         sessionStorage.setItem('ep_auth','1');
-        syncFromFirebase(()=>{showWorkstation();});
+        syncFromFirebase(()=>{showWorkstation();if(importRoute&&importRoute.doImport)setTimeout(importRoute.doImport,600);});
         showToast('Syncing data...','info',1000);
       } else {
         window._fbCurrentUser=null;
@@ -3389,13 +3476,18 @@ function buildEmailHtml(isClient,firstName,serviceLabel,dateLong,startTime,endTi
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@300;600;700&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;background:${CREAM};font-family:'Open Sans Condensed','Arial Narrow',Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};padding:32px 16px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);"><tr><td height="5" style="background:${ACCENT};font-size:0;">&nbsp;</td></tr><tr><td align="center" style="padding:32px 24px 20px;background:${CREAM};"><img src="${logoUri}" alt="${sName}" width="120" style="display:block;margin:0 auto 10px;width:120px;height:auto;"><p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#AAA;">Booking Form</p></td></tr><tr><td height="3" style="background:${ACCENT};font-size:0;">&nbsp;</td></tr><tr><td style="padding:28px 32px;">${intro}<table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-collapse:collapse;">${detailRows}</table>${signOff}</td></tr><tr><td style="padding:14px 32px;background:${CREAM};border-top:1px solid #EEE;text-align:center;"><p style="margin:0;font-size:11px;color:#BBB;letter-spacing:0.05em;">${sName} · Saxophonist</p></td></tr></table></td></tr></table></body></html>`;
 }
 const sName=settings.name||'Elijah Paul';
+// Build the enquiry object BEFORE sending, so its recovery payload can be embedded in my email
+const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
+const newBooking={id:genId(),isTest:isTestMode(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:1,startTime,endTime:'',paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:isTestMode()?'test':'web'};
+const enquiryPayload=encodeEnquiryPayload(newBooking);
+const importUrl=`${window.location.origin}${window.location.pathname}#import/${enquiryPayload}`;
+// Recovery block appended to MY email only (never the client's)
+const recoveryBlock=`<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border-top:2px dashed #DDD;"><tr><td style="padding:16px 0 4px;font-size:11px;color:#AAA;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Workstation Recovery</td></tr><tr><td style="font-size:12px;color:#888;line-height:1.6;padding-bottom:10px;">If this enquiry didn't appear in your workstation, tap the button (while logged in) or paste the code below into Settings → Import Enquiry.</td></tr><tr><td style="padding-bottom:12px;"><a href="${importUrl}" style="display:inline-block;background:${ACCENT};color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;">Import this enquiry →</a></td></tr><tr><td style="font-size:10px;color:#BBB;font-family:monospace;word-break:break-all;line-height:1.5;background:#F7F7F7;padding:10px;border-radius:6px;">EPMBOOKING::${enquiryPayload}::END</td></tr></table>`;
 const clientMessage=buildEmailHtml(true,firstName,CF_SERVICE_LABELS[service]||service,dateLong,startTime,endTime,eventType,venue,postcode,firstName+' '+lastName,email,mobile,notes,miles,sName);
-const myMessage=buildEmailHtml(false,firstName,CF_SERVICE_LABELS[service]||service,dateLong,startTime,endTime,eventType,venue,postcode,firstName+' '+lastName,email,mobile,notes,miles,sName);
+const myMessage=buildEmailHtml(false,firstName,CF_SERVICE_LABELS[service]||service,dateLong,startTime,endTime,eventType,venue,postcode,firstName+' '+lastName,email,mobile,notes,miles,sName).replace('</body>',recoveryBlock+'</body>');
 try{
   await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:firstName,subject:clientSubject,message:clientMessage,html_message:clientMessage,reply_to:settings.email||MY_EMAIL});
   await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email||MY_EMAIL,to_name:settings.name||'Elijah',subject:mySubject,message:myMessage,html_message:myMessage,reply_to:email});
-  const milesNum=parseFloat(document.getElementById('cf-miles').value)||0;
-  const newBooking={id:genId(),isTest:isTestMode(),firstName,lastName,email,mobile:mobile==='Not provided'?'':mobile,eventDate,eventType,service,duration:1,startTime,endTime:'',paRequired:paFromService(service),postcode:document.getElementById('cf-postcode').value,venue,notes:notes==='None'?'':notes,miles:milesNum,stage:'enquiry',createdAt:new Date().toISOString(),followUpDate:null,agreedPrice:null,source:isTestMode()?'test':'web'};
   bookings.push(newBooking);saveData();
   // Failsafe: wait for verified Firebase write before showing success
   saveEnquiryToFirebase(newBooking,function(ok){

@@ -928,6 +928,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         <button class="inner-tab active" onclick="showTab('tab-detail')">Details</button>
         <button class="inner-tab" onclick="showTab('tab-quote')">Quote Email</button>
         <button class="inner-tab" onclick="showTab('tab-followup')" id="followup-tab-btn">Follow Up</button>
+        <button class="inner-tab" onclick="showTab('tab-discount')">10% Discount</button>
         <button class="inner-tab" onclick="showTab('tab-other')">Other Invoice Details</button>
         <button class="inner-tab" onclick="showTab('tab-invoice')">Invoices</button>
         <button class="inner-tab" onclick="showTab('tab-booking-email')">Booking Email</button>
@@ -959,6 +960,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       </div>
       <div class="inner-panel" id="tab-quote"><div id="quote-email-content"></div></div>
       <div class="inner-panel" id="tab-followup"><div id="followup-email-content"></div></div>
+      <div class="inner-panel" id="tab-discount"><div id="discount-email-content"></div></div>
       <div class="inner-panel" id="tab-other">
         <div style="max-width:440px;">
           <p style="font-size:13px;color:var(--ink3);margin-bottom:20px;">Select the duration option the client has chosen. The quoted price for that duration will be applied to both invoices automatically.</p>
@@ -1205,6 +1207,26 @@ function _fallbackCopy(text){
 function copyById(id){
   const el=document.getElementById(id);if(!el)return;
   copyText(el.innerText||el.textContent||'');
+}
+// Copy rich HTML (preserves strikethrough etc.) with a plain-text fallback.
+// Falls back to plain-text copy on older browsers.
+function copyRichById(id){
+  const el=document.getElementById(id);if(!el)return;
+  const html=el.innerHTML;
+  const plain=el.innerText||el.textContent||'';
+  if(navigator.clipboard&&window.ClipboardItem){
+    try{
+      const item=new ClipboardItem({
+        'text/html':new Blob([html],{type:'text/html'}),
+        'text/plain':new Blob([plain],{type:'text/plain'})
+      });
+      navigator.clipboard.write([item]).then(()=>{
+        showToast('Copied','success',1500);
+      }).catch(()=>{copyText(plain);});
+      return;
+    }catch(e){/* fall through */}
+  }
+  copyText(plain);
 }
 
 function showToast(msg,type='info',duration=3000){
@@ -2230,6 +2252,49 @@ Elijah`;
   <p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${esc(b.email)}" style="color:var(--gold-dim);">${esc(b.email)}</a></p>`;
 }
 
+// 10% discount email — strikes through original quotes, shows discounted ones.
+// New 60min = original 60min × 0.9 rounded DOWN to nearest £10.
+// 90min = new60 + £60 · 2hr = new60 + £90 · 3hr = new60 + £180
+function renderDiscountTab(b){
+  const el=document.getElementById('discount-email-content');
+  if(!el)return;
+  const quotes=calcAllQuotes(b);
+  if(!quotes.length||!b.service){
+    el.innerHTML=`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:13px;">Quotes couldn't be generated — check the service type and event date in Details.</div>`;
+    return;
+  }
+  const q=dur=>{const found=quotes.find(x=>x.duration===dur);return found?found.price:null;};
+  const orig60=q(1),orig90=q(1.5),orig2=q(2),orig3=q(3);
+  // Discounted figures
+  const new60=Math.floor((orig60*0.9)/10)*10;
+  const new90=new60+60;
+  const new2=new60+90;
+  const new3=new60+180;
+  const line=(label,oldV,newV)=>`${label} = <s>£${oldV}</s> £${newV}`;
+  const body=`Hi ${esc(b.firstName)},
+
+No worries at all, thanks for letting me know. If it sways it, I'm happy to offer a 10% discount on all the quotes in my previous email.
+
+The quotes I provided would now be the following:
+
+${line('60x minutes',orig60,new60)}
+${line('90x minutes',orig90,new90)}
+${line('2x hours',orig2,new2)}
+${line('3x hours',orig3,new3)}
+
+Let me know if you have any questions and I'll be happy to help. Completely understand if you've found someone more locally who can do it for a better price.
+
+Kind regards,
+Elijah`;
+
+  el.innerHTML=`<div class="quote-output-header">
+    <h3>10% Discount Email</h3>
+    <button class="btn btn-secondary btn-sm" onclick="copyRichById('discount-email-out')">Copy Email</button>
+  </div>
+  <div class="quote-output" id="discount-email-out">${body}</div>
+  <p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${esc(b.email)}" style="color:var(--gold-dim);">${esc(b.email)}</a></p>`;
+}
+
 function markSmsSent(id, cb){
   const b=bookings.find(x=>x.id===id);if(!b)return;
   b.smsSent=true;
@@ -2253,7 +2318,7 @@ function openBooking(id){
   // Lock body scroll — iOS Safari requires position:fixed technique
   window._scrollY=window.scrollY||window.pageYOffset;
   document.body.style.cssText='position:fixed;top:-'+window._scrollY+'px;left:0;right:0;overflow:hidden;';document.getElementById('modal-title').textContent=`${esc(b.firstName)} ${esc(b.lastName)}`;const stageMap={enquiry:'Enquiry',quote:'Quote Sent',deposit:'Deposit Pending',booked:'Booked ✓'};document.querySelectorAll('.stage-btn').forEach(btn=>btn.classList.toggle('active-stage',btn.textContent.trim()===stageMap[b.stage]));renderDetailContent(b);document.getElementById('detail-followup').value=b.followUpDate||'';document.getElementById('detail-notes-edit').value=b.notes||'';
-  renderQuoteTab(b);renderInvoices(b);renderBookingEmailTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
+  renderQuoteTab(b);renderInvoices(b);renderBookingEmailTab(b);renderDiscountTab(b);renderCalendarTab(b);renderFollowUpTab(b);renderOtherTab(b);
   // Restore contact method checkboxes
   setTimeout(()=>{
     document.querySelectorAll('input[name="contact-method"]').forEach(cb=>{

@@ -54,13 +54,47 @@ try {
 <style>
 /* ── ROOT ───────────────────────────────────────────────── */
 :root {
-  --gold:#A59B7C; --gold-light:#F0DFA0; --gold-dim:#8A6E2F;
-  --ink:#1A1814; --ink2:#3A3630; --ink3:#6B6558;
-  --cream:#FAF8F3; --cream2:#F2EFE6; --cream3:#E8E3D8;
-  --white:#FFFFFF; --red:#C0392B; --green:#1E7E4B;
+  /* ── Brass (day) ── */
+  --gold:#A87C1F; --gold-light:#E8D9A8; --gold-dim:#86641A;
+  --ink:#221F19; --ink2:#4A443B; --ink3:#6E655A;
+  --cream:#EFEBE4; --cream2:#E7E1D6; --cream3:#E1D9CB;
+  --white:#FBF9F5; --red:#C0392B; --green:#1E7E4B;
   --radius:8px; --radius-lg:14px;
-  --shadow:0 2px 12px rgba(26,24,20,0.10);
-  --shadow-lg:0 6px 32px rgba(26,24,20,0.16);
+  --shadow:0 2px 12px rgba(40,34,22,0.08);
+  --shadow-lg:0 6px 32px rgba(40,34,22,0.14);
+}
+/* ══ Night theme (Brass night) — applied via data-theme="night" on <html> ══ */
+:root[data-theme="night"]{
+  --gold:#D2A23E; --gold-light:#5A4A28; --gold-dim:#E0B45A;
+  --ink:#EFE8DB; --ink2:#C9C0B0; --ink3:#A99E8B;
+  --cream:#17140F; --cream2:#1F1B14; --cream3:#372F24;
+  --white:#211D16; --red:#E0705E; --green:#5FB07E;
+  --shadow:0 2px 14px rgba(0,0,0,0.45);
+  --shadow-lg:0 8px 36px rgba(0,0,0,0.55);
+}
+/* Accent blocks that use the dark colour as a background must stay dark in night mode */
+:root[data-theme="night"] .app-header{background:#1F1B14;color:#EFE8DB;}
+:root[data-theme="night"] #layer-login{background:#0F0D09;}
+:root[data-theme="night"] .toast{color:#F5EFE3;}
+:root[data-theme="night"] .toast.info{background:#2A251C;}
+:root[data-theme="night"] .cal-year-opt:hover,
+:root[data-theme="night"] .cal-year-opt.active{background:#2A251C;color:#EFE8DB;}
+:root[data-theme="night"] .cal-nav:hover{background:#2A251C;color:#EFE8DB;border-color:#2A251C;}
+:root[data-theme="night"] .cal-day.cal-selected{background:var(--gold);color:#17140F;}
+:root[data-theme="night"] .stage-btn.active-stage{background:#2A251C;color:#EFE8DB;border-color:#2A251C;}
+:root[data-theme="night"] .progress-step.active{background:#2A251C;color:#EFE8DB;}
+:root[data-theme="night"] .cf-btn-primary{background:var(--gold);color:#17140F;}
+/* Gold-accent buttons: keep dark text on the brass fill */
+:root[data-theme="night"] .btn-primary,
+:root[data-theme="night"] .nav-tab.active,
+:root[data-theme="night"] .progress-step.done,
+:root[data-theme="night"] .login-box .login-btn{color:#17140F;}
+/* Invoices & email previews stay a light "paper" island even at night (they're printed / sent) */
+:root[data-theme="night"] .invoice-paper,
+:root[data-theme="night"] .quote-output{
+  --ink:#221F19; --ink2:#4A443B; --ink3:#6E655A;
+  --cream:#EFEBE4; --cream2:#E7E1D6; --cream3:#E1D9CB; --white:#FBF9F5; --gold-dim:#86641A;
+  background:#FBF9F5; color:#221F19;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 
@@ -494,6 +528,16 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div id="view-settings" class="view">
       <div class="pipeline-header"><h1>Settings</h1></div>
       <div class="settings-grid">
+        <div class="settings-card full">
+          <h3>Appearance</h3>
+          <p class="card-desc" style="margin-bottom:12px;">Brass by day, Night after dark — switched automatically at your local sunrise and sunset. Override it here to preview a mode any time.</p>
+          <div id="theme-toggle" style="display:inline-flex;border:1px solid var(--cream3);border-radius:var(--radius);overflow:hidden;">
+            <button type="button" class="theme-opt" data-mode="auto" onclick="setThemeMode('auto')" style="padding:9px 18px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2);">Auto</button>
+            <button type="button" class="theme-opt" data-mode="day" onclick="setThemeMode('day')" style="padding:9px 18px;border:none;border-left:1px solid var(--cream3);background:transparent;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2);">Brass</button>
+            <button type="button" class="theme-opt" data-mode="night" onclick="setThemeMode('night')" style="padding:9px 18px;border:none;border-left:1px solid var(--cream3);background:transparent;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2);">Night</button>
+          </div>
+          <div id="theme-sun-note" style="font-size:12px;color:var(--ink3);margin-top:10px;"></div>
+        </div>
         <div class="settings-card">
           <h3>Your Details <span class="save-flash">✓ Saved</span></h3>
           <div class="form-group" style="margin-bottom:10px;"><label>Your Name</label><input type="text" id="set-name" onchange="saveSettings()"></div>
@@ -1042,6 +1086,7 @@ let settings = {
   name:'Elijah Paul', email:'info@elijahpaul.com', autofillEmail:'', phone:'07519 356742', invoiceName:'Elisha Firmin trading as Elijah Paul Music',
   homePostcode:'CO7 9AW', sortCode:'', account:'',
   website:'www.elijahpaul.com', password:'elijah',
+  themeMode:'auto',
   icalLastSync: null,
   rates:{ paSax:30, saxDj:270, mileage:1.10,
     ext1:60, extHr:100,
@@ -1053,6 +1098,84 @@ let settings = {
 };
 
 function deepMerge(t,s){const o=Object.assign({},t);for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))o[k]=deepMerge(t[k]||{},s[k]);else o[k]=s[k];}return o;}
+
+// ═══════════════════════════════════════════════════
+// THEME — Brass (day) / Night, auto-switched by sunrise & sunset
+// Sunrise/sunset computed locally (SunCalc algorithm), no API or location prompt.
+// Anchored to a fixed central-UK point; accurate to a few minutes nationwide.
+// ═══════════════════════════════════════════════════
+const THEME_LAT=52.4, THEME_LNG=-1.5; // central England reference
+(function(){
+  const rad=Math.PI/180, dayMs=86400000, J1970=2440588, J2000=2451545;
+  const toJulian=d=>d.valueOf()/dayMs-0.5+J1970;
+  const fromJulian=j=>new Date((j+0.5-J1970)*dayMs);
+  const toDays=d=>toJulian(d)-J2000;
+  const e=rad*23.4397;
+  const solarMeanAnomaly=d=>rad*(357.5291+0.98560028*d);
+  const eclipticLongitude=M=>{const C=rad*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M));const P=rad*102.9372;return M+C+P+Math.PI;};
+  const declination=(l,b)=>Math.asin(Math.sin(b)*Math.cos(e)+Math.cos(b)*Math.sin(e)*Math.sin(l));
+  const J0=0.0009;
+  const julianCycle=(d,lw)=>Math.round(d-J0-lw/(2*Math.PI));
+  const approxTransit=(Ht,lw,n)=>J0+(Ht+lw)/(2*Math.PI)+n;
+  const solarTransitJ=(ds,M,L)=>J2000+ds+0.0053*Math.sin(M)-0.0069*Math.sin(2*L);
+  const hourAngle=(h,phi,d)=>Math.acos((Math.sin(h)-Math.sin(phi)*Math.sin(d))/(Math.cos(phi)*Math.cos(d)));
+  window._sunTimes=function(date,lat,lng){
+    const lw=rad*-lng, phi=rad*lat, d=toDays(date), n=julianCycle(d,lw);
+    const ds=approxTransit(0,lw,n), M=solarMeanAnomaly(ds), L=eclipticLongitude(M);
+    const dec=declination(L,0), Jnoon=solarTransitJ(ds,M,L), h0=-0.833*rad;
+    const w=hourAngle(h0,phi,dec), aT=approxTransit(w,lw,n), Jset=solarTransitJ(aT,M,L);
+    const Jrise=Jnoon-(Jset-Jnoon);
+    return {sunrise:fromJulian(Jrise),sunset:fromJulian(Jset)};
+  };
+})();
+function themeBySun(){
+  try{
+    const now=new Date();
+    const t=window._sunTimes(now,THEME_LAT,THEME_LNG);
+    // Polar edge-cases produce invalid dates — fall back to a simple hour check
+    if(isNaN(t.sunrise)||isNaN(t.sunset)){const h=now.getHours();return(h>=7&&h<19)?'day':'night';}
+    return (now>=t.sunrise&&now<t.sunset)?'day':'night';
+  }catch(e){const h=new Date().getHours();return(h>=7&&h<19)?'day':'night';}
+}
+function resolveTheme(){
+  const mode=(settings&&settings.themeMode)||'auto';
+  if(mode==='day'||mode==='night')return mode;
+  return themeBySun();
+}
+function applyTheme(){
+  const theme=resolveTheme();
+  const root=document.documentElement;
+  if(theme==='night')root.setAttribute('data-theme','night');
+  else root.setAttribute('data-theme','day');
+}
+// Re-check every 5 minutes so an open tab flips itself across sunrise/sunset
+setInterval(applyTheme,5*60*1000);
+// Apply immediately on script load to avoid a flash of the wrong theme
+applyTheme();
+function setThemeMode(mode){
+  settings.themeMode=mode;
+  applyTheme();
+  renderThemeToggle();
+  saveData();
+  showToast('Appearance set to '+(mode==='auto'?'Auto':mode==='day'?'Brass':'Night'),'success',1500);
+}
+function renderThemeToggle(){
+  const mode=(settings&&settings.themeMode)||'auto';
+  document.querySelectorAll('#theme-toggle .theme-opt').forEach(b=>{
+    const active=b.dataset.mode===mode;
+    b.style.background=active?'var(--gold)':'transparent';
+    b.style.color=active?'#17140F':'var(--ink2)';
+  });
+  const note=document.getElementById('theme-sun-note');
+  if(note){
+    try{
+      const t=window._sunTimes(new Date(),THEME_LAT,THEME_LNG);
+      const fmt=d=>isNaN(d)?'—':d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const showing=resolveTheme()==='night'?'Night':'Brass';
+      note.textContent=`Today: sunrise ${fmt(t.sunrise)}, sunset ${fmt(t.sunset)} · currently showing ${showing}.`;
+    }catch(e){note.textContent='';}
+  }
+}
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
 const BUILD_TIME = '10/06/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1589,6 +1712,7 @@ function startEnquiryListener(){
 }
 function showWorkstation(){
   document.title='Booking Workstation';
+  applyTheme();
   showLayer('layer-workstation');
   initWsVenueListeners();
   startEnquiryListener();
@@ -1604,6 +1728,7 @@ function showWorkstation(){
 
 function showBookingForm(preselect){
   document.title='Elijah Paul — Booking Form';
+  applyTheme();
   // All routes show layer-form
   showLayer('layer-form');
   // #book/new — no login required, open form immediately
@@ -2989,7 +3114,7 @@ function showView(name){document.querySelectorAll('.view').forEach(v=>v.classLis
 // ═══════════════════════════════════════════════════
 function populateSettings(){document.getElementById('set-name').value=settings.name||'';document.getElementById('set-email').value=settings.email||'';document.getElementById('set-homepostcode').value=settings.homePostcode||'';document.getElementById('set-sortcode').value=settings.sortCode||'';document.getElementById('set-account').value=settings.account||'';document.getElementById('set-phone').value=settings.phone||'';document.getElementById('set-invoicename').value=settings.invoiceName||'';const autofillEl=document.getElementById('set-autofill-email');
   if(autofillEl)autofillEl.value=settings.autofillEmail||'';
-  document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();renderCalRefreshNudge();renderSavedClientsSettings();}
+  document.getElementById('rate-pa-sax').value=settings.rates.paSax;document.getElementById('rate-sax-dj').value=settings.rates.saxDj;document.getElementById('rate-mileage').value=settings.rates.mileage;document.getElementById('rate-ext1').value=settings.rates.ext1;document.getElementById('rate-exthr').value=settings.rates.extHr;document.getElementById('rate-dep1').value=settings.rates.dep1amount;document.getElementById('rate-dep2').value=settings.rates.dep2amount;document.getElementById('rate-dep3').value=settings.rates.dep3amount;document.getElementById('rate-dep4').value=settings.rates.dep4amount||250;renderEtEditor();renderDowEditor();renderMonthEditor();renderBookedPreview();renderFreedDatesLog();renderCalRefreshNudge();renderSavedClientsSettings();renderThemeToggle();}
 function renderEtEditor(){const entries=Object.entries(settings.eventRates),half=Math.ceil(entries.length/2);let c1='',c2='';entries.forEach(([name,price],i)=>{const row=`<div class="et-row"><input class="et-name" value="${escHtml(name)}" data-orig="${escHtml(name)}" onchange="renameEt(this)"><span class="et-currency">£</span><input class="et-price" type="number" value="${price}" data-name="${escHtml(name)}" onchange="updateEtPrice(this)"><button class="et-del" onclick="deleteEt('${escHtml(name)}')" title="Delete">×</button></div>`;if(i<half)c1+=row;else c2+=row;});document.getElementById('et-editor').innerHTML=`<div>${c1}</div><div>${c2}</div>`;rebuildEventTypeSelect();cfRebuildEventTypes();}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function renameEt(el){const orig=el.dataset.orig,newName=el.value.trim();if(!newName||newName===orig)return;const entries=Object.entries(settings.eventRates),newRates={};entries.forEach(([k,v])=>{newRates[k===orig?newName:k]=v;});settings.eventRates=newRates;renderEtEditor();}

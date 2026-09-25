@@ -345,6 +345,15 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
 .cf-group input:focus,.cf-group select:focus,.cf-group textarea:focus{border-color:var(--gold);}
 .cf-group textarea{resize:vertical;min-height:90px;}
 .cf-group input.cf-err,.cf-group select.cf-err{border-color:var(--red);}
+/* Some in-app browsers (e.g. Instagram's WebView) inject a red border onto
+   asterisked/native fields when the form is submitted. Force our normal border
+   unless OUR validator has applied .cf-err, overriding any injected styling. */
+.cf-group select:not(.cf-err):not(:focus),
+.cf-group input:not(.cf-err):not(:focus){border-color:var(--cream3)!important;}
+.cf-group select:not(.cf-err):focus,
+.cf-group input:not(.cf-err):focus{border-color:var(--gold)!important;}
+.cf-group select:not(.cf-err),
+.cf-group input:not(.cf-err){box-shadow:none!important;}
 .cf-field-err{font-size:11px;color:var(--red);margin-top:2px;display:none;}
 .cf-divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink3);padding:12px 0 6px;border-top:1px solid var(--cream2);margin-top:4px;grid-column:1/-1;}
 .cf-divider.first{border-top:none;padding-top:0;margin-top:0;}
@@ -1376,7 +1385,9 @@ function saveEnquiryToFirebase(booking,onResult){
   // Use a deterministic key from the booking id so we can verify the write
   const key='enq_'+booking.id;
   let attempt=0;
-  const maxAttempts=3;
+  // Fewer retries than before — the enquiry email carries an "Import this enquiry"
+  // recovery button, so an occasional missed write is easily recovered by hand.
+  const maxAttempts=2;
   function tryWrite(){
     attempt++;
     s(r(db,'enquiries/'+key),booking)
@@ -3582,7 +3593,7 @@ function cfValidate(){let ok=true;
     pending.push([document.getElementById('cf-e-intl-code'),!icv,'err-display'],[document.getElementById('cf-e-intl-number'),!inumv,'err-display']);
     if(!icv||!inumv)ok=false;
   }
-  const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-eventtype',err:'cf-e-eventtype'}];
+  const fields=[{id:'cf-firstname',err:'cf-e-firstname'},{id:'cf-lastname',err:'cf-e-lastname'},{id:'cf-email',err:'cf-e-email',isEmail:true},{id:'cf-eventtype',err:'cf-e-eventtype',isSelect:true}];
   // Only validate mobile if intl toggle is not checked
   if(!document.getElementById('cf-intl-toggle')?.checked){
     const mobileEl=document.getElementById('cf-mobile');
@@ -3594,8 +3605,14 @@ function cfValidate(){let ok=true;
     pending.push([mobileEl,mobileInvalid],[mobileErr,mobileInvalid,'err-display']);
     if(mobileInvalid)ok=false;
   }
-  fields.forEach(({id,err,isEmail})=>{
-    const el=document.getElementById(id),errEl=document.getElementById(err),val=el.value.trim();
+  fields.forEach(({id,err,isEmail,isSelect})=>{
+    const el=document.getElementById(id),errEl=document.getElementById(err);
+    let val=el.value.trim();
+    // Robust read for the native <select>: if .value comes back empty but a real
+    // option (not the placeholder) is selected, recover the value from it.
+    if(isSelect&&!val&&el.selectedIndex>0&&el.options[el.selectedIndex]){
+      val=(el.options[el.selectedIndex].value||el.options[el.selectedIndex].textContent||'').trim();
+    }
     const invalid=!val||(isEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val));
     pending.push([el,invalid],[errEl,invalid,'err-display']);
     if(invalid)ok=false;
@@ -3624,9 +3641,27 @@ function cfValidate(){let ok=true;
     if(mode==='err-display')el.style.display=invalid?'block':'none';
     else el.classList.toggle('cf-err',invalid);
   });
+  // Safety net: if everything validated, guarantee no red styling remains —
+  // clears our error class AND any inline border/shadow a browser may have injected.
+  if(ok){
+    document.querySelectorAll('.cf-group input, .cf-group select, .cf-group textarea').forEach(el=>{
+      el.classList.remove('cf-err');
+      el.style.borderColor='';
+      el.style.boxShadow='';
+    });
+  }
   return ok;
 }
-async function cfSubmit(){if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;document.getElementById('cf-submit-err').style.display='none';
+async function cfSubmit(){
+  // Debug mode: add ?debug to the URL to print what the validator sees for Event Type
+  if(location.search.toLowerCase().includes('debug')){
+    const et=document.getElementById('cf-eventtype');
+    const bar=document.getElementById('cf-submit-err');
+    const info='DEBUG · Event Type value="'+et.value+'" · selectedIndex='+et.selectedIndex+' · options='+et.options.length+' · cf-err='+et.classList.contains('cf-err')+' · rendered border='+getComputedStyle(et).borderColor;
+    if(bar){bar.textContent=info;bar.style.display='block';bar.style.whiteSpace='normal';}
+    console.log('[cfSubmit] '+info);
+  }
+  if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;if(!location.search.toLowerCase().includes('debug'))document.getElementById('cf-submit-err').style.display='none';
 const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',venue=(cfBuildVenueString('cf')||document.getElementById('cf-venue').value.trim()),postcode=document.getElementById('cf-postcode').value||document.getElementById('cf-venue-postcode').value.trim().toUpperCase(),miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
@@ -3677,23 +3712,17 @@ try{
   const recoveryBlock=`<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border-top:2px dashed #DDD;"><tr><td style="padding:16px 0 4px;font-size:11px;color:#AAA;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Workstation Recovery</td></tr><tr><td style="font-size:12px;color:#888;line-height:1.6;padding-bottom:10px;">If this enquiry didn't appear in your workstation, tap the button (while logged in) or paste the code below into Settings → Import Enquiry.</td></tr><tr><td style="padding-bottom:12px;"><a href="${importUrl}" style="display:inline-block;background:${RECOVERY_ACCENT};color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 18px;border-radius:6px;">Import this enquiry →</a></td></tr><tr><td style="font-size:10px;color:#BBB;font-family:monospace;word-break:break-all;line-height:1.5;background:#F7F7F7;padding:10px;border-radius:6px;">EPMBOOKING::${enquiryPayload}::END</td></tr></table>`;
   const clientMessage=buildEmailHtml(true,firstName,CF_SERVICE_LABELS[service]||service,dateLong,startTime,endTime,eventType,venue,postcode,firstName+' '+lastName,email,mobile,notes,miles,sName);
   const myMessage=buildEmailHtml(false,firstName,CF_SERVICE_LABELS[service]||service,dateLong,startTime,endTime,eventType,venue,postcode,firstName+' '+lastName,email,mobile,notes,miles,sName).replace('</body>',recoveryBlock+'</body>');
-  await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:firstName,subject:clientSubject,message:clientMessage,html_message:clientMessage,reply_to:settings.email||MY_EMAIL});
-  await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email||MY_EMAIL,to_name:settings.name||'Elijah',subject:mySubject,message:myMessage,html_message:myMessage,reply_to:email});
+  // Send both emails in parallel — roughly halves the wait versus sending them one after another
+  await Promise.all([
+    emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:firstName,subject:clientSubject,message:clientMessage,html_message:clientMessage,reply_to:settings.email||MY_EMAIL}),
+    emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email||MY_EMAIL,to_name:settings.name||'Elijah',subject:mySubject,message:myMessage,html_message:myMessage,reply_to:email})
+  ]);
   bookings.push(newBooking);saveData();
-  // Failsafe: wait for verified Firebase write before showing success
-  saveEnquiryToFirebase(newBooking,function(ok){
-    if(ok){
-      document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
-      document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
-    } else {
-      // Write failed after retries — still show success (email sent) but flag it internally
-      document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
-      document.getElementById('cf-success-body').innerHTML=`Your enquiry email has been sent and I'll be in touch within 48 hours.<br><br>A confirmation has been sent to <strong>${email}</strong>.<br><br><span style="font-size:12px;color:#999;">If you don't hear back, please call to confirm your enquiry was received.</span>`;
-    }
-    cfShowPage('cf-page-success');cfSetProgress(3);
-  });
-  // Show success page immediately regardless (write continues in background);
-  // the callback above updates the message once confirmed
+  // Fire-and-forget Firebase write — no longer blocks the success screen.
+  // A single verified attempt; the email's "Import this enquiry" button is the backup if it doesn't land.
+  saveEnquiryToFirebase(newBooking);
+  document.getElementById('cf-success-heading').textContent=`Thank you, ${firstName}!`;
+  document.getElementById('cf-success-body').innerHTML=`Your enquiry has been sent. I'll be in touch within 48 hours with a few quote options.<br><br>A confirmation has been sent to <strong>${email}</strong>.`;
   cfShowPage('cf-page-success');cfSetProgress(3);
 }catch(err){const msg=err?.text||err?.message||JSON.stringify(err)||'Unknown error';document.getElementById('cf-submit-err').textContent=`EmailJS error: ${msg}`;document.getElementById('cf-submit-err').style.display='block';document.getElementById('cf-submit-label').style.display='inline';document.getElementById('cf-submit-spinner').style.display='none';btn.disabled=false;}}
 

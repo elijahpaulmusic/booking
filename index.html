@@ -2913,10 +2913,24 @@ function renderInvoices(b){
   const feeBlocked=(typeof b.customFee==='number'&&b.customFee>0&&depositEnabled&&deposit&&b.customFee<deposit);
   const dl=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'TBC';
   const invDate=b.eventDate?b.eventDate.replace(/-/g,''):(b.createdAt?b.createdAt.slice(0,10).replace(/-/g,''):'00000000');
-  const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)));
+  // Same-day bookings in the order they were booked, so the first gig of the day is 01, the next 02, etc.
+  const sameDayBookings=bookings.filter(x=>x.eventDate===b.eventDate||(!b.eventDate&&x.createdAt&&x.createdAt.slice(0,10)===b.createdAt?.slice(0,10)))
+    .sort((a,c)=>new Date(a.createdAt||0)-new Date(c.createdAt||0));
   const isFreedDate=b.eventDate&&freedDates.includes(b.eventDate);
   const rawSeq=sameDayBookings.findIndex(x=>x.id===b.id)+1;
-  const seqNum=String(isFreedDate?Math.max(rawSeq+1,2):rawSeq).padStart(2,'0');
+  // Internal-form bookings: the "Second Gig?" checkbox alone decides the suffix (02 if a second gig, else 01).
+  let seqNum;
+  if(b.source==='manual'){
+    const isSecond=(typeof b.secondGig==='boolean')?b.secondGig:(typeof b.invoiceNumber==='string'&&b.invoiceNumber.endsWith('02'));
+    seqNum=isSecond?'02':'01';
+  }else{
+    // Web enquiries: numbered by booking order on the day. A new booking on a date
+    // you've freed (where a gig already exists) becomes 02; if it's the only booking
+    // tracked on that freed date, it still starts at 02 since a first gig already exists.
+    let seq=rawSeq;
+    if(isFreedDate&&rawSeq===1&&sameDayBookings.length===1)seq=2;
+    seqNum=String(seq).padStart(2,'0');
+  }
   const num=invDate+seqNum;
   const sl={sax_bt:'Sax Performance with Backing Tracks',sax_dj:"Sax Performance (alongside client's DJ)",combo:'Sax Performance (DJ + Backing Tracks)'};
   function iHtml(type){
@@ -4223,7 +4237,7 @@ function nfSubmit(){
     chosenOption:null,chosenDuration:null,
     paRequired:paFromService(service),venue,postcode,notes,miles,
     startTime,endTime,duration:1,provisionalTimings:timings,
-    invoiceNotes:notes,invoiceNumber:dt+(secondGig?'02':'01'),
+    invoiceNotes:notes,invoiceNumber:dt+(secondGig?'02':'01'),secondGig:secondGig,
     hasDeposit,businessName,businessAddress,
     customDeposit:customDepositAmount,
     expenses:expensesAmount,

@@ -834,10 +834,10 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
         </div>
       </div>
       <div class="cf-group" style="margin-bottom:4px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:500;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink2);">
-          <input type="checkbox" id="cf-terms" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ink);" onchange="document.getElementById('cf-e-terms').style.display='none';">
-          <span>I have read and agree to the <a href="#" onclick="cfToggleTerms(true);return false;" style="color:var(--gold-dim);font-weight:600;">terms &amp; conditions</a>.</span>
-        </label>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-weight:500;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink2);">
+          <input type="checkbox" id="cf-terms" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ink);cursor:pointer;" onchange="document.getElementById('cf-e-terms').style.display='none';">
+          <span><label for="cf-terms" style="cursor:pointer;">I have read and agree to the </label><a href="#" role="button" onclick="event.preventDefault();event.stopPropagation();cfToggleTerms(true);return false;" style="color:var(--gold-dim);font-weight:600;cursor:pointer;">terms &amp; conditions</a><label for="cf-terms" style="cursor:pointer;">.</label></span>
+        </div>
         <div class="cf-field-err" id="cf-e-terms" style="margin-left:28px;">Please read and agree to the terms &amp; conditions to continue</div>
       </div>
       <div class="submit-err-bar" id="cf-submit-err">Something went wrong. Please try again or contact me directly.</div>

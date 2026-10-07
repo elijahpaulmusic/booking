@@ -1,0 +1,32 @@
+# Elijah Paul Music — Safety Net scheduled job
+# Place this file at:  .github/workflows/safety-net.yml  in your site repo.
+# It runs once a day and runs safety-net.js (which lives in the repo root).
+
+name: Safety Net
+
+on:
+  schedule:
+    # 08:00 UTC every day. Change the time if you like (minute hour, UTC).
+    - cron: '0 8 * * *'
+  workflow_dispatch: {}   # lets you run it manually from the Actions tab (for testing)
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin
+
+      - name: Run safety net
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EMAILJS_PRIVATE_KEY: ${{ secrets.EMAILJS_PRIVATE_KEY }}
+        run: node safety-net.js

@@ -3239,13 +3239,23 @@ function parseIcalBookings(text){
   const extractDate=val=>{const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;};
   const unesc=s=>(s||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').replace(/\s+/g,' ').trim();
   const emailRe=/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+  // Pick the client email for an event: DUALERS GIG → the band's address;
+  // otherwise the address written after the "Email:" label in the notes;
+  // otherwise the first email found anywhere in the notes/title.
+  function pickEmail(desc,title){
+    if(/DUALERS\s*GIG/i.test(title||''))return 'info@thedualers.com';
+    const d=desc||'';
+    const labelled=d.match(/Email\s*:?\s*(?:\\n)?\s*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/i);
+    if(labelled)return labelled[1];
+    const any=(d+' '+(title||'')).match(emailRe);
+    return any?any[0]:'';
+  }
   for(const line of lines){
     const upper=line.toUpperCase();
     if(upper==='BEGIN:VEVENT'){inEvent=true;ev={date:'',title:'',venue:'',desc:''};continue;}
     if(upper==='END:VEVENT'){
       if(inEvent&&ev&&ev.date&&ev.date>=today){
-        const m=(ev.desc+' '+ev.title).match(emailRe);
-        out.push({date:ev.date,name:unesc(ev.title),venue:unesc(ev.venue),email:m?m[0]:''});
+        out.push({date:ev.date,name:unesc(ev.title),venue:unesc(ev.venue),email:pickEmail(ev.desc,ev.title)});
       }
       inEvent=false;ev=null;continue;
     }

@@ -833,6 +833,13 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <textarea id="cf-notes" placeholder="Set splits and detailed timings, if applicable, can be decided at a closer date."></textarea>
         </div>
       </div>
+      <div class="cf-group" style="margin-bottom:4px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:500;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink2);">
+          <input type="checkbox" id="cf-terms" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ink);" onchange="document.getElementById('cf-e-terms').style.display='none';">
+          <span>I have read and agree to the <a href="#" onclick="cfToggleTerms(true);return false;" style="color:var(--gold-dim);font-weight:600;">terms &amp; conditions</a>.</span>
+        </label>
+        <div class="cf-field-err" id="cf-e-terms" style="margin-left:28px;">Please read and agree to the terms &amp; conditions to continue</div>
+      </div>
       <div class="submit-err-bar" id="cf-submit-err">Something went wrong. Please try again or contact me directly.</div>
       <div id="cf-test-autofill-bar" style="display:none;margin-bottom:12px;">
         <button class="btn btn-secondary" style="width:100%;" onclick="cfAutoFillTest()">🎲 Auto-fill test data</button>
@@ -1195,7 +1202,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '10/06/26' // fallback only
+const BUILD_TIME = '07/10/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -3564,6 +3571,7 @@ function cfAutoFillTest(){
     if(disp){disp.textContent=fmt;disp.style.color='var(--ink)';}
   }
   document.getElementById('cf-notes').value='Test enquiry — auto-generated';
+  const tcb=document.getElementById('cf-terms');if(tcb){tcb.checked=true;const te=document.getElementById('cf-e-terms');if(te)te.style.display='none';}
 }
 
 function cfHaversineMiles(lat1,lon1,lat2,lon2){
@@ -3757,6 +3765,10 @@ function cfValidate(){let ok=true;
   const dateVal=document.getElementById('cf-date').value,dateErr=document.getElementById('cf-e-date'),trigger=document.getElementById('cf-cal-trigger');
   pending.push([trigger,!dateVal],[dateErr,!dateVal,'err-display']);
   if(!dateVal)ok=false;
+  // Terms & conditions must be agreed
+  const termsEl=document.getElementById('cf-terms'),termsBad=!(termsEl&&termsEl.checked);
+  pending.push([document.getElementById('cf-e-terms'),termsBad,'err-display']);
+  if(termsBad)ok=false;
   // Apply all visual error states in one pass — no flash on valid fields,
   // since each field's final correct state is set exactly once
   pending.forEach(([el,invalid,mode])=>{
@@ -3775,6 +3787,8 @@ function cfValidate(){let ok=true;
   }
   return ok;
 }
+function cfToggleTerms(show){const m=document.getElementById('cf-terms-modal');if(!m)return;m.style.display=show?'block':'none';document.body.style.overflow=show?'hidden':'';if(show)m.scrollTop=0;}
+function cfAgreeTerms(){const cb=document.getElementById('cf-terms');if(cb)cb.checked=true;const e=document.getElementById('cf-e-terms');if(e)e.style.display='none';cfToggleTerms(false);}
 async function cfSubmit(){
   // Debug mode: add ?debug to the URL to print what the validator sees for Event Type
   if(location.search.toLowerCase().includes('debug')){
@@ -3784,7 +3798,7 @@ async function cfSubmit(){
     if(bar){bar.textContent=info;bar.style.display='block';bar.style.whiteSpace='normal';}
     console.log('[cfSubmit] '+info);
   }
-  if(!cfValidate()){window.scrollTo({top:0,behavior:'smooth'});return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;if(!location.search.toLowerCase().includes('debug'))document.getElementById('cf-submit-err').style.display='none';
+  if(!cfValidate()){const vis=[...document.querySelectorAll('.cf-field-err')].find(e=>e.style.display==='block')||document.querySelector('.cf-group input.cf-err, .cf-group select.cf-err');if(vis&&vis.scrollIntoView){vis.scrollIntoView({behavior:'smooth',block:'center'});}else{window.scrollTo({top:0,behavior:'smooth'});}return;}const btn=document.getElementById('cf-submit-btn');document.getElementById('cf-submit-label').style.display='none';document.getElementById('cf-submit-spinner').style.display='inline-flex';btn.disabled=true;if(!location.search.toLowerCase().includes('debug'))document.getElementById('cf-submit-err').style.display='none';
 const firstName=document.getElementById('cf-firstname').value.trim(),lastName=document.getElementById('cf-lastname').value.trim(),email=document.getElementById('cf-email').value.trim(),mobile=document.getElementById('cf-mobile').value.trim()||'Not provided',intlCode=(document.getElementById('cf-intl-code')?.value||'').trim(),intlNum=(document.getElementById('cf-intl-number')?.value||'').trim(),intlMobile=intlCode&&intlNum?'+'+intlCode+' '+intlNum:intlCode||intlNum?'+'+intlCode+intlNum:'',eventDate=document.getElementById('cf-date').value,eventType=document.getElementById('cf-eventtype').value,before5pm=document.getElementById('cf-before5pm')?.checked||false,startTime=before5pm?'16:00':'19:00',endTime='',venue=(cfBuildVenueString('cf')||document.getElementById('cf-venue').value.trim()),postcode=document.getElementById('cf-postcode').value||document.getElementById('cf-venue-postcode').value.trim().toUpperCase(),miles=document.getElementById('cf-miles').value||'N/A',notes=document.getElementById('cf-notes').value.trim()||'None',service=cfService;
 const d=new Date(eventDate+'T12:00:00');
 const dateShort=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
@@ -4368,6 +4382,47 @@ function nfSubmit(){
 
 </script>
 <div id="toast-container"></div>
+
+<!-- BOOKING TERMS & CONDITIONS MODAL (client form) -->
+<div id="cf-terms-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(20,18,14,0.55);padding:20px 14px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="max-width:640px;margin:20px auto;background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--cream2);position:sticky;top:0;background:var(--white);z-index:1;">
+      <h2 style="font-family:'Open Sans Condensed','Open Sans',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin:0;">Booking Terms &amp; Conditions</h2>
+      <button onclick="cfToggleTerms(false)" aria-label="Close" style="background:none;border:none;font-size:22px;line-height:1;color:var(--ink3);cursor:pointer;padding:0 4px;">&#x2715;</button>
+    </div>
+    <div style="padding:18px 22px 24px;font-size:13.5px;line-height:1.7;color:var(--ink2);">
+      <p style="margin:0 0 16px;color:var(--ink3);font-size:12.5px;">These terms apply to all performances by Elijah Paul (Elisha Firmin, trading as Elijah Paul Music). Submitting the booking form confirms that you have read and agree to them.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">1. Booking &amp; deposit</h4>
+      <p style="margin:0 0 12px;">A deposit is required to confirm and secure your booking date. The deposit invoice must be paid within 14 days of being issued in order to save the date; failure to pay within 14 days risks the date being offered to another client. Payment of the deposit confirms your agreement to these terms.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">2. Payment of the balance</h4>
+      <p style="margin:0 0 12px;">The remaining balance may be paid at any time from booking up to 14 days after the performance, by bank transfer or in cash on the day. Payment on, or the day after, the performance is preferred. Non-payment within 30 days of the performance may be referred to the Musicians' Union for recovery.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">3. Cancellation by you</h4>
+      <p style="margin:0 0 12px;">Cancellation of the performance at any time up to the event date forfeits the deposit payment. Cancellation on the day of the performance will mean the full performance fee becomes payable.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">4. Cancellation or incapacity on my part</h4>
+      <p style="margin:0 0 12px;">Should Elijah need to cancel for any reason, every reasonable effort will be made to arrange a suitable replacement performer of an equivalent standard. If no replacement can be arranged, any deposit paid will be refunded in full. In the unlikely event that Elijah is unable to perform due to serious illness or incapacity, your contact details may be passed to a nominated person so that you can be informed promptly and make alternative arrangements. Your details are not shared for any other purpose.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">5. Performance requirements</h4>
+      <p style="margin:0 0 12px;">To perform safely and to the expected standard, Elijah requires reasonable access to the venue for setup and parking nearby; a safe performance area with shelter provided for any outdoor performance; and access to a standard power supply where backing tracks or PA speakers are used.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">6. Insurance &amp; liability</h4>
+      <p style="margin:0 0 12px;">Elijah holds current Public Liability Insurance and his electrical equipment is PAT tested; certificates are available on request. Elijah cannot be held liable for a failure to perform caused by circumstances beyond his reasonable control (for example extreme weather, road closures, accident or illness), though every reasonable effort will always be made to fulfil the booking or arrange a suitable alternative.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">7. Your data (GDPR)</h4>
+      <p style="margin:0 0 12px;">Your personal details — your name, contact details and event information — are collected solely to process and administer your booking. They are stored securely, used only to communicate with you about your event, and are never sold or shared with third parties for marketing. The only exception is the incapacity arrangement described in section 4.</p>
+
+      <h4 style="font-size:14px;color:var(--ink);margin:16px 0 4px;">8. Photography &amp; recording</h4>
+      <p style="margin:0 0 4px;">Elijah may take photographs or short video recordings of his performance for promotional use, for example on social media or his website. If you would prefer he did not, simply let him know in advance and this will be respected.</p>
+
+      <div style="margin-top:22px;text-align:center;">
+        <button class="cf-btn cf-btn-primary" style="max-width:260px;" onclick="cfAgreeTerms()">Agree &amp; close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- NEW ENQUIRY MODAL -->
 <div class="modal-overlay" id="new-enquiry-modal" onclick="if(event.target===this)closeNewEnquiry()">

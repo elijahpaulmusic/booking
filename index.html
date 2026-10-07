@@ -836,7 +836,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <div class="cf-group" style="margin-bottom:4px;">
         <div style="display:flex;align-items:flex-start;gap:10px;font-weight:500;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink2);">
           <input type="checkbox" id="cf-terms" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--ink);cursor:pointer;" onchange="document.getElementById('cf-e-terms').style.display='none';">
-          <span><label for="cf-terms" style="cursor:pointer;">I have read and agree to the </label><a href="#" role="button" onclick="event.preventDefault();event.stopPropagation();cfToggleTerms(true);return false;" style="color:var(--gold-dim);font-weight:600;cursor:pointer;">terms &amp; conditions</a><label for="cf-terms" style="cursor:pointer;">.</label></span>
+          <span><label for="cf-terms" style="cursor:pointer;">I have read and agree to the </label><a href="javascript:void(0)" role="button" onclick="cfToggleTerms(true);return false;" style="color:var(--gold-dim);font-weight:600;cursor:pointer;text-decoration:underline;">terms &amp; conditions</a><label for="cf-terms" style="cursor:pointer;">.</label></span>
         </div>
         <div class="cf-field-err" id="cf-e-terms" style="margin-left:28px;">Please read and agree to the terms &amp; conditions to continue</div>
       </div>
@@ -3787,7 +3787,7 @@ function cfValidate(){let ok=true;
   }
   return ok;
 }
-function cfToggleTerms(show){const m=document.getElementById('cf-terms-modal');if(!m)return;m.style.display=show?'block':'none';document.body.style.overflow=show?'hidden':'';if(show)m.scrollTop=0;}
+function cfToggleTerms(show){const m=document.getElementById('cf-terms-modal');if(!m)return;if(show){if(m.parentElement!==document.body)document.body.appendChild(m);m.style.display='block';m.style.visibility='visible';m.style.opacity='1';m.scrollTop=0;document.body.style.overflow='hidden';}else{m.style.display='none';document.body.style.overflow='';}}
 function cfAgreeTerms(){const cb=document.getElementById('cf-terms');if(cb)cb.checked=true;const e=document.getElementById('cf-e-terms');if(e)e.style.display='none';cfToggleTerms(false);}
 async function cfSubmit(){
   // Debug mode: add ?debug to the URL to print what the validator sees for Event Type

@@ -24,8 +24,8 @@ const admin = require('firebase-admin');
 // ── Config you can tweak ───────────────────────────────────────────────
 const DATABASE_URL = 'https://elijah-paul-booking-default-rtdb.europe-west1.firebasedatabase.app';
 const SITE_URL     = 'https://booking.elijahpaul.com'; // used to build the reset link
-const REMIND_AFTER_DAYS = 6;   // day you get the "tap to reset" email
-const ALERT_AFTER_DAYS  = 7;   // day your next of kin get the client list
+const REMIND_AFTER_DAYS = 0;   // day you get the "tap to reset" email
+const ALERT_AFTER_DAYS  = 1;   // day your next of kin get the client list
 
 const EMAILJS = {
   serviceId:  'service_t29syda',

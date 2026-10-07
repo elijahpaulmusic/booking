@@ -24,8 +24,8 @@ const admin = require('firebase-admin');
 // ── Config you can tweak ───────────────────────────────────────────────
 const DATABASE_URL = 'https://elijah-paul-booking-default-rtdb.europe-west1.firebasedatabase.app';
 const SITE_URL     = 'https://booking.elijahpaul.com'; // used to build the reset link
-const REMIND_AFTER_DAYS = 0;   // day you get the "tap to reset" email
-const ALERT_AFTER_DAYS  = 0;   // day your next of kin get the client list
+const REMIND_AFTER_DAYS = 6;   // day you get the "tap to reset" email
+const ALERT_AFTER_DAYS  = 7;   // day your next of kin get the client list
 
 const EMAILJS = {
   serviceId:  'service_t29syda',
@@ -54,7 +54,7 @@ async function sendEmail(to, subject, html) {
       template_id: EMAILJS.templateId,
       user_id:     EMAILJS.publicKey,
       accessToken: EMAILJS.privateKey,
-      template_params: { to_email: to, to_name: to, subject, message: html, html_message: html, reply_to: to },
+      template_params: { to_email: to, to_name: to, subject, message: html, reply_to: to },
     }),
   });
   if (!res.ok) throw new Error(`EmailJS ${res.status}: ${await res.text()}`);
@@ -99,37 +99,39 @@ function buildCsv(rows) {
 // ── Email bodies ────────────────────────────────────────────────────────
 function alertHtml(rows) {
   const allEmails = [...new Set(rows.map(r => r.email).filter(Boolean))].join(', ');
-  const tableRows = rows.map(r => `
-    <tr>
-      <td style="padding:8px 10px;border-bottom:1px solid #eee;">${esc(r.name) || '—'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid #eee;">${esc(fmtDate(r.date))}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid #eee;">${esc(r.venue) || '—'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid #eee;"><a href="mailto:${esc(r.email)}">${esc(r.email) || '—'}</a></td>
-    </tr>`).join('');
-  return `
-  <div style="font-family:Arial,sans-serif;max-width:680px;color:#222;line-height:1.6;">
-    <h2 style="color:#A87C1F;">Elijah Paul Music — upcoming bookings</h2>
-    <p>This is an automatic message from Elijah's booking system. It was sent because Elijah has not logged in for ${ALERT_AFTER_DAYS} days, and he set this up in case he is ever unable to perform for his upcoming clients.</p>
-    <p><strong>What to do:</strong> please contact the clients below to let them know Elijah may be unable to perform at their event, so they can make other arrangements. A suggested message is at the bottom.</p>
-    <p style="background:#FBF6EA;border:1px solid #E8D9A8;border-radius:8px;padding:12px 14px;"><strong>All client emails (copy into BCC):</strong><br>${esc(allEmails) || 'None found'}</p>
-    <table style="border-collapse:collapse;width:100%;font-size:14px;margin:16px 0;">
-      <thead><tr>
-        <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #ccc;">Client</th>
-        <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #ccc;">Event date</th>
-        <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #ccc;">Venue</th>
-        <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #ccc;">Email</th>
-      </tr></thead>
-      <tbody>${tableRows || '<tr><td colspan="4" style="padding:10px;">No upcoming bookings with an email on file.</td></tr>'}</tbody>
-    </table>
-    <p style="font-size:13px;color:#777;">The same list is attached as a CSV file you can open in a spreadsheet.</p>
-    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
-    <p style="font-size:14px;"><strong>Suggested message to each client:</strong></p>
-    <blockquote style="border-left:3px solid #A87C1F;margin:0;padding:6px 14px;color:#555;font-size:14px;">
-      Dear [client],<br><br>
-      I'm writing on behalf of Elijah Paul regarding your upcoming event on [date]. Sadly, Elijah is unable to perform as planned, and I wanted to let you know as early as possible so you can make alternative arrangements. I'm very sorry for the disruption. Please reply to this email if you have any questions.<br><br>
-      With sincere apologies,<br>[your name]
-    </blockquote>
-  </div>`;
+  const intro =
+    `<h2 style="color:#A87C1F;">Elijah Paul Music — upcoming bookings</h2>` +
+    `<p>This is an automatic message from Elijah's booking system. It was sent because Elijah has not logged in for ${ALERT_AFTER_DAYS} days, and he set this up in case he is ever unable to perform for his upcoming clients.</p>` +
+    `<p><strong>What to do:</strong> please contact the clients below to let them know Elijah may be unable to perform at their event, so they can make other arrangements. A suggested message is at the bottom.</p>` +
+    `<p style="background:#FBF6EA;border:1px solid #E8D9A8;border-radius:8px;padding:12px 14px;"><strong>All client emails (copy into BCC):</strong><br>${esc(allEmails) || 'None found'}</p>`;
+  const tpl =
+    `<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">` +
+    `<p style="font-size:14px;"><strong>Suggested message to each client:</strong></p>` +
+    `<blockquote style="border-left:3px solid #A87C1F;margin:0;padding:6px 14px;color:#555;font-size:14px;">` +
+    `Dear [client],<br><br>I'm writing on behalf of Elijah Paul regarding your upcoming event on [date]. Sadly, Elijah is unable to perform as planned, and I wanted to let you know as early as possible so you can make alternative arrangements. I'm very sorry for the disruption. Please reply to this email if you have any questions.<br><br>With sincere apologies,<br>[your name]</blockquote>`;
+
+  // Lean table (short per-cell styles + cellpadding) keeps the email small.
+  const bd = 'border-bottom:1px solid #eee';
+  const rowsHtml = rows.map(r =>
+    `<tr><td style="${bd}">${esc(r.name) || '—'}</td><td style="${bd}">${esc(fmtDate(r.date))}</td><td style="${bd}">${esc(r.venue) || '—'}</td><td style="${bd}">${esc(r.email) || '—'}</td></tr>`
+  ).join('');
+  const table =
+    `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:14px;margin:16px 0;">` +
+    `<thead><tr><th align="left" style="border-bottom:2px solid #ccc">Client</th><th align="left" style="border-bottom:2px solid #ccc">Event date</th><th align="left" style="border-bottom:2px solid #ccc">Venue</th><th align="left" style="border-bottom:2px solid #ccc">Email</th></tr></thead>` +
+    `<tbody>${rowsHtml || '<tr><td colspan="4">No upcoming bookings with an email on file.</td></tr>'}</tbody></table>`;
+
+  let body = `<div style="font-family:Arial,sans-serif;max-width:680px;color:#222;line-height:1.6;">${intro}${table}${tpl}</div>`;
+
+  // Safety guard: EmailJS caps all template variables at 50KB combined. If a very
+  // large client list would exceed that, fall back to a compact one-line-per-client
+  // list — far smaller — so the alert always sends rather than failing.
+  if (body.length > 45000) {
+    const compact = rows.map(r =>
+      `${esc(fmtDate(r.date))} — ${esc(r.name) || '—'} — ${esc(r.venue) || '—'} — ${esc(r.email) || '—'}`
+    ).join('<br>');
+    body = `<div style="font-family:Arial,sans-serif;max-width:680px;color:#222;line-height:1.6;">${intro}<p style="font-size:14px;line-height:1.8;">${compact || 'No upcoming bookings with an email on file.'}</p>${tpl}</div>`;
+  }
+  return body;
 }
 
 function reminderHtml(resetLink, days) {

@@ -610,7 +610,11 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:14px;"><input type="checkbox" id="sn-enabled" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Enable safety net</label>
           <div class="form-group" style="margin-bottom:12px;"><label>Next of kin — email 1</label><input type="email" id="sn-kin1" placeholder="name@example.com" style="width:100%;padding:9px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;" oninput="saveSafetyConfig()"></div>
           <div class="form-group"><label>Next of kin — email 2 <span style="font-weight:400;font-size:11px;">(recommended backup)</span></label><input type="email" id="sn-kin2" placeholder="name@example.com" style="width:100%;padding:9px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;" oninput="saveSafetyConfig()"></div>
-          <p style="font-size:12px;color:var(--ink3);margin-top:12px;line-height:1.5;">⚙ This needs the free scheduled job to be set up to actually send the emails — see the setup guide. Nothing sends until that's done and this is enabled.</p>
+          <div style="border-top:1px solid var(--cream3);margin-top:16px;padding-top:14px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:6px;"><input type="checkbox" id="sn-preevent" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Pre-event confirmation drafts</label>
+            <p style="font-size:12px;color:var(--ink3);margin:0;line-height:1.5;">When on, the same scheduled job emails <em>you</em> a ready-to-send confirmation email for each solo booking about 2 weeks before the date, pre-filled from your uploaded calendar. You add the payment link, attach the invoice and forward it to the client. Uses your calendar notes, so keep your .ics upload current.</p>
+          </div>
+          <p style="font-size:12px;color:var(--ink3);margin-top:12px;line-height:1.5;">⚙ Both features need the free scheduled job to be set up to actually send the emails — see the setup guide. Nothing sends until that's done.</p>
         </div>
         <div class="settings-card">
           <h3>Day of Week Premiums</h3>
@@ -1111,7 +1115,7 @@ let settings = {
   homePostcode:'CO7 9AW', sortCode:'', account:'',
   website:'www.elijahpaul.com', password:'elijah',
   themeMode:'auto',
-  safetyNet:{enabled:false,kin1:'',kin2:''},
+  safetyNet:{enabled:false,kin1:'',kin2:'',preEventEnabled:true},
   icalLastSync: null,
   rates:{ paSax:30, saxDj:270, mileage:1.10,
     ext1:60, extHr:100,
@@ -1202,7 +1206,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '07/10/26' // fallback only
+const BUILD_TIME = '26/10/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -3245,6 +3249,9 @@ function parseIcalBookings(text){
   let inEvent=false,ev=null;
   const extractDate=val=>{const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;};
   const unesc=s=>(s||'').replace(/\\n/gi,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').replace(/\s+/g,' ').trim();
+  // Line-preserving unescape — keeps the labelled note structure (one field per line)
+  // so the scheduled job can read Arrive time / Set times / requests etc.
+  const unescLines=s=>(s||'').replace(/\\n/gi,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').replace(/[ \t]+/g,' ').replace(/[ \t]*\n[ \t]*/g,'\n').trim();
   const emailRe=/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
   // Pick the client email for an event: DUALERS GIG → the band's address;
   // otherwise the address written after the "Email:" label in the notes;
@@ -3262,7 +3269,7 @@ function parseIcalBookings(text){
     if(upper==='BEGIN:VEVENT'){inEvent=true;ev={date:'',title:'',venue:'',desc:''};continue;}
     if(upper==='END:VEVENT'){
       if(inEvent&&ev&&ev.date&&ev.date>=today){
-        out.push({date:ev.date,name:unesc(ev.title),venue:unesc(ev.venue),email:pickEmail(ev.desc,ev.title)});
+        out.push({date:ev.date,name:unesc(ev.title),venue:unesc(ev.venue),email:pickEmail(ev.desc,ev.title),notes:unescLines(ev.desc)});
       }
       inEvent=false;ev=null;continue;
     }
@@ -3313,14 +3320,15 @@ function handleSafetyReset(token){
 }
 function saveSafetyConfig(){
   settings.safetyNet=settings.safetyNet||{};
-  const e=document.getElementById('sn-enabled'),k1=document.getElementById('sn-kin1'),k2=document.getElementById('sn-kin2');
+  const e=document.getElementById('sn-enabled'),k1=document.getElementById('sn-kin1'),k2=document.getElementById('sn-kin2'),pe=document.getElementById('sn-preevent');
   settings.safetyNet.enabled=e?e.checked:false;
   settings.safetyNet.kin1=k1?(k1.value||'').trim():'';
   settings.safetyNet.kin2=k2?(k2.value||'').trim():'';
+  settings.safetyNet.preEventEnabled=pe?pe.checked:true;
   saveData();
   if(window._firebaseReady&&window._fbDb&&window._fbSet&&window._fbRef){
     const db=window._fbDb,r=window._fbRef,s=window._fbSet;
-    s(r(db,'safetyNet/config'),{enabled:settings.safetyNet.enabled,kin1:settings.safetyNet.kin1,kin2:settings.safetyNet.kin2,ownerEmail:settings.email||'',updatedAt:new Date().toISOString()}).catch(()=>{});
+    s(r(db,'safetyNet/config'),{enabled:settings.safetyNet.enabled,kin1:settings.safetyNet.kin1,kin2:settings.safetyNet.kin2,preEventEnabled:settings.safetyNet.preEventEnabled,ownerEmail:settings.email||'',updatedAt:new Date().toISOString()}).catch(()=>{});
   }
 }
 function populateSafetyConfig(){
@@ -3328,6 +3336,7 @@ function populateSafetyConfig(){
   const e=document.getElementById('sn-enabled');if(e)e.checked=!!sn.enabled;
   const k1=document.getElementById('sn-kin1');if(k1)k1.value=sn.kin1||'';
   const k2=document.getElementById('sn-kin2');if(k2)k2.value=sn.kin2||'';
+  const pe=document.getElementById('sn-preevent');if(pe)pe.checked=sn.preEventEnabled!==false;
 }
 function freeUpDate(){
   const input=document.getElementById('free-date-input');

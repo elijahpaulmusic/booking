@@ -2438,23 +2438,26 @@ function renderDiscountTab(b){
   const new90=new60+60;
   const new2=new60+90;
   const new3=new60+180;
-  const line=(label,oldV,newV)=>`${label} = <s>£${oldV}</s> £${newV}`;
-  const BR='<br>';
-  const body=[
-    `Hi ${esc(b.firstName)},`,'',
-    "No worries at all, thanks for letting me know. If it sways it, I'm happy to offer a 10% discount on all the quotes in my previous email.",'',
-    'The quotes I provided would now be the following:','',
-    line('60x minutes',orig60,new60),
-    line('90x minutes',orig90,new90),
-    line('2x hours',orig2,new2),
-    line('3x hours',orig3,new3),'',
-    "Let me know if you have any questions and I'll be happy to help. Completely understand if you've found someone more locally who can do it for a better price.",'',
-    'Kind regards,','Elijah'
-  ].join(BR);
+  const line=(label,oldV,newV)=>`${label} = £${newV} (was £${oldV})`;
+  const body=`Hi ${esc(b.firstName)},
+
+No worries at all, thanks for letting me know. If it sways it, I'm happy to offer a 10% discount on all the quotes in my previous email.
+
+The quotes I provided would now be the following:
+
+${line('60x minutes',orig60,new60)}
+${line('90x minutes',orig90,new90)}
+${line('2x hours',orig2,new2)}
+${line('3x hours',orig3,new3)}
+
+Let me know if you have any questions and I'll be happy to help. Completely understand if you've found someone more locally who can do it for a better price.
+
+Kind regards,
+Elijah`;
 
   el.innerHTML=`<div class="quote-output-header">
     <h3>10% Discount Email</h3>
-    <button class="btn btn-secondary btn-sm" onclick="copyRichById('discount-email-out')">Copy Email</button>
+    <button class="btn btn-secondary btn-sm" onclick="copyById('discount-email-out')">Copy Email</button>
   </div>
   <div class="quote-output" id="discount-email-out">${body}</div>
   <p style="font-size:11px;color:var(--ink3);margin-top:8px;">To: <a href="mailto:${esc(b.email)}" style="color:var(--gold-dim);">${esc(b.email)}</a></p>`;

@@ -612,7 +612,9 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <div class="form-group"><label>Next of kin — email 2 <span style="font-weight:400;font-size:11px;">(recommended backup)</span></label><input type="email" id="sn-kin2" placeholder="name@example.com" style="width:100%;padding:9px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--white);color:var(--ink);outline:none;box-sizing:border-box;" oninput="saveSafetyConfig()"></div>
           <div style="border-top:1px solid var(--cream3);margin-top:16px;padding-top:14px;">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:6px;"><input type="checkbox" id="sn-preevent" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Pre-event confirmation drafts</label>
-            <p style="font-size:12px;color:var(--ink3);margin:0;line-height:1.5;">When on, the same scheduled job emails <em>you</em> a ready-to-send confirmation email for each solo booking about 2 weeks before the date, pre-filled from your uploaded calendar. You add the payment link, attach the invoice and forward it to the client. Uses your calendar notes, so keep your .ics upload current.</p>
+            <p style="font-size:12px;color:var(--ink3);margin:0 0 10px;line-height:1.5;">When on, the same scheduled job emails <em>you</em> a ready-to-send confirmation email for each solo booking about 2 weeks before the date, pre-filled from your uploaded calendar. You add the payment link, attach the invoice and forward it to the client. Uses your calendar notes, so keep your .ics upload current.</p>
+            <button type="button" id="pe-test-btn" class="btn btn-secondary btn-sm" onclick="testPreEventEmail()">Send me a test for the next solo event</button>
+            <p style="font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5;">Sends you a draft right now for the next upcoming solo booking in your uploaded calendar, so you can see exactly what it looks like.</p>
           </div>
           <p style="font-size:12px;color:var(--ink3);margin-top:12px;line-height:1.5;">⚙ Both features need the free scheduled job to be set up to actually send the emails — see the setup guide. Nothing sends until that's done.</p>
         </div>
@@ -3337,6 +3339,70 @@ function populateSafetyConfig(){
   const k1=document.getElementById('sn-kin1');if(k1)k1.value=sn.kin1||'';
   const k2=document.getElementById('sn-kin2');if(k2)k2.value=sn.kin2||'';
   const pe=document.getElementById('sn-preevent');if(pe)pe.checked=sn.preEventEnabled!==false;
+}
+// ── Pre-event confirmation draft (browser copy, mirrors safety-net.js) ────
+function peEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function peDetectService(title){const t=(title||'').toUpperCase();if(t.includes('SOLO SAX AND DJ'))return'combo';if(t.includes('SAX AND DJ'))return'sax_dj';if(t.includes('SOLO SAX'))return'sax_bt';return null;}
+function peNameFromTitle(title){const parts=(title||'').split(/\s[—–-]\s/).map(s=>s.trim()).filter(Boolean);const full=parts.length>=2?parts[1]:'';const first=(full.split(/\s+/)[0]||'').trim();return{full,first};}
+function peParseNotes(notes){const out={};(notes||'').split('\n').forEach(line=>{const m=line.match(/^([^:]{2,40}?):\s*(.*)$/);if(m)out[m[1].trim().toLowerCase()]=m[2].trim();});return out;}
+function peText(service,f){
+  const isDJ=service==='sax_dj';const L=[];
+  L.push(`Hi ${f.first||'there'},`);L.push('');
+  L.push(isDJ
+    ?"Hope you're well! Really looking forward to playing for you in next week! As the date is fast approaching I thought I would send through the event details I have to confirm the final details:"
+    :"Hope you're well! Really looking forward to playing for you next week! As the date is fast approaching I thought I would send through the event details I have to confirm the final details:");
+  L.push('');L.push(`Venue: ${f.venue||''}`);L.push('');
+  L.push(`Arrive time: ${f.arrive||''}`);L.push(`Set time(s): ${f.setTimes||''}`);L.push('');
+  L.push(isDJ
+    ?"Are these correct? Does the DJ know I'm playing alongside them and were you able to send them this link to my requirements? https://www.elijahpaul.com/fordjs"
+    :"Are these correct? Does the DJ know I'm playing alongside them?");
+  L.push('');
+  L.push("As I'll be performing during the evening with your DJ, could you let me know when your evening food will be brought out? From experience, evening food tends to take guests away from the dance floor for about 30 minutes from when it's first brought out. If my set times as they are currently will clash with your evening food, I'm happy to discuss options for changing my set times so as many of your guests can enjoy my evening sets as possible!");
+  L.push('');
+  L.push(f.requests?`Song/style requests: ${f.requests}`:'Song/style requests:');L.push('');
+  const noReq=f.requests?'':"I currently don't have any requests from you for my sets. ";
+  if(isDJ){
+    L.push(`${noReq}You're welcome to choose any songs you like, and if you're short for ideas you can choose from my repertoire list. For ease, I made this setlist builder, use this link to choose songs for my evening sets:`);L.push('');
+  }else{
+    L.push(`${noReq}You're welcome to choose any songs you like, and if you're short for ideas you can choose from my repertoire list. For ease, I made this setlist builder, use this link for the reception drinks set:`);L.push('');
+    L.push('And this link for the wedding breakfast set:');L.push('');
+    L.push('And this link for any songs you would like to hear Sax with alongside your DJ:');L.push('');
+    L.push("Once chosen, simply copy the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");L.push('');
+    L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
+  }
+  L.push('');
+  L.push(`Any other info: Emergency number to be used in the very rare instance I'll be late: ${f.emergency||''}`);
+  if(!f.emergency){L.push('');L.push("I currently don't have an emergency number I could use on the day just in case. As it's your Wedding/event you might not have your phone on you before or during the event when I may need to phone so I like to have a contact of someone that will. Obviously, it's unlikely I'll need it and if you'll have your phone on you this isn't required at all but just in case I thought I'd ask.");}
+  L.push('');
+  L.push("Let me know if this is all correct as well as any additional information I might need. More than welcome to add any requests or make timing changes at any time up to 2 days before the event. If you would prefer to call me about anything too, you're welcome to any day Monday-Thursday between 3pm-10pm on 07519 356742.");
+  L.push('');
+  L.push("Also, just in case you would like to settle the remaining balance early, here's a payment link: [add payment link here before sending]");
+  L.push('I have also attached the final invoice for convenience. More than welcome to pay at any time up to 14 days after the event so no rush!');
+  L.push('');L.push('Speak soon!');L.push('');L.push('Kind regards,');L.push('Elijah');
+  return L.join('\n');
+}
+async function testPreEventEmail(){
+  const btn=document.getElementById('pe-test-btn');
+  if(!settings.email){showToast('Add your email in Business Details first','error',4000);return;}
+  if(!window._firebaseReady||!window._fbDb||!window._fbGet||!window._fbRef){showToast('Not connected to the server yet — try again in a moment','error',4000);return;}
+  if(typeof emailjs==='undefined'){showToast('Email service not ready','error',4000);return;}
+  if(btn){btn.disabled=true;btn.dataset.label=btn.textContent;btn.textContent='Sending…';}
+  try{
+    const snap=await window._fbGet(window._fbRef(window._fbDb,'safetyNet/icsBookings'));
+    const data=snap&&snap.val?snap.val():null;
+    const list=(data&&data.bookings)||[];
+    const today=new Date().toISOString().split('T')[0];
+    const solo=list.filter(b=>b&&b.date&&b.date>=today&&b.email&&b.notes&&peDetectService(b.name)).sort((a,c)=>(a.date||'').localeCompare(c.date||''));
+    if(!solo.length){showToast('No upcoming solo event with notes found — re-upload your .ics in Settings first','error',5000);return;}
+    const b=solo[0],service=peDetectService(b.name),nm=peNameFromTitle(b.name),nf=peParseNotes(b.notes);
+    const f={first:nm.first,venue:nf['exact location']||b.venue||'',arrive:nf['arrive time']||'',setTimes:nf['set times']||'',requests:nf['song/style requests']||'',emergency:nf['emergency']||''};
+    const html=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${peEsc(peText(service,f))}</div>`;
+    const dateLong=(()=>{try{return new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});}catch(e){return b.date;}})();
+    const subject=`Pre-event draft (TEST) → ${b.email} · ${nm.full||nm.first} · ${dateLong}`;
+    await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email,to_name:settings.name||'Elijah',subject,message:html,html_message:html,reply_to:settings.email});
+    showToast('✓ Test draft sent to '+settings.email+' — '+(nm.full||nm.first)+', '+dateLong,'success',6000);
+  }catch(e){showToast('Test failed: '+((e&&e.text)||(e&&e.message)||e),'error',6000);}
+  finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Send me a test for the next solo event';}}
 }
 function freeUpDate(){
   const input=document.getElementById('free-date-input');

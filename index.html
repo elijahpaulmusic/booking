@@ -616,6 +616,12 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
             <button type="button" id="pe-test-btn" class="btn btn-secondary btn-sm" onclick="testPreEventEmail()">Send me a test for the next solo event</button>
             <p style="font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5;">Sends you a draft right now for the next upcoming solo booking in your uploaded calendar, so you can see exactly what it looks like.</p>
           </div>
+          <div style="border-top:1px solid var(--cream3);margin-top:16px;padding-top:14px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:6px;"><input type="checkbox" id="sn-thankyou" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Thank-you drafts</label>
+            <p style="font-size:12px;color:var(--ink3);margin:0 0 10px;line-height:1.5;">When on, the scheduled job emails <em>you</em> a thank-you draft the day after each solo booking, pre-filled from your calendar. It picks the paid or unpaid version depending on whether the event title ends with "PAID". For unpaid, you add the payment link and attach the invoice before forwarding. Funerals are skipped.</p>
+            <button type="button" id="ty-test-btn" class="btn btn-secondary btn-sm" onclick="testThankYouEmail()">Send me a test thank-you for the last solo event</button>
+            <p style="font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5;">Sends you a thank-you draft now for your most recent past solo booking in your uploaded calendar.</p>
+          </div>
           <p style="font-size:12px;color:var(--ink3);margin-top:12px;line-height:1.5;">⚙ Both features need the free scheduled job to be set up to actually send the emails — see the setup guide. Nothing sends until that's done.</p>
         </div>
         <div class="settings-card">
@@ -1117,7 +1123,7 @@ let settings = {
   homePostcode:'CO7 9AW', sortCode:'', account:'',
   website:'www.elijahpaul.com', password:'elijah',
   themeMode:'auto',
-  safetyNet:{enabled:false,kin1:'',kin2:'',preEventEnabled:true},
+  safetyNet:{enabled:false,kin1:'',kin2:'',preEventEnabled:true,thankYouEnabled:true},
   icalLastSync: null,
   rates:{ paSax:30, saxDj:270, mileage:1.10,
     ext1:60, extHr:100,
@@ -3085,6 +3091,7 @@ function renderCalendarTab(b){
     `Emergency: `,
     `Email: ${b.email||''}`,
     `Other ways we've spoken: ${contactMethod}`,
+    `Event Type: ${b.eventType||''}`,
     `Exact Location: ${exactLocation}`,
     `Mileage (both ways): ${milesBoth} miles`,
     `Dresscode: `,
@@ -3247,6 +3254,9 @@ function parseIcalBookings(text){
   const unfolded=(text||'').replace(/\r?\n[ \t]/g,'');
   const lines=unfolded.split(/\r?\n/);
   const today=new Date().toISOString().split('T')[0];
+  // Keep the last 7 days of past events too (not just future) so the day-after
+  // thank-you draft can still find an event that has just happened.
+  const _cut=new Date();_cut.setDate(_cut.getDate()-7);const cutoff=_cut.toISOString().split('T')[0];
   const out=[];
   let inEvent=false,ev=null;
   const extractDate=val=>{const raw=val.includes(':')?val.split(':').pop():val;const m=raw.match(/^(\d{4})(\d{2})(\d{2})/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;};
@@ -3270,7 +3280,7 @@ function parseIcalBookings(text){
     const upper=line.toUpperCase();
     if(upper==='BEGIN:VEVENT'){inEvent=true;ev={date:'',title:'',venue:'',desc:''};continue;}
     if(upper==='END:VEVENT'){
-      if(inEvent&&ev&&ev.date&&ev.date>=today){
+      if(inEvent&&ev&&ev.date&&ev.date>=cutoff){
         out.push({date:ev.date,name:unesc(ev.title),venue:unesc(ev.venue),email:pickEmail(ev.desc,ev.title),notes:unescLines(ev.desc)});
       }
       inEvent=false;ev=null;continue;
@@ -3322,15 +3332,16 @@ function handleSafetyReset(token){
 }
 function saveSafetyConfig(){
   settings.safetyNet=settings.safetyNet||{};
-  const e=document.getElementById('sn-enabled'),k1=document.getElementById('sn-kin1'),k2=document.getElementById('sn-kin2'),pe=document.getElementById('sn-preevent');
+  const e=document.getElementById('sn-enabled'),k1=document.getElementById('sn-kin1'),k2=document.getElementById('sn-kin2'),pe=document.getElementById('sn-preevent'),ty=document.getElementById('sn-thankyou');
   settings.safetyNet.enabled=e?e.checked:false;
   settings.safetyNet.kin1=k1?(k1.value||'').trim():'';
   settings.safetyNet.kin2=k2?(k2.value||'').trim():'';
   settings.safetyNet.preEventEnabled=pe?pe.checked:true;
+  settings.safetyNet.thankYouEnabled=ty?ty.checked:true;
   saveData();
   if(window._firebaseReady&&window._fbDb&&window._fbSet&&window._fbRef){
     const db=window._fbDb,r=window._fbRef,s=window._fbSet;
-    s(r(db,'safetyNet/config'),{enabled:settings.safetyNet.enabled,kin1:settings.safetyNet.kin1,kin2:settings.safetyNet.kin2,preEventEnabled:settings.safetyNet.preEventEnabled,ownerEmail:settings.email||'',updatedAt:new Date().toISOString()}).catch(()=>{});
+    s(r(db,'safetyNet/config'),{enabled:settings.safetyNet.enabled,kin1:settings.safetyNet.kin1,kin2:settings.safetyNet.kin2,preEventEnabled:settings.safetyNet.preEventEnabled,thankYouEnabled:settings.safetyNet.thankYouEnabled,ownerEmail:settings.email||'',updatedAt:new Date().toISOString()}).catch(()=>{});
   }
 }
 function populateSafetyConfig(){
@@ -3339,12 +3350,13 @@ function populateSafetyConfig(){
   const k1=document.getElementById('sn-kin1');if(k1)k1.value=sn.kin1||'';
   const k2=document.getElementById('sn-kin2');if(k2)k2.value=sn.kin2||'';
   const pe=document.getElementById('sn-preevent');if(pe)pe.checked=sn.preEventEnabled!==false;
+  const ty=document.getElementById('sn-thankyou');if(ty)ty.checked=sn.thankYouEnabled!==false;
 }
 // ── Pre-event confirmation draft (browser copy, mirrors safety-net.js) ────
 function peEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function peDetectService(title){const t=(title||'').toUpperCase();if(t.includes('SOLO SAX AND DJ'))return'combo';if(t.includes('SAX AND DJ'))return'sax_dj';if(t.includes('SOLO SAX'))return'sax_bt';return null;}
 function peNameFromTitle(title){const parts=(title||'').split(/\s[—–-]\s/).map(s=>s.trim()).filter(Boolean);const full=parts.length>=2?parts[1]:'';const first=(full.split(/\s+/)[0]||'').trim();return{full,first};}
-function peParseNotes(notes){const labels=['Phone','Emergency','Email',"Other ways we've spoken",'Exact Location','Mileage (both ways)','Dresscode','Surprise option 1/2','Arrive time','Set times','Song/style requests','Any other info'];const text=notes||'';const e=l=>l.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('(?:^|\\n)\\s*('+labels.map(e).join('|')+')\\s*:','g');const ms=[...text.matchAll(re)];const out={};for(let i=0;i<ms.length;i++){const from=ms[i].index+ms[i][0].length;const to=i+1<ms.length?ms[i+1].index:text.length;out[ms[i][1].trim().toLowerCase()]=text.slice(from,to).trim();}return out;}
+function peParseNotes(notes){const labels=['Phone','Emergency','Email',"Other ways we've spoken",'Event Type','Exact Location','Mileage (both ways)','Dresscode','Surprise option 1/2','Arrive time','Set times','Song/style requests','Any other info'];const text=notes||'';const e=l=>l.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('(?:^|\\n)\\s*('+labels.map(e).join('|')+')\\s*:','g');const ms=[...text.matchAll(re)];const out={};for(let i=0;i<ms.length;i++){const from=ms[i].index+ms[i][0].length;const to=i+1<ms.length?ms[i+1].index:text.length;out[ms[i][1].trim().toLowerCase()]=text.slice(from,to).trim();}return out;}
 function peText(service,f){
   const isDJ=service==='sax_dj';const L=[];
   L.push(`Hi ${f.first||'there'},`);L.push('');
@@ -3402,6 +3414,50 @@ async function testPreEventEmail(){
     showToast('✓ Test draft sent to '+settings.email+' — '+(nm.full||nm.first)+', '+dateLong,'success',6000);
   }catch(e){showToast('Test failed: '+((e&&e.text)||(e&&e.message)||e),'error',6000);}
   finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Send me a test for the next solo event';}}
+}
+// ── Thank-you draft (browser copy, mirrors safety-net.js) ─────────────────
+function peEventWord(et){const t=(et||'').toLowerCase();if(t.includes('funeral'))return null;if(t.includes('hen')||t.includes('birthday')||t.includes('baby shower')||t.includes('shower'))return'friends';if(t.includes('corporate'))return'colleagues';return'guests';}
+function peDayNight(setTimes,arrive){let m=(setTimes||'').match(/(\d{1,2}):(\d{2})/);let h=m?parseInt(m[1],10):null;if(h===null&&arrive){const a=(arrive||'').match(/(\d{1,2}):(\d{2})/);if(a)h=parseInt(a[1],10)+1;}if(h===null)return'day';return h<17?'day':'night';}
+function peThankYouText(paid,f){
+  const L=[];
+  L.push(`Hi ${f.first||'there'},`);L.push('');
+  L.push(`Just wanted to thank you for having me play at your ${f.eventType||'event'} yesterday!`);L.push('');
+  let enjoyed=`I thoroughly enjoyed playing for you and your ${f.word} and would love the opportunity to play for you again in the future. I hope you had a great ${f.dayNight} too!`;
+  if(!paid)enjoyed+=' I have attached the final invoice again for convenience. Like I said this can be paid at any time within the next 14 days.';
+  L.push(enjoyed);L.push('');
+  if(!paid){L.push("For ease, here's a link to pay the final amount: [add payment link here before sending]");L.push('');}
+  L.push("If you or any friends or the photographer have any videos or photos of me be sure to tag me at @elijahpaulmusic on Instagram or send them my way! The easiest way is using www.wetransfer.com, attach the files and send to my email! I would love to see them!");L.push('');
+  L.push('Lastly, if you enjoyed my playing I would really appreciate a review on my Facebook or Google Business Pages here: https://www.facebook.com/pg/elijahpaulmusic/reviews/');
+  L.push('https://g.page/r/CQEDo2CCjzU6EBA');L.push('');
+  L.push("No need to say much, and you're welcome to copy anything you say onto the other page, just the star rating would be massively appreciated and it goes a long way in helping my small business!");L.push('');
+  L.push('Thanks again and best wishes!');L.push('');
+  L.push('With kind regards,');L.push('Elijah');
+  return L.join('\n');
+}
+async function testThankYouEmail(){
+  const btn=document.getElementById('ty-test-btn');
+  if(!settings.email){showToast('Add your email in Business Details first','error',4000);return;}
+  if(!window._firebaseReady||!window._fbDb||!window._fbGet||!window._fbRef){showToast('Not connected to the server yet — try again in a moment','error',4000);return;}
+  if(typeof emailjs==='undefined'){showToast('Email service not ready','error',4000);return;}
+  if(btn){btn.disabled=true;btn.dataset.label=btn.textContent;btn.textContent='Sending…';}
+  try{
+    const snap=await window._fbGet(window._fbRef(window._fbDb,'safetyNet/icsBookings'));
+    const data=snap&&snap.val?snap.val():null;const list=(data&&data.bookings)||[];
+    const today=new Date().toISOString().split('T')[0];
+    const past=list.filter(b=>b&&b.date&&b.date<today&&b.email&&b.notes&&peDetectService(b.name)).sort((a,c)=>(c.date||'').localeCompare(a.date||''));
+    const pick=past.find(b=>peEventWord(peParseNotes(b.notes)['event type'])!==null);
+    if(!pick){showToast('No recent past solo event (non-funeral) with notes found — upload a calendar that includes a recent past booking','error',6000);return;}
+    const b=pick,service=peDetectService(b.name),nm=peNameFromTitle(b.name),nf=peParseNotes(b.notes);
+    const paid=/\bPAID\b\s*$/i.test(b.name||'');
+    const word=peEventWord(nf['event type'])||'guests';
+    const f={first:nm.first,eventType:nf['event type']||'event',word,dayNight:peDayNight(nf['set times'],nf['arrive time'])};
+    const html=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.6;">${peEsc(peThankYouText(paid,f)).replace(/\n/g,'<br>')}</div>`;
+    const dateLong=(()=>{try{return new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});}catch(e){return b.date;}})();
+    const subject=`Thank-you draft (TEST) → ${b.email} · ${nm.full||nm.first} · ${dateLong} · ${paid?'PAID':'UNPAID'}`;
+    await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email,to_name:settings.name||'Elijah',subject,message:html,html_message:html,reply_to:settings.email});
+    showToast('✓ Test thank-you sent to '+settings.email+' — '+(nm.full||nm.first)+' ('+(paid?'paid':'unpaid')+')','success',6000);
+  }catch(e){showToast('Test failed: '+((e&&e.text)||(e&&e.message)||e),'error',6000);}
+  finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Send me a test thank-you for the last solo event';}}
 }
 function freeUpDate(){
   const input=document.getElementById('free-date-input');

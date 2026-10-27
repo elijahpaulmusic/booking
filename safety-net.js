@@ -179,13 +179,20 @@ function nameFromTitle(title) {
   const first = (full.split(/\s+/)[0] || '').trim();
   return { full, first };
 }
-// Turn the labelled notes block into { label(lowercase): value }
+// Turn the labelled notes block into { label(lowercase): value }, keeping
+// multi-line values intact (e.g. a timings list under "Set times:").
 function parseNotes(notes) {
+  const labels = ['Phone', 'Emergency', 'Email', "Other ways we've spoken", 'Exact Location', 'Mileage (both ways)', 'Dresscode', 'Surprise option 1/2', 'Arrive time', 'Set times', 'Song/style requests', 'Any other info'];
+  const text = notes || '';
+  const escRe = l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp('(?:^|\\n)\\s*(' + labels.map(escRe).join('|') + ')\\s*:', 'g');
+  const ms = [...text.matchAll(re)];
   const out = {};
-  (notes || '').split('\n').forEach(line => {
-    const m = line.match(/^([^:]{2,40}?):\s*(.*)$/);
-    if (m) out[m[1].trim().toLowerCase()] = m[2].trim();
-  });
+  for (let i = 0; i < ms.length; i++) {
+    const from = ms[i].index + ms[i][0].length;
+    const to = i + 1 < ms.length ? ms[i + 1].index : text.length;
+    out[ms[i][1].trim().toLowerCase()] = text.slice(from, to).trim();
+  }
   return out;
 }
 // Build the client-ready email text for the right template.
@@ -229,10 +236,10 @@ function preEventText(service, f) {
     L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
   }
   L.push('');
-  L.push(`Any other info: Emergency number to be used in the very rare instance I'll be late: ${f.emergency || ''}`);
-  if (!f.emergency) {
-    L.push('');
-    L.push("I currently don't have an emergency number I could use on the day just in case. As it's your Wedding/event you might not have your phone on you before or during the event when I may need to phone so I like to have a contact of someone that will. Obviously, it's unlikely I'll need it and if you'll have your phone on you this isn't required at all but just in case I thought I'd ask.");
+  if (f.emergency) {
+    L.push(`Any other info: Emergency number to be used in the very rare instance I'll be late: ${f.emergency}`);
+  } else {
+    L.push("Any other info: I currently don't have an emergency number I could use on the day just in case. As it's your Wedding/event you might not have your phone on you before or during the event when I may need to phone so I like to have a contact of someone that will. Obviously, it's unlikely I'll need it and if you'll have your phone on you this isn't required at all but just in case I thought I'd ask.");
   }
   L.push('');
   L.push("Let me know if this is all correct as well as any additional information I might need. More than welcome to add any requests or make timing changes at any time up to 2 days before the event. If you would prefer to call me about anything too, you're welcome to any day Monday-Thursday between 3pm-10pm on 07519 356742.");
@@ -247,7 +254,9 @@ function preEventText(service, f) {
   return L.join('\n');
 }
 function preEventHtml(text) {
-  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.6;white-space:pre-wrap;">${esc(text)}</div>`;
+  // Explicit <br> for every line break — mail clients don't honour white-space:pre-wrap.
+  const safe = esc(text).replace(/\n/g, '<br>');
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.6;">${safe}</div>`;
 }
 
 async function runPreEvent(sn, ownerEmail) {

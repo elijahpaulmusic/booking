@@ -182,7 +182,7 @@ function nameFromTitle(title) {
 // Turn the labelled notes block into { label(lowercase): value }, keeping
 // multi-line values intact (e.g. a timings list under "Set times:").
 function parseNotes(notes) {
-  const labels = ['Phone', 'Emergency', 'Email', "Other ways we've spoken", 'Exact Location', 'Mileage (both ways)', 'Dresscode', 'Surprise option 1/2', 'Arrive time', 'Set times', 'Song/style requests', 'Any other info'];
+  const labels = ['Phone', 'Emergency', 'Email', "Other ways we've spoken", 'Event Type', 'Exact Location', 'Mileage (both ways)', 'Dresscode', 'Surprise option 1/2', 'Arrive time', 'Set times', 'Song/style requests', 'Any other info'];
   const text = notes || '';
   const escRe = l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp('(?:^|\\n)\\s*(' + labels.map(escRe).join('|') + ')\\s*:', 'g');
@@ -297,6 +297,81 @@ async function runPreEvent(sn, ownerEmail) {
   console.log(`Pre-event: ${inWindow} booking(s) in the ${PRE_EVENT_MIN_DAYS}-${PRE_EVENT_MAX_DAYS} day window, ${sent} new draft(s) sent.`);
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// THANK-YOU DRAFTS
+// Emails ELIJAH a thank-you draft the day after each solo booking, pre-filled
+// from the .ics notes. Paid vs unpaid is chosen from the event title ("PAID").
+// ══════════════════════════════════════════════════════════════════════
+const THANKYOU_MIN_DAYS_AGO = 1; // day after the event
+const THANKYOU_MAX_DAYS_AGO = 3; // slack for missed runs / late uploads
+
+// Word for "your <guests/friends/colleagues>" — null means skip (funerals).
+function eventWord(et) {
+  const t = (et || '').toLowerCase();
+  if (t.includes('funeral')) return null;
+  if (t.includes('hen') || t.includes('birthday') || t.includes('baby shower') || t.includes('shower')) return 'friends';
+  if (t.includes('corporate')) return 'colleagues';
+  return 'guests';
+}
+// "day" if the first set starts before 5pm, otherwise "night".
+function dayOrNight(setTimes, arrive) {
+  let m = (setTimes || '').match(/(\d{1,2}):(\d{2})/);
+  let h = m ? parseInt(m[1], 10) : null;
+  if (h === null && arrive) { const a = (arrive || '').match(/(\d{1,2}):(\d{2})/); if (a) h = parseInt(a[1], 10) + 1; }
+  if (h === null) return 'day';
+  return h < 17 ? 'day' : 'night';
+}
+function thankYouText(paid, f) {
+  const L = [];
+  L.push(`Hi ${f.first || 'there'},`); L.push('');
+  L.push(`Just wanted to thank you for having me play at your ${f.eventType || 'event'} yesterday!`); L.push('');
+  let enjoyed = `I thoroughly enjoyed playing for you and your ${f.word} and would love the opportunity to play for you again in the future. I hope you had a great ${f.dayNight} too!`;
+  if (!paid) enjoyed += ' I have attached the final invoice again for convenience. Like I said this can be paid at any time within the next 14 days.';
+  L.push(enjoyed); L.push('');
+  if (!paid) { L.push("For ease, here's a link to pay the final amount: [add payment link here before sending]"); L.push(''); }
+  L.push("If you or any friends or the photographer have any videos or photos of me be sure to tag me at @elijahpaulmusic on Instagram or send them my way! The easiest way is using www.wetransfer.com, attach the files and send to my email! I would love to see them!"); L.push('');
+  L.push('Lastly, if you enjoyed my playing I would really appreciate a review on my Facebook or Google Business Pages here: https://www.facebook.com/pg/elijahpaulmusic/reviews/');
+  L.push('https://g.page/r/CQEDo2CCjzU6EBA'); L.push('');
+  L.push("No need to say much, and you're welcome to copy anything you say onto the other page, just the star rating would be massively appreciated and it goes a long way in helping my small business!"); L.push('');
+  L.push('Thanks again and best wishes!'); L.push('');
+  L.push('With kind regards,'); L.push('Elijah');
+  return L.join('\n');
+}
+
+async function runThankYou(sn, ownerEmail) {
+  if (!ownerEmail) { console.log('Thank-you: no owner email configured — skipping.'); return; }
+  const ics = (sn.icsBookings && sn.icsBookings.bookings) || [];
+  const todayMid = new Date(new Date().toISOString().split('T')[0] + 'T12:00:00');
+  const sentMap = sn.thankYouSent || {};
+  let inWindow = 0, sent = 0;
+  for (const b of ics) {
+    if (!b || !b.date || !b.email || !b.notes) continue;
+    const service = detectService(b.name);
+    if (!service) continue;                               // skip band/DUALERS
+    const daysAgo = Math.round((todayMid - new Date(b.date + 'T12:00:00')) / DAY);
+    if (daysAgo < THANKYOU_MIN_DAYS_AGO || daysAgo > THANKYOU_MAX_DAYS_AGO) continue;
+    const nf = parseNotes(b.notes);
+    const word = eventWord(nf['event type']);
+    if (word === null) continue;                          // funeral — skip entirely
+    inWindow++;
+    const key = (b.email + '|' + b.date).replace(/[.#$\[\]/]/g, '_');
+    if (sentMap[key]) continue;
+    try {
+      const nm = nameFromTitle(b.name);
+      const paid = /\bPAID\b\s*$/i.test(b.name || '');
+      const f = { first: nm.first, eventType: nf['event type'] || 'event', word, dayNight: dayOrNight(nf['set times'], nf['arrive time']) };
+      const subject = `Thank-you draft → ${b.email} · ${nm.full || nm.first} · ${fmtDate(b.date)} · ${paid ? 'PAID' : 'UNPAID'}`;
+      await sendEmail(ownerEmail, subject, preEventHtml(thankYouText(paid, f)));
+      await db.ref('safetyNet/thankYouSent/' + key).set(new Date().toISOString());
+      sent++;
+      console.log(`  thank-you draft → ${nm.full} (${b.date}, ${paid ? 'paid' : 'unpaid'})`);
+    } catch (e) {
+      console.error(`  thank-you FAILED for ${b.date} ${b.email}: ${e.message}`);
+    }
+  }
+  console.log(`Thank-you: ${inWindow} booking(s) in the day-after window, ${sent} new draft(s) sent.`);
+}
+
 // ── Main ────────────────────────────────────────────────────────────────
 (async () => {
   const sn = (await db.ref('safetyNet').get()).val() || {};
@@ -320,6 +395,14 @@ async function runPreEvent(sn, ownerEmail) {
     catch (e) { console.error('Pre-event module error:', e.message); }
   } else {
     console.log('Pre-event drafts disabled in settings — skipping.');
+  }
+
+  // Thank-you drafts (day after each event) — also independent of the switch.
+  if (config.thankYouEnabled !== false) {
+    try { await runThankYou(sn, ownerEmail); }
+    catch (e) { console.error('Thank-you module error:', e.message); }
+  } else {
+    console.log('Thank-you drafts disabled in settings — skipping.');
   }
 
   if (!config.enabled) { console.log('Safety net is disabled in settings — nothing to do.'); return; }

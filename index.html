@@ -619,8 +619,8 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <div style="border-top:1px solid var(--cream3);margin-top:16px;padding-top:14px;">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:6px;"><input type="checkbox" id="sn-thankyou" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Thank-you drafts</label>
             <p style="font-size:12px;color:var(--ink3);margin:0 0 10px;line-height:1.5;">When on, the scheduled job emails <em>you</em> a thank-you draft the day after each solo booking, pre-filled from your calendar. It picks the paid or unpaid version depending on whether the event title ends with "PAID". For unpaid, you add the payment link and attach the invoice before forwarding. Funerals are skipped.</p>
-            <button type="button" id="ty-test-btn" class="btn btn-secondary btn-sm" onclick="testThankYouEmail()">Send me a test thank-you for the last solo event</button>
-            <p style="font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5;">Sends you a thank-you draft now for your most recent past solo booking in your uploaded calendar.</p>
+            <button type="button" id="ty-test-btn" class="btn btn-secondary btn-sm" onclick="testThankYouEmail()">Send me a test thank-you</button>
+            <p style="font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5;">Previews a thank-you draft now using your nearest solo booking (upcoming or recent). The real draft is only sent the day after each event.</p>
           </div>
           <p style="font-size:12px;color:var(--ink3);margin-top:12px;line-height:1.5;">⚙ Both features need the free scheduled job to be set up to actually send the emails — see the setup guide. Nothing sends until that's done.</p>
         </div>
@@ -3444,9 +3444,13 @@ async function testThankYouEmail(){
     const snap=await window._fbGet(window._fbRef(window._fbDb,'safetyNet/icsBookings'));
     const data=snap&&snap.val?snap.val():null;const list=(data&&data.bookings)||[];
     const today=new Date().toISOString().split('T')[0];
-    const past=list.filter(b=>b&&b.date&&b.date<today&&b.email&&b.notes&&peDetectService(b.name)).sort((a,c)=>(c.date||'').localeCompare(a.date||''));
-    const pick=past.find(b=>peEventWord(peParseNotes(b.notes)['event type'])!==null);
-    if(!pick){showToast('No recent past solo event (non-funeral) with notes found — upload a calendar that includes a recent past booking','error',6000);return;}
+    // For the preview, use any solo event. Prefer the next upcoming one (like the
+    // pre-event test) so it works even with a future-only calendar; else most recent past.
+    const solo=list.filter(b=>b&&b.date&&b.email&&b.notes&&peDetectService(b.name)&&peEventWord(peParseNotes(b.notes)['event type'])!==null);
+    const upcoming=solo.filter(b=>b.date>=today).sort((a,c)=>(a.date||'').localeCompare(c.date||''));
+    const pastish=solo.filter(b=>b.date<today).sort((a,c)=>(c.date||'').localeCompare(a.date||''));
+    const pick=upcoming[0]||pastish[0];
+    if(!pick){showToast('No solo event (non-funeral) with notes found in your uploaded calendar','error',6000);return;}
     const b=pick,service=peDetectService(b.name),nm=peNameFromTitle(b.name),nf=peParseNotes(b.notes);
     const paid=/\bPAID\b\s*$/i.test(b.name||'');
     const word=peEventWord(nf['event type'])||'guests';
@@ -3457,7 +3461,7 @@ async function testThankYouEmail(){
     await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:settings.email,to_name:settings.name||'Elijah',subject,message:html,html_message:html,reply_to:settings.email});
     showToast('✓ Test thank-you sent to '+settings.email+' — '+(nm.full||nm.first)+' ('+(paid?'paid':'unpaid')+')','success',6000);
   }catch(e){showToast('Test failed: '+((e&&e.text)||(e&&e.message)||e),'error',6000);}
-  finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Send me a test thank-you for the last solo event';}}
+  finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.label||'Send me a test thank-you';}}
 }
 function freeUpDate(){
   const input=document.getElementById('free-date-input');

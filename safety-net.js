@@ -188,11 +188,6 @@ function parseNotes(notes) {
   });
   return out;
 }
-// Strip the leading total-duration label ("90x minutes: " / "2x hours: ")
-function cleanSetTimes(v) {
-  return (v || '').replace(/^\s*\d+\s*x\s*(minute|hour)s?\s*:\s*/i, '').trim();
-}
-
 // Build the client-ready email text for the right template.
 // f = { first, venue, arrive, setTimes, requests, emergency }
 function preEventText(service, f) {
@@ -277,7 +272,7 @@ async function runPreEvent(sn, ownerEmail) {
         first: nm.first,
         venue: nf['exact location'] || b.venue || '',
         arrive: nf['arrive time'] || '',
-        setTimes: cleanSetTimes(nf['set times'] || ''),
+        setTimes: nf['set times'] || '',   // keep the "90x minutes:" label — tells the client how long they've booked
         requests: nf['song/style requests'] || '',
         emergency: nf['emergency'] || '',
       };

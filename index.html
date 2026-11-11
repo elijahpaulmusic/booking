@@ -599,13 +599,6 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
           <div id="saved-clients-list"><div style="font-size:13px;color:var(--ink3);padding:8px 0;">Loading…</div></div>
         </div>
         <div class="settings-card full">
-          <h3>Import Enquiry</h3>
-          <p class="card-desc">If an enquiry email arrived but the enquiry didn't show up here, paste the recovery code from that email (the <code>EPMBOOKING::…::END</code> block) below and click Import.</p>
-          <textarea id="import-enquiry-input" placeholder="Paste the EPMBOOKING::…::END code here" style="width:100%;padding:10px 12px;border:1px solid var(--cream3);border-radius:var(--radius);font-family:monospace;font-size:12px;min-height:70px;resize:vertical;box-sizing:border-box;"></textarea>
-          <div id="import-enquiry-msg" style="font-size:13px;margin-top:8px;min-height:18px;"></div>
-          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="importEnquiryFromPaste()">Import Enquiry</button>
-        </div>
-        <div class="settings-card full">
           <h3>Safety Net</h3>
           <p class="card-desc">A quiet "in case something happens to me" safeguard. If you don't log in for <strong>7 days</strong>, your next of kin are automatically emailed a list of your upcoming clients (name, date, venue, email) so they can let them know. On <strong>day 6</strong> you'll get a reminder email with a one-tap link to reset it — logging in also resets it. The client emails come from the notes in your uploaded calendar, merged with your workstation bookings, so re-upload your .ics when it changes to keep the list current.</p>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:14px;"><input type="checkbox" id="sn-enabled" style="width:16px;height:16px;accent-color:var(--ink);" onchange="saveSafetyConfig()"> Enable safety net</label>
@@ -1224,7 +1217,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '27/10/26' // fallback only
+const BUILD_TIME = '11/11/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -3532,7 +3525,7 @@ function populateSafetyConfig(){
 function peEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function peDetectService(title){const t=(title||'').toUpperCase();if(t.includes('SOLO SAX AND DJ'))return'combo';if(t.includes('SAX AND DJ'))return'sax_dj';if(t.includes('SOLO SAX'))return'sax_bt';return null;}
 function peNameFromTitle(title){const parts=(title||'').split(/\s[—–-]\s/).map(s=>s.trim()).filter(Boolean);const full=parts.length>=2?parts[1]:'';const first=(full.split(/\s+/)[0]||'').trim();return{full,first};}
-function peParseNotes(notes){const labels=['Phone','Emergency','Email',"Other ways we've spoken",'Event Type','Exact Location','Mileage (both ways)','Dresscode','Surprise option 1/2','Arrive time','Set times','Song/style requests','Any other info'];const text=notes||'';const e=l=>l.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('(?:^|\\n)\\s*('+labels.map(e).join('|')+')\\s*:','g');const ms=[...text.matchAll(re)];const out={};for(let i=0;i<ms.length;i++){const from=ms[i].index+ms[i][0].length;const to=i+1<ms.length?ms[i+1].index:text.length;out[ms[i][1].trim().toLowerCase()]=text.slice(from,to).trim();}return out;}
+function peParseNotes(notes){const labels=['Phone','Emergency','Email',"Other ways we've spoken",'Event Type','Exact Location','Mileage (both ways)','Dresscode','Surprise option 1/2','Arrive time','Set times','Song/style requests','Playlist to use','Any other info'];const text=notes||'';const e=l=>l.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('(?:^|\\n)\\s*('+labels.map(e).join('|')+')\\s*:','g');const ms=[...text.matchAll(re)];const out={};for(let i=0;i<ms.length;i++){const from=ms[i].index+ms[i][0].length;const to=i+1<ms.length?ms[i+1].index:text.length;out[ms[i][1].trim().toLowerCase()]=text.slice(from,to).trim();}return out;}
 function peText(service,f){
   const isDJ=service==='sax_dj';const L=[];
   L.push(`Hi ${f.first||'there'},`);L.push('');
@@ -3555,7 +3548,7 @@ function peText(service,f){
     L.push(`${noReq}You're welcome to choose any songs you like, and if you're short for ideas you can choose from my repertoire list. For ease, I made this setlist builder, use this link for the reception drinks set:`);L.push('');
     L.push('And this link for the wedding breakfast set:');L.push('');
     L.push('And this link for any songs you would like to hear Sax with alongside your DJ:');L.push('');
-    L.push("Once chosen, simply copy the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");L.push('');
+    L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");L.push('');
     L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
   }
   L.push('');

@@ -182,7 +182,7 @@ function nameFromTitle(title) {
 // Turn the labelled notes block into { label(lowercase): value }, keeping
 // multi-line values intact (e.g. a timings list under "Set times:").
 function parseNotes(notes) {
-  const labels = ['Phone', 'Emergency', 'Email', "Other ways we've spoken", 'Event Type', 'Exact Location', 'Mileage (both ways)', 'Dresscode', 'Surprise option 1/2', 'Arrive time', 'Set times', 'Song/style requests', 'Any other info'];
+  const labels = ['Phone', 'Emergency', 'Email', "Other ways we've spoken", 'Event Type', 'Exact Location', 'Mileage (both ways)', 'Dresscode', 'Surprise option 1/2', 'Arrive time', 'Set times', 'Song/style requests', 'Playlist to use', 'Any other info'];
   const text = notes || '';
   const escRe = l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp('(?:^|\\n)\\s*(' + labels.map(escRe).join('|') + ')\\s*:', 'g');
@@ -231,7 +231,7 @@ function preEventText(service, f) {
     L.push('');
     L.push('And this link for any songs you would like to hear Sax with alongside your DJ:');
     L.push('');
-    L.push("Once chosen, simply copy the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");
+    L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");
     L.push('');
     L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
   }

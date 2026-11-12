@@ -231,7 +231,11 @@ function preEventText(service, f) {
     L.push('');
     L.push('And this link for any songs you would like to hear Sax with alongside your DJ:');
     L.push('');
-    L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");
+  }
+  // Both templates: the "Once chosen" clause
+  L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");
+  // Weddings only (any package): the "So I don't repeat" clause
+  if (/wedding/i.test(f.eventType || '')) {
     L.push('');
     L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
   }
@@ -284,6 +288,7 @@ async function runPreEvent(sn, ownerEmail) {
         setTimes: nf['set times'] || '',   // keep the "90x minutes:" label — tells the client how long they've booked
         requests: nf['song/style requests'] || '',
         emergency: nf['emergency'] || '',
+        eventType: nf['event type'] || '',
       };
       const subject = `Pre-event draft → ${b.email} · ${nm.full || nm.first} · ${fmtDate(b.date)}`;
       await sendEmail(ownerEmail, subject, preEventHtml(preEventText(service, f)));

@@ -3548,9 +3548,11 @@ function peText(service,f){
     L.push(`${noReq}You're welcome to choose any songs you like, and if you're short for ideas you can choose from my repertoire list. For ease, I made this setlist builder, use this link for the reception drinks set:`);L.push('');
     L.push('And this link for the wedding breakfast set:');L.push('');
     L.push('And this link for any songs you would like to hear Sax with alongside your DJ:');L.push('');
-    L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");L.push('');
-    L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");
   }
+  // Both templates: the "Once chosen" clause
+  L.push("Once chosen, simply press the Copy Setlist To Clipboard button and paste the setlist into the reply to this email! I'll play anything you choose. Don't feel like you have to choose every single song, you're welcome to select as many or as few as you like! You're also welcome to just send through a genre or a vibe for any particular set and I'll be happy to choose great songs I know work well.");
+  // Weddings only (any package): the "So I don't repeat" clause
+  if(/wedding/i.test(f.eventType||'')){L.push('');L.push("So I don't repeat songs you have selected for your Ceremony, First Dance, or (if applicable) Father-Daughter Dance, please send them through and I'll make sure not to perform them (unless you would like me to as well)!");}
   L.push('');
   if(f.emergency){L.push(`Any other info: Emergency number to be used in the very rare instance I'll be late: ${f.emergency}`);}else{L.push("Any other info: I currently don't have an emergency number I could use on the day just in case. As it's your Wedding/event you might not have your phone on you before or during the event when I may need to phone so I like to have a contact of someone that will. Obviously, it's unlikely I'll need it and if you'll have your phone on you this isn't required at all but just in case I thought I'd ask.");}
   L.push('');
@@ -3575,7 +3577,7 @@ async function testPreEventEmail(){
     const solo=list.filter(b=>b&&b.date&&b.date>=today&&b.email&&b.notes&&peDetectService(b.name)).sort((a,c)=>(a.date||'').localeCompare(c.date||''));
     if(!solo.length){showToast('No upcoming solo event with notes found — re-upload your .ics in Settings first','error',5000);return;}
     const b=solo[0],service=peDetectService(b.name),nm=peNameFromTitle(b.name),nf=peParseNotes(b.notes);
-    const f={first:nm.first,venue:nf['exact location']||b.venue||'',arrive:nf['arrive time']||'',setTimes:nf['set times']||'',requests:nf['song/style requests']||'',emergency:nf['emergency']||''};
+    const f={first:nm.first,venue:nf['exact location']||b.venue||'',arrive:nf['arrive time']||'',setTimes:nf['set times']||'',requests:nf['song/style requests']||'',emergency:nf['emergency']||'',eventType:nf['event type']||''};
     const html=`<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.6;">${peEsc(peText(service,f)).replace(/\n/g,'<br>')}</div>`;
     const dateLong=(()=>{try{return new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});}catch(e){return b.date;}})();
     const subject=`Pre-event draft (TEST) → ${b.email} · ${nm.full||nm.first} · ${dateLong}`;

@@ -1217,7 +1217,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '11/11/26' // fallback only
+const BUILD_TIME = '16/11/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -4373,6 +4373,79 @@ async function nqCalcMilesFromPostcode(postcode){
     }
   }catch(e){}
 }
+
+// ═══════════════════════════════════════════════════
+// INSTANT QUOTE  (Phase 1 — mock deposit)
+// ═══════════════════════════════════════════════════
+const EMAIL_LOGO_URI='data:image/jpeg;base64,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';
+const IQ_SERVICE_LABELS={sax_bt:'🎷 Sax with Backing Tracks',sax_dj:'🎧 Sax with Your DJ',combo:'✨ Combo — Sax with Backing Tracks & Your DJ'};
+function genToken(){
+  try{const a=new Uint8Array(18);(window.crypto||window.msCrypto).getRandomValues(a);return Array.from(a,x=>('0'+x.toString(16)).slice(-2)).join('');}
+  catch(e){return 'tk'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}
+}
+function nqToggleInstantQuote(){
+  const et=(document.getElementById('neq-eventtype')||{}).value||'';
+  const cb=document.getElementById('neq-instant-quote'),note=document.getElementById('neq-iq-note'),lbl=document.getElementById('neq-iq-label');
+  const blocked=/other event/i.test(et);
+  if(cb){ if(blocked){cb.checked=false;cb.disabled=true;}else{cb.disabled=false;} }
+  if(lbl)lbl.style.opacity=blocked?'0.5':'1';
+  if(note)note.textContent=blocked
+    ?'Instant Quote isn’t available for “Other Event” — send quotes manually as usual.'
+    :'Emails the client their 4 quote options as instant-book buttons. They pick a package, set their times, pay the deposit, and it moves itself to Deposit Pending.';
+}
+function iqMoney(n){return '£'+fmtMoney(n);}
+function iqMins(d){return Math.round(d*60);}
+function buildInstantQuoteEmailHtml(b,quotes,token){
+  const ACCENT='#A59B7C',CREAM='#FAF8F3',INK='#1A1814',sName=settings.name||'Elijah Paul';
+  const dateLong=b.eventDate?new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';
+  const svc=IQ_SERVICE_LABELS[b.service]||b.service;
+  const origin=window.location.origin+window.location.pathname;
+  const rows=[
+    ['Package',svc],['Date',dateLong],['Event type',b.eventType],['Venue',b.venue||''],
+    ['Postcode',b.postcode||''],['Name',(b.firstName+' '+b.lastName).trim()],
+    ['Email','<a href="mailto:'+b.email+'" style="color:'+ACCENT+';text-decoration:none;">'+b.email+'</a>'],
+    ['Mobile',b.mobile||'—']
+  ].map(function(p){return '<tr><td style="padding:8px 0;border-bottom:1px solid #EEE;font-size:13px;color:#888;font-weight:600;width:36%;vertical-align:top;">'+p[0]+'</td><td style="padding:8px 0;border-bottom:1px solid #EEE;font-size:14px;color:'+INK+';">'+p[1]+'</td></tr>';}).join('');
+  const q={}; quotes.forEach(function(x){q[x.duration]=x;});
+  const g=function(d){return q[d]||{price:0,deposit:0};};
+  const line1='For 60x minutes of Sax Performance, including travel, my fee will be '+iqMoney(g(1).price)+' including a '+iqMoney(g(1).deposit)+' deposit to confirm the booking. It also gives you free range over the repertoire I play so if you have any preferences or favourite tunes do let me know! You’re also welcome to choose from my repertoire list found here: <a href="https://www.elijahpaul.com/repertoire" style="color:'+ACCENT+';">https://www.elijahpaul.com/repertoire</a>';
+  const line2='For 90x minutes with the same perks the total fee would be '+iqMoney(g(1.5).price)+'. For 2x hours with the same perks the total fee would be '+iqMoney(g(2).price)+'. 3x hours = '+iqMoney(g(3).price)+'.';
+  const depLine=depositSentence(quotes);
+  const splitLine='All options can be split up into sets throughout the night for no additional fee — I don’t charge for breaks! For example, a 2x hour set can be split into 2x 45 minute sets and 1x 30 minute set at no additional cost.';
+  const btn=function(d,label){var x=g(d);var url=origin+'#quote/'+token+'/'+iqMins(d);return '<tr><td style="padding:6px 0;"><a href="'+url+'" style="display:block;text-align:center;text-decoration:none;font-size:15px;font-weight:700;color:#3a2f12;padding:14px 18px;border-radius:10px;background:linear-gradient(#F3DD99,#D8B84C);border:1px solid #B8972F;box-shadow:0 2px 3px rgba(80,60,10,0.25),inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -1px 0 rgba(120,90,20,0.3);">'+label+' = '+iqMoney(x.price)+' ('+iqMoney(x.deposit)+' Deposit)</a></td></tr>';};
+  const buttons='<table width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 4px;">'+btn(1,'60x Minutes')+btn(1.5,'90x Minutes')+btn(2,'2x hours')+btn(3,'3x hours')+'</table>';
+  const P=function(t){return '<p style="margin:0 0 14px;font-size:14px;line-height:1.7;color:#333;">'+t+'</p>';};
+  const body=
+    P('Hi '+b.firstName+',')+
+    P('Thanks so much for the enquiry. I can confirm that I am available and very interested in performing for you and your guests at your '+b.eventType+'! Here are the details you provided on the booking form:')+
+    '<table width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 18px;border-collapse:collapse;">'+rows+'</table>'+
+    P(line1)+P(line2)+P(depLine)+P(splitLine)+
+    P('If you would like to proceed with one of these quotes, you’re welcome to instantly book me in by clicking one of the links below:')+
+    buttons+
+    P('Decide which package option, enter the set times you would like me to perform for and press Submit. You’ll be redirected to pay the deposit. Once paid you’ll be sent a confirmation email with all the details of the booking.')+
+    P('Alternatively, if you would like to discuss different options, prices and what I’m able to provide, I’ll be happy to help over email. If you would prefer, let me know a good time to call, and we can have a chat over the phone.')+
+    P('I hope to hear from you soon!')+
+    '<p style="margin:18px 0 0;font-size:14px;line-height:1.7;color:'+INK+';">With kind regards,<br><strong>'+sName+'</strong></p>';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background:'+CREAM+';font-family:\'Open Sans\',\'Segoe UI\',Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:'+CREAM+';padding:32px 16px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);"><tr><td height="5" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td align="center" style="padding:32px 24px 20px;background:'+CREAM+';"><img src="'+EMAIL_LOGO_URI+'" alt="'+sName+'" width="120" style="display:block;margin:0 auto 10px;width:120px;height:auto;"><p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#AAA;">Your Quote</p></td></tr><tr><td height="3" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td style="padding:28px 32px;">'+body+'</td></tr><tr><td style="padding:14px 32px;background:'+CREAM+';border-top:1px solid #EEE;text-align:center;"><p style="margin:0;font-size:11px;color:#BBB;letter-spacing:0.05em;">'+sName+' · Saxophonist</p></td></tr></table></td></tr></table></body></html>';
+}
+function saveInstantQuoteNode(b,quotes,token){
+  if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef)return Promise.reject(new Error('Not connected to the server'));
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+  const node={
+    bookingId:b.id,status:'sent',createdAt:new Date().toISOString(),
+    firstName:b.firstName||'',lastName:b.lastName||'',email:b.email||'',
+    eventType:b.eventType||'',eventDate:b.eventDate||'',venue:b.venue||'',service:b.service||'',
+    quotes:quotes.map(function(q){return {duration:q.duration,price:q.price,deposit:q.deposit};}),
+    response:null
+  };
+  return s(r(db,'instantQuotes/'+token),node);
+}
+function sendInstantQuoteEmail(b,quotes,token){
+  const html=buildInstantQuoteEmailHtml(b,quotes,token);
+  const subject='Your Saxophone Quote — '+(b.eventType||'Event')+(b.eventDate?' · '+new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'');
+  return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:b.email,to_name:b.firstName,subject:subject,message:html,html_message:html,reply_to:settings.email||MY_EMAIL});
+}
+
 function nqSubmit(){
   const fn=document.getElementById('neq-firstname').value.trim();
   const ln=document.getElementById('neq-lastname').value.trim();
@@ -4426,6 +4499,24 @@ function nqSubmit(){
       dep3threshold:settings.rates.dep3threshold,lockedAt:new Date().toISOString()
     }:null
   };
+  // ⚡ Instant Quote path — email the client 4 bookable options
+  const _iq=document.getElementById('neq-instant-quote');
+  if(_iq&&_iq.checked&&!/other event/i.test(eventType)){
+    const quotes=calcAllQuotes(booking);
+    if(!quotes||!quotes.length){errEl.innerHTML='Could not calculate quotes — check your pricing settings.';errEl.style.display='block';return;}
+    const token=genToken();
+    booking.stage='quote';booking.agreedPrice=null;booking.chosenOption=null;booking.chosenDuration=null;
+    booking.instantQuoteToken=token;
+    booking.instantQuotes=quotes.map(q=>({duration:q.duration,price:q.price,deposit:q.deposit}));
+    bookings.push(booking);saveData();renderPipeline();closeNewEnquiry();
+    showToast('Sending instant quote…','info',2000);
+    Promise.resolve()
+      .then(()=>saveInstantQuoteNode(booking,quotes,token))
+      .then(()=>sendInstantQuoteEmail(booking,quotes,token))
+      .then(()=>showToast('⚡ Instant quote emailed to '+booking.email,'success',4000))
+      .catch(err=>showToast('Saved to Quote Sent, but sending failed: '+((err&&err.text)||(err&&err.message)||err),'error',6000));
+    return;
+  }
   bookings.push(booking);
   saveData();renderPipeline();
   closeNewEnquiry();
@@ -4781,7 +4872,7 @@ function nfSubmit(){
             <input type="hidden" id="neq-date">
             <div id="neq-cal-popup" class="cal-popup-shared" style="display:none;"></div>
           </div>
-          <div class="form-group"><label>Event Type *</label><select id="neq-eventtype"><option value="">Select&#x2026;</option></select></div>
+          <div class="form-group"><label>Event Type *</label><select id="neq-eventtype" onchange="nqToggleInstantQuote()"><option value="">Select&#x2026;</option></select></div>
           <div class="form-group"><label>Service</label>
             <select id="neq-service">
               <option value="sax_bt">Sax with Backing Tracks (PA)</option>
@@ -4826,6 +4917,10 @@ function nfSubmit(){
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-deposit" style="width:16px;height:16px;accent-color:var(--ink);" checked> Deposit?</label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-second-gig" style="width:16px;height:16px;accent-color:var(--ink);"> Second Gig? (invoice suffix 02)</label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;"><input type="checkbox" id="neq-before5pm" style="width:16px;height:16px;accent-color:var(--ink);"> Before 5pm?</label>
+        </div>
+        <div style="margin-top:12px;border-top:1px solid var(--cream3);padding-top:12px;">
+          <label id="neq-iq-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--gold-dim);"><input type="checkbox" id="neq-instant-quote" style="width:16px;height:16px;accent-color:var(--gold);"> ⚡ Instant Quote?</label>
+          <p id="neq-iq-note" style="font-size:11px;color:var(--ink3);margin:6px 0 0;line-height:1.5;">Emails the client their 4 quote options as instant-book buttons. They pick a package, set their times, pay the deposit, and it moves itself to Deposit Pending. Not available for “Other Event”.</p>
         </div>
       </div>
       <div id="neq-err" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;"></div>

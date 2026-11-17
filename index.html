@@ -416,13 +416,7 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
       <button class="nav-tab active" onclick="showView('pipeline')">Pipeline</button>
       <button class="nav-tab" onclick="showView('archived')">Archived</button>
       <button class="nav-tab" onclick="showView('statistics')">Statistics</button>
-      <div style="position:relative;display:inline-block;" id="new-enquiry-nav-wrap">
-        <button class="nav-tab" onclick="toggleNewEnquiryMenu(event)">New Enquiry ▾</button>
-        <div id="new-enquiry-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--ink);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius);min-width:140px;z-index:500;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
-          <button onclick="window.open('https://booking.elijahpaul.com/#book/new','_blank');closeNewEnquiryMenu();" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;color:var(--cream);font-size:13px;font-family:inherit;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='none'">New</button>
-          <button onclick="window.open('https://booking.elijahpaul.com/#book/test','_blank');closeNewEnquiryMenu();" style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;color:#A09880;font-size:13px;font-family:inherit;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='none'">Full Test</button>
-        </div>
-      </div>
+      <button class="nav-tab" onclick="openNewEnquiryModal()">New Enquiry</button>
       <button class="nav-tab" onclick="showView('settings')">Settings</button>
     </nav>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
@@ -1217,7 +1211,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '16/11/26' // fallback only
+const BUILD_TIME = '17/11/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -4261,6 +4255,8 @@ function openNewEnquiryModal(){
   document.getElementById('neq-deposit').checked=true;
   document.getElementById('neq-second-gig').checked=false;
   document.getElementById('neq-before5pm').checked=false;
+  const _iqcb=document.getElementById('neq-instant-quote');if(_iqcb){_iqcb.checked=false;_iqcb.disabled=false;}
+  if(typeof nqToggleInstantQuote==='function')nqToggleInstantQuote();
   document.getElementById('neq-business').checked=false;
   document.getElementById('neq-business-fields').style.display='none';
   document.getElementById('neq-manual-toggle').checked=false;
@@ -4274,7 +4270,9 @@ function openNewEnquiryModal(){
   nqCalSelected='';nqCalYear=new Date().getFullYear();nqCalMonth=new Date().getMonth();
   window._nqScrollY=window.scrollY||window.pageYOffset;
   document.body.style.cssText='position:fixed;top:-'+window._nqScrollY+'px;left:0;right:0;overflow:hidden;';
-  document.getElementById('new-enquiry-modal').classList.add('open');
+  const _nem=document.getElementById('new-enquiry-modal');
+  if(_nem.parentElement!==document.body)document.body.appendChild(_nem);   // escape the old nested modal so it actually shows
+  _nem.classList.add('open');
   nqInitVenue();
 }
 function closeNewEnquiry(){

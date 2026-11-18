@@ -722,6 +722,101 @@ body{font-family:\'DM Sans\',sans-serif;background:var(--cream);color:var(--ink)
     <div id="tlo-err" style="font-size:12px;color:var(--red);margin-top:10px;display:none;"></div>
   </div>
 </div>
+<!-- ═══════════ CLIENT QUOTE / INSTANT-BOOK PAGE (#quote/<token>/<mins>) ═══════════ -->
+<div id="layer-quote" class="layer">
+  <style>
+    #layer-quote{--iqp-cream:#F3EDE1;--iqp-white:#FBF8F2;--iqp-ink:#221F19;--iqp-ink2:#4A4336;--iqp-ink3:#8A8068;--iqp-gold:#A87C1F;--iqp-gold-dim:#8A6A2A;--iqp-cream2:#EADFC9;--iqp-cream3:#DBCDB0;--iqp-green:#1E6A3A;--iqp-red:#B5541E;color-scheme:light only;background:var(--iqp-cream);color:var(--iqp-ink);font-family:'Open Sans','Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.5;min-height:100vh;}
+    #layer-quote .iqp-wrap{max-width:640px;margin:0 auto;padding:16px 16px 60px;}
+    #layer-quote .iqp-logo{display:block;height:64px;width:auto;margin:14px auto 6px;}
+    #layer-quote h1{font-weight:700;font-size:26px;margin:4px 0 2px;color:var(--iqp-ink);text-align:center;}
+    #layer-quote .iqp-sub{color:var(--iqp-ink3);font-size:14px;margin:0 0 18px;text-align:center;}
+    #layer-quote .iqp-card{background:var(--iqp-white);border:1px solid var(--iqp-cream3);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(60,48,20,0.08);}
+    #layer-quote .iqp-label{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--iqp-ink3);margin:0 0 8px;}
+    #layer-quote .iqp-detail-row{display:flex;gap:24px;flex-wrap:wrap;}
+    #layer-quote .iqp-detail-row div span{display:block;font-size:12px;color:var(--iqp-ink3);}
+    #layer-quote .iqp-detail-row div strong{font-size:16px;color:var(--iqp-ink);font-weight:600;}
+    #layer-quote select{font-family:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--iqp-cream3);border-radius:8px;background:var(--iqp-white);color:var(--iqp-ink);outline:none;}
+    #layer-quote select:focus{border-color:var(--iqp-gold);}
+    #layer-quote select:disabled{background:var(--iqp-cream2);color:var(--iqp-ink3);}
+    #layer-quote .iqp-pick{width:100%;font-size:15px;padding:11px 12px;}
+    #layer-quote .iqp-quote-display{display:flex;gap:28px;margin-top:14px;align-items:baseline;}
+    #layer-quote .iqp-big{font-size:28px;font-weight:700;color:var(--iqp-gold-dim);line-height:1;}
+    #layer-quote .iqp-big small{display:block;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--iqp-ink3);margin-bottom:3px;}
+    #layer-quote .iqp-progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+    #layer-quote .iqp-total{font-size:15px;font-weight:700;color:var(--iqp-ink);}
+    #layer-quote .iqp-cap{font-size:12px;color:var(--iqp-ink3);}
+    #layer-quote .iqp-bar{background:var(--iqp-cream2);border-radius:8px;height:12px;overflow:hidden;}
+    #layer-quote .iqp-bar>div{height:100%;background:var(--iqp-gold);transition:width .18s ease;}
+    #layer-quote .iqp-bar.over>div{background:var(--iqp-red);}
+    #layer-quote .iqp-bar.exact>div{background:var(--iqp-green);}
+    #layer-quote .iqp-remaining{font-size:12px;color:var(--iqp-ink3);margin-top:6px;}
+    #layer-quote .iqp-remaining.over{color:var(--iqp-red);font-weight:600;}
+    #layer-quote .iqp-remaining.exact{color:var(--iqp-green);font-weight:600;}
+    #layer-quote .iqp-set{border:1px solid var(--iqp-cream3);border-radius:8px;padding:12px 12px 10px;margin-bottom:10px;background:#FFFDF8;}
+    #layer-quote .iqp-set-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    #layer-quote .iqp-set-head .iqp-n{font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--iqp-ink3);}
+    #layer-quote .iqp-set-head .iqp-dur{font-size:12px;color:var(--iqp-gold-dim);font-weight:700;}
+    #layer-quote .iqp-timerow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    #layer-quote .iqp-timerow .iqp-to{color:var(--iqp-ink3);font-size:13px;padding:0 2px;}
+    #layer-quote .iqp-timerow select{padding:8px 6px;min-width:62px;}
+    #layer-quote .iqp-part-sel{width:100%;margin-bottom:9px;}
+    #layer-quote .iqp-fixed-note{font-size:12px;color:var(--iqp-gold-dim);background:#F5EEDD;border-radius:6px;padding:7px 9px;margin-top:2px;}
+    #layer-quote .iqp-rm{background:none;border:none;color:var(--iqp-red);font-size:12px;cursor:pointer;padding:2px 4px;font-family:inherit;}
+    #layer-quote .iqp-btn{font-family:inherit;font-weight:700;border-radius:8px;cursor:pointer;border:1px solid transparent;}
+    #layer-quote .iqp-btn-add{background:var(--iqp-white);border:1px dashed var(--iqp-gold);color:var(--iqp-gold-dim);padding:10px 16px;font-size:14px;width:100%;}
+    #layer-quote .iqp-btn-add:disabled{opacity:.5;cursor:not-allowed;}
+    #layer-quote .iqp-btn-submit{background:var(--iqp-gold);color:#fff;padding:15px 20px;font-size:16px;width:100%;}
+    #layer-quote .iqp-btn-submit:hover{background:var(--iqp-gold-dim);}
+    #layer-quote .iqp-btn-submit.off{background:var(--iqp-cream3);color:var(--iqp-ink3);cursor:not-allowed;}
+    #layer-quote .iqp-err{color:var(--iqp-red);font-size:13px;margin-top:10px;min-height:16px;}
+    #layer-quote .iqp-state{text-align:center;padding:48px 20px;color:var(--iqp-ink3);}
+    #layer-quote .iqp-state h2{color:var(--iqp-ink);font-size:20px;margin:0 0 8px;}
+    #layer-quote .iqp-pay{background:#F5EEDD;border:1px solid var(--iqp-cream3);border-radius:10px;padding:14px;margin-top:4px;font-size:13px;color:var(--iqp-ink2);line-height:1.6;}
+    #layer-quote .iqp-mock-tag{display:inline-block;background:#efe9db;border:1px dashed #c9bd9f;border-radius:6px;padding:3px 8px;font-size:11px;color:var(--iqp-gold-dim);font-weight:700;margin-bottom:10px;}
+  </style>
+  <div class="iqp-wrap">
+    <img id="iqp-logo" class="iqp-logo" src="" alt="Elijah Paul Saxophonist" style="display:none;">
+    <!-- Loading / error / already-responded states -->
+    <div id="iqp-state" class="iqp-state"><h2>Loading your quote…</h2><p>One moment.</p></div>
+    <!-- Main form (hidden until loaded) -->
+    <div id="iqp-form" style="display:none;">
+      <h1>Confirm your booking</h1>
+      <p class="iqp-sub">Choose your package and let me know your set times.</p>
+      <div class="iqp-card">
+        <div class="iqp-label">Your event</div>
+        <div class="iqp-detail-row">
+          <div><span>Event type</span><strong id="iqp-ev-type">—</strong></div>
+          <div><span>Date</span><strong id="iqp-ev-date">—</strong></div>
+          <div><span>Venue</span><strong id="iqp-ev-venue">—</strong></div>
+          <div><span>Package</span><strong id="iqp-ev-package">—</strong></div>
+        </div>
+      </div>
+      <div class="iqp-card">
+        <div class="iqp-label">Your package</div>
+        <select id="iqp-pkg" class="iqp-pick" onchange="iqpSetPackage(this.selectedIndex)"></select>
+        <div class="iqp-quote-display">
+          <div class="iqp-big"><small>Quote</small><span id="iqp-q-fee">£0</span></div>
+          <div class="iqp-big"><small>Deposit</small><span id="iqp-q-dep">£0</span></div>
+        </div>
+      </div>
+      <div class="iqp-card">
+        <div class="iqp-label">Your set times</div>
+        <p class="iqp-sub" style="margin-top:-2px;text-align:left;">Add a set for each slot you'd like me to play. Start times run from 11am through to 1am, finishing by 2am at the latest. Each set must be at least 15 minutes, and sets run in order — each new set starts at least 10 minutes after the previous one finishes, to allow a short break. No single set can be longer than 2 hours — longer bookings are split into sets.</p>
+        <div class="iqp-progress-top">
+          <span class="iqp-total" id="iqp-total-label">0 mins</span>
+          <span class="iqp-cap" id="iqp-cap-label">of 0 mins</span>
+        </div>
+        <div class="iqp-bar" id="iqp-bar"><div id="iqp-bar-fill" style="width:0%"></div></div>
+        <div class="iqp-remaining" id="iqp-remaining"></div>
+        <div id="iqp-sets" style="margin-top:14px;"></div>
+        <button class="iqp-btn iqp-btn-add" id="iqp-add-btn" onclick="iqpAddSet()">+ Add set</button>
+      </div>
+      <button class="iqp-btn iqp-btn-submit" id="iqp-submit-btn" onclick="iqpSubmit()">Submit &amp; pay deposit</button>
+      <div class="iqp-err" id="iqp-err"></div>
+    </div>
+  </div>
+</div>
+
 <div id="layer-form" class="layer">
   <div class="cf-page">
     <div class="cf-header" style="text-align:center;">
@@ -1211,7 +1306,7 @@ function renderThemeToggle(){
   }
 }
 // ── Build timestamp (auto-updated on every save) ─────────────────────────
-const BUILD_TIME = '17/11/26' // fallback only
+const BUILD_TIME = '18/11/26' // fallback only
 document.addEventListener('DOMContentLoaded',()=>{
   const el=document.getElementById('app-version');
   if(!el)return;
@@ -1631,6 +1726,8 @@ function init(){
   cfRebuildEventTypes();
   const hash=window.location.hash;
   if(hash.startsWith('#book')){showBookingForm(getHashService());return;}
+  // #quote/<token>/<mins> — client-facing instant-book quote page (no login)
+  if(hash.startsWith('#quote/')){showQuotePage();return;}
   // #reset/<token> — one-tap safety-net reset from the day-6 reminder email
   if(hash.startsWith('#reset/')){handleSafetyReset(hash.slice('#reset/'.length));return;}
   // #import/<payload> — recover an enquiry from a notification email link
@@ -1754,6 +1851,7 @@ function showWorkstation(){
   showLayer('layer-workstation');
   initWsVenueListeners();
   startEnquiryListener();
+  startQuoteReconListener();
   renderPipeline();
   rebuildEventTypeSelect();
   cfRebuildEventTypes();
@@ -4233,7 +4331,7 @@ function autoFillTestEnquiry(){
 // INIT
 // ═══════════════════════════════════════════════════
 // init and getHashService defined above
-window.addEventListener('hashchange',()=>{if(window.location.hash.startsWith('#book'))showBookingForm(getHashService());});
+window.addEventListener('hashchange',()=>{if(window.location.hash.startsWith('#book'))showBookingForm(getHashService());else if(window.location.hash.startsWith('#quote/'))showQuotePage();});
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',()=>{init();runAutoArchiveCheck();});
 } else {
@@ -4410,7 +4508,17 @@ function buildInstantQuoteEmailHtml(b,quotes,token){
   const line2='For 90x minutes with the same perks the total fee would be '+iqMoney(g(1.5).price)+'. For 2x hours with the same perks the total fee would be '+iqMoney(g(2).price)+'. 3x hours = '+iqMoney(g(3).price)+'.';
   const depLine=depositSentence(quotes);
   const splitLine='All options can be split up into sets throughout the night for no additional fee — I don’t charge for breaks! For example, a 2x hour set can be split into 2x 45 minute sets and 1x 30 minute set at no additional cost.';
-  const btn=function(d,label){var x=g(d);var url=origin+'#quote/'+token+'/'+iqMins(d);return '<tr><td style="padding:6px 0;"><a href="'+url+'" style="display:block;text-align:center;text-decoration:none;font-size:15px;font-weight:700;color:#3a2f12;padding:14px 18px;border-radius:10px;background:linear-gradient(#F3DD99,#D8B84C);border:1px solid #B8972F;box-shadow:0 2px 3px rgba(80,60,10,0.25),inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -1px 0 rgba(120,90,20,0.3);">'+label+' = '+iqMoney(x.price)+' ('+iqMoney(x.deposit)+' Deposit)</a></td></tr>';};
+  // Scheme 4 — gold (3hr) working down through silver, bronze, brass. Text hard-locked black & dark-mode-proof.
+  const IQ_METALS={
+    1:  {t:'#E7D582',b:'#B59A3B',brd:'#977F2C'}, // 60 min  → brass
+    1.5:{t:'#DBA074',b:'#A5623A',brd:'#8A4F2E'}, // 90 min  → bronze
+    2:  {t:'#EEF0F3',b:'#B9BDC5',brd:'#969AA1'}, // 2 hours → silver
+    3:  {t:'#F6E2A0',b:'#D8B84C',brd:'#B8972F'}  // 3 hours → gold
+  };
+  const btn=function(d,label){
+    var x=g(d);var url=origin+'#quote/'+token+'/'+iqMins(d);var m=IQ_METALS[d]||IQ_METALS[3];
+    return '<tr><td style="padding:6px 0;"><a href="'+url+'" class="iqbtn" style="display:block;text-align:center;text-decoration:none;font-size:15px;font-weight:700;color:#121212!important;padding:14px 18px;border-radius:10px;background:linear-gradient('+m.t+','+m.b+');border:1px solid '+m.brd+';box-shadow:0 2px 3px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -1px 0 rgba(0,0,0,0.20);"><span class="iqbtn-t" style="color:#121212!important;">'+label+' = '+iqMoney(x.price)+' ('+iqMoney(x.deposit)+' Deposit)</span></a></td></tr>';
+  };
   const buttons='<table width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 4px;">'+btn(1,'60x Minutes')+btn(1.5,'90x Minutes')+btn(2,'2x hours')+btn(3,'3x hours')+'</table>';
   const P=function(t){return '<p style="margin:0 0 14px;font-size:14px;line-height:1.7;color:#333;">'+t+'</p>';};
   const body=
@@ -4424,7 +4532,9 @@ function buildInstantQuoteEmailHtml(b,quotes,token){
     P('Alternatively, if you would like to discuss different options, prices and what I’m able to provide, I’ll be happy to help over email. If you would prefer, let me know a good time to call, and we can have a chat over the phone.')+
     P('I hope to hear from you soon!')+
     '<p style="margin:18px 0 0;font-size:14px;line-height:1.7;color:'+INK+';">With kind regards,<br><strong>'+sName+'</strong></p>';
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background:'+CREAM+';font-family:\'Open Sans\',\'Segoe UI\',Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:'+CREAM+';padding:32px 16px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);"><tr><td height="5" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td align="center" style="padding:32px 24px 20px;background:'+CREAM+';"><img src="'+EMAIL_LOGO_URI+'" alt="'+sName+'" width="120" style="display:block;margin:0 auto 10px;width:120px;height:auto;"><p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#AAA;">Your Quote</p></td></tr><tr><td height="3" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td style="padding:28px 32px;">'+body+'</td></tr><tr><td style="padding:14px 32px;background:'+CREAM+';border-top:1px solid #EEE;text-align:center;"><p style="margin:0;font-size:11px;color:#BBB;letter-spacing:0.05em;">'+sName+' · Saxophonist</p></td></tr></table></td></tr></table></body></html>';
+  // color-scheme metas + dark-mode guard keep the metal buttons' text black whatever the mail client does.
+  const HEAD='<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><style>:root{color-scheme:light only;supported-color-schemes:light only;}a.iqbtn,a.iqbtn .iqbtn-t{color:#121212!important;}@media (prefers-color-scheme:dark){a.iqbtn,a.iqbtn .iqbtn-t{color:#121212!important;}}[data-ogsc] a.iqbtn,[data-ogsc] a.iqbtn .iqbtn-t{color:#121212!important;}</style>';
+  return '<!DOCTYPE html><html><head>'+HEAD+'</head><body style="margin:0;padding:0;background:'+CREAM+';font-family:\'Open Sans\',\'Segoe UI\',Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:'+CREAM+';padding:32px 16px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);"><tr><td height="5" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td align="center" style="padding:32px 24px 20px;background:'+CREAM+';"><img src="'+EMAIL_LOGO_URI+'" alt="'+sName+'" width="120" style="display:block;margin:0 auto 10px;width:120px;height:auto;"><p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#AAA;">Your Quote</p></td></tr><tr><td height="3" style="background:'+ACCENT+';font-size:0;">&nbsp;</td></tr><tr><td style="padding:28px 32px;">'+body+'</td></tr><tr><td style="padding:14px 32px;background:'+CREAM+';border-top:1px solid #EEE;text-align:center;"><p style="margin:0;font-size:11px;color:#BBB;letter-spacing:0.05em;">'+sName+' · Saxophonist</p></td></tr></table></td></tr></table></body></html>';
 }
 function saveInstantQuoteNode(b,quotes,token){
   if(!window._firebaseReady||!window._fbDb||!window._fbSet||!window._fbRef)return Promise.reject(new Error('Not connected to the server'));
@@ -4442,6 +4552,303 @@ function sendInstantQuoteEmail(b,quotes,token){
   const html=buildInstantQuoteEmailHtml(b,quotes,token);
   const subject='Your Saxophone Quote — '+(b.eventType||'Event')+(b.eventDate?' · '+new Date(b.eventDate+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'');
   return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:b.email,to_name:b.firstName,subject:subject,message:html,html_message:html,reply_to:settings.email||MY_EMAIL});
+}
+
+
+// ═══════════════════════════════════════════════════
+// CLIENT QUOTE / INSTANT-BOOK PAGE  (#quote/<token>/<mins>)
+// ═══════════════════════════════════════════════════
+var IQP={token:null,mins:null,node:null,quotes:[],pkgIdx:0,eventType:'',service:'combo',sets:[]};
+const IQP_START_MIN_IDX=11,IQP_START_MAX_IDX=25,IQP_END_MAX_TOTAL=26*60,IQP_MIN_SET=15,IQP_SET_GAP=10,IQP_MAX_SET=120,IQP_MAX_SETS=10;
+const IQP_SERVICE_LABELS={sax_bt:'Solo with backing tracks',sax_dj:'Sax and DJ',combo:'Combo'};
+const IQP_WEDDING_PARTS=[
+  {v:'Guests Welcome (before ceremony)'},
+  {v:'Ceremony', fixed:30, once:true},
+  {v:'Ceremony Entrance Song ONLY', fixed:5},
+  {v:'Ceremony Exit Song ONLY', fixed:5},
+  {v:'Reception Drinks (after ceremony)'},
+  {v:'Wedding Breakfast Entrance Song', fixed:5},
+  {v:'Wedding Breakfast'},
+  {v:'Cocktail Hour (between Wedding Breakfast, before your first dance)'},
+  {v:'First Dance', fixed:5},
+  {v:'Wedding Party alongside your DJ'}
+];
+const IQP_CEREMONY_GROUP=['Ceremony','Ceremony Entrance Song ONLY','Ceremony Exit Song ONLY'];
+const IQP_MINS=[0,5,10,15,20,25,30,35,40,45,50,55];
+
+function iqpBlankSet(){return {part:'',sH:null,sM:null,eH:null,eM:null};}
+function iqpIsWedding(){return /wedding/i.test(IQP.eventType);}
+function iqpShowParts(){return iqpIsWedding()&&IQP.service!=='sax_dj';}
+function iqpPartMeta(v){return IQP_WEDDING_PARTS.find(p=>p.v===v)||null;}
+function iqpFixedFor(s){if(!iqpShowParts())return 0;const m=iqpPartMeta(s.part);return m&&m.fixed?m.fixed:0;}
+function iqpPartIndex(v){return IQP_WEDDING_PARTS.findIndex(p=>p.v===v);}
+function iqpUsedElsewhere(i,v){return IQP.sets.some((o,j)=>j!==i&&o.part===v);}
+function iqpIsCeremonyGroup(v){return IQP_CEREMONY_GROUP.includes(v);}
+function iqpMinPartIndex(i){let mx=0;for(let j=0;j<i;j++){if(IQP.sets[j].part){const idx=iqpPartIndex(IQP.sets[j].part);if(idx>mx)mx=idx;}}return mx;}
+function iqpHr12(idx){let hr=((idx%24)+24)%24;let ap=hr<12?'AM':'PM';let h=hr%12;if(h===0)h=12;return {h,ap};}
+function iqpHrLabel(idx){const t=iqpHr12(idx);return t.h+' '+t.ap;}
+function iqpTimeLabel(idx,min){const t=iqpHr12(idx);return t.h+':'+String(min).padStart(2,'0')+' '+t.ap;}
+function iqp24(idx,min){return String(((idx%24)+24)%24).padStart(2,'0')+':'+String(min).padStart(2,'0');}
+function iqpStartTotal(s){return s.sH*60+s.sM;}
+function iqpEndTotal(s){return s.eH*60+s.eM;}
+function iqpHasStart(s){return s.sH!=null&&s.sM!=null;}
+function iqpHasEnd(s){return s.eH!=null&&s.eM!=null;}
+function iqpSetDuration(s){const fx=iqpFixedFor(s);if(fx)return fx;if(!iqpHasStart(s)||!iqpHasEnd(s))return 0;const d=iqpEndTotal(s)-iqpStartTotal(s);return d>0?d:0;}
+function iqpOpt(val,label,sel,dis){return '<option value="'+val+'"'+(sel?' selected':'')+(dis?' disabled':'')+'>'+label+'</option>';}
+function iqpPad(m){return String(m).padStart(2,'0');}
+function iqpMinStartTotalFor(i){
+  if(i===0)return IQP_START_MIN_IDX*60;
+  const p=IQP.sets[i-1],fx=iqpFixedFor(p);
+  if(fx){if(iqpHasStart(p))return iqpStartTotal(p)+fx+IQP_SET_GAP;}
+  else{if(iqpHasEnd(p))return iqpEndTotal(p)+IQP_SET_GAP;}
+  return iqpHasStart(p)?iqpStartTotal(p)+IQP_SET_GAP:IQP_START_MIN_IDX*60;
+}
+function iqpStartOptionsFor(i,s){
+  const minStart=iqpMinStartTotalFor(i);
+  const maxStart=IQP_END_MAX_TOTAL-(iqpFixedFor(s)||IQP_MIN_SET);
+  let hourH='<option value="">Hr</option>';
+  for(let H=IQP_START_MIN_IDX;H<=IQP_START_MAX_IDX;H++){if(IQP_MINS.some(m=>{const t=H*60+m;return t>=minStart&&t<=maxStart;}))hourH+=iqpOpt(H,iqpHrLabel(H),s.sH===H);}
+  let minH='<option value="">Min</option>';
+  if(s.sH!=null){IQP_MINS.forEach(m=>{const t=s.sH*60+m;if(t>=minStart&&t<=maxStart)minH+=iqpOpt(m,':'+iqpPad(m),s.sM===m);});}
+  return {hourH,minH};
+}
+function iqpEndOptionsFor(s){
+  const minEnd=iqpStartTotal(s)+IQP_MIN_SET,maxEnd=Math.min(IQP_END_MAX_TOTAL,iqpStartTotal(s)+IQP_MAX_SET);
+  let hourH='<option value="">Hr</option>';
+  for(let H=s.sH;H<=Math.floor(maxEnd/60);H++){if(IQP_MINS.some(m=>{const t=H*60+m;return t>=minEnd&&t<=maxEnd;}))hourH+=iqpOpt(H,iqpHrLabel(H),s.eH===H);}
+  let minH='<option value="">Min</option>';
+  if(s.eH!=null){IQP_MINS.forEach(m=>{const t=s.eH*60+m;if(t>=minEnd&&t<=maxEnd)minH+=iqpOpt(m,':'+iqpPad(m),s.eM===m);});}
+  return {hourH,minH};
+}
+function iqpNormalizeSets(){
+  for(let i=0;i<IQP.sets.length;i++){
+    const s=IQP.sets[i],fx=iqpFixedFor(s);
+    const minStart=iqpMinStartTotalFor(i),maxStart=IQP_END_MAX_TOTAL-(fx||IQP_MIN_SET);
+    if(iqpHasStart(s)){const t=iqpStartTotal(s);if(t<minStart||t>maxStart){s.sH=null;s.sM=null;}}
+    if(fx){s.eH=null;s.eM=null;}
+    else if(iqpHasEnd(s)){
+      if(!iqpHasStart(s)){s.eH=null;s.eM=null;}
+      else{const t=iqpEndTotal(s);if(t<iqpStartTotal(s)+IQP_MIN_SET||t>iqpStartTotal(s)+IQP_MAX_SET||t>IQP_END_MAX_TOTAL){s.eH=null;s.eM=null;}}
+    }
+  }
+}
+function iqpRenderSets(){
+  iqpNormalizeSets();
+  const box=document.getElementById('iqp-sets');
+  box.innerHTML=IQP.sets.map((s,i)=>{
+    const fx=iqpFixedFor(s);
+    let partSel='';
+    if(iqpShowParts()){
+      const minIdx=iqpMinPartIndex(i);
+      const ceremonyLockedElsewhere=IQP.sets.some((o,j)=>j!==i&&iqpIsCeremonyGroup(o.part));
+      let o='<option value="">Select part of the day…</option>';
+      IQP_WEDDING_PARTS.forEach((p,pi)=>{
+        let dis=false;
+        if(pi<minIdx)dis=true;
+        if(iqpIsCeremonyGroup(p.v)&&p.v!==s.part&&ceremonyLockedElsewhere)dis=true;
+        if(p.once&&p.v!==s.part&&iqpUsedElsewhere(i,p.v))dis=true;
+        const lbl=p.fixed?p.v+' — '+p.fixed+' mins':p.v;
+        o+=iqpOpt(p.v,lbl,s.part===p.v,dis);
+      });
+      partSel='<select class="iqp-part-sel" onchange="iqpUpd('+i+',\'part\',this.value)">'+o+'</select>';
+    }
+    const so=iqpStartOptionsFor(i,s);
+    const startSel='<select onchange="iqpUpd('+i+',\'sH\',this.value)">'+so.hourH+'</select>'+
+                   '<select '+(s.sH==null?'disabled':'')+' onchange="iqpUpd('+i+',\'sM\',this.value)">'+so.minH+'</select>';
+    let endPart;
+    if(fx){
+      if(iqpHasStart(s)){
+        const endIdxTotal=iqpStartTotal(s)+fx;const eIdx=Math.floor(endIdxTotal/60),eMin=endIdxTotal%60;
+        endPart='<span class="iqp-to">to</span><span style="font-weight:600;color:var(--iqp-ink2);">'+iqpTimeLabel(eIdx,eMin)+'</span>';
+      }else{endPart='<span class="iqp-to">to</span><span style="color:var(--iqp-ink3);">(auto)</span>';}
+    }else{
+      const disabled=!iqpHasStart(s);
+      const eo=iqpHasStart(s)?iqpEndOptionsFor(s):{hourH:'<option value="">Hr</option>',minH:'<option value="">Min</option>'};
+      const eHour='<select '+(disabled?'disabled':'')+' onchange="iqpUpd('+i+',\'eH\',this.value)">'+eo.hourH+'</select>';
+      const eMin='<select '+(s.eH==null?'disabled':'')+' onchange="iqpUpd('+i+',\'eM\',this.value)">'+eo.minH+'</select>';
+      endPart='<span class="iqp-to">to</span>'+eHour+eMin;
+    }
+    const dur=iqpSetDuration(s);const durLabel=dur?dur+' mins':'';
+    const fixedNote=fx?'<div class="iqp-fixed-note">This part always counts as '+fx+' minutes of performance.</div>':'';
+    return '<div class="iqp-set"><div class="iqp-set-head"><span class="iqp-n">Set '+(i+1)+'</span><span>'+(durLabel?'<span class="iqp-dur">'+durLabel+'</span> ':'')+(IQP.sets.length>1?'<button class="iqp-rm" onclick="iqpRemoveSet('+i+')">✕ remove</button>':'')+'</span></div>'+partSel+'<div class="iqp-timerow">'+startSel+endPart+'</div>'+fixedNote+'</div>';
+  }).join('');
+  document.getElementById('iqp-add-btn').disabled=IQP.sets.length>=IQP_MAX_SETS;
+  document.getElementById('iqp-add-btn').textContent=IQP.sets.length>=IQP_MAX_SETS?'Maximum of 10 sets reached':'+ Add set';
+  iqpUpdateTotals();
+}
+function iqpUpdateTotals(){
+  const cap=iqpPkgMins();
+  const total=IQP.sets.reduce((a,s)=>a+iqpSetDuration(s),0);
+  document.getElementById('iqp-total-label').textContent=total+' mins';
+  document.getElementById('iqp-cap-label').textContent='of '+cap+' mins';
+  const pct=Math.min(100,cap?Math.round(total/cap*100):0);
+  document.getElementById('iqp-bar-fill').style.width=pct+'%';
+  const bar=document.getElementById('iqp-bar'),rem=document.getElementById('iqp-remaining'),submit=document.getElementById('iqp-submit-btn');
+  bar.classList.remove('over','exact');rem.classList.remove('over','exact');
+  if(total>cap){bar.classList.add('over');rem.classList.add('over');rem.textContent=(total-cap)+' mins over your '+cap+'-minute package — trim your sets to continue.';}
+  else if(total<cap){rem.textContent=(cap-total)+' mins left to fill your '+cap+'-minute package.';}
+  else{bar.classList.add('exact');rem.classList.add('exact');rem.textContent='Perfectly matches your '+cap+'-minute package.';}
+  if(submit)submit.classList.toggle('off',total!==cap);
+}
+function iqpUpd(i,field,raw){
+  const s=IQP.sets[i];
+  if(field==='part'){s.part=raw;s.eH=null;s.eM=null;}
+  else{s[field]=raw===''?null:parseInt(raw,10);}
+  if(field==='sH'||field==='sM'){if(iqpHasEnd(s)&&(!iqpHasStart(s)||iqpEndTotal(s)<=iqpStartTotal(s))){s.eH=null;s.eM=null;}}
+  if(field==='eH'){if(s.eH===s.sH&&s.eM!=null&&s.sM!=null&&s.eM<=s.sM){s.eM=null;}}
+  document.getElementById('iqp-err').textContent='';
+  iqpRenderSets();
+}
+function iqpAddSet(){if(IQP.sets.length<IQP_MAX_SETS){IQP.sets.push(iqpBlankSet());iqpRenderSets();}}
+function iqpRemoveSet(i){IQP.sets.splice(i,1);if(!IQP.sets.length)IQP.sets.push(iqpBlankSet());iqpRenderSets();}
+
+function iqpPkgLabel(d){const mins=Math.round(d*60);if(d===1)return '60 minutes';if(d===1.5)return '90 minutes';if(d%1===0)return d+' hours';return mins+' minutes';}
+function iqpPkgMins(){return IQP.quotes.length?Math.round(IQP.quotes[IQP.pkgIdx].duration*60):0;}
+function iqpBuildPkgSelect(){
+  const sel=document.getElementById('iqp-pkg');
+  sel.innerHTML=IQP.quotes.map((q,i)=>'<option value="'+i+'"'+(i===IQP.pkgIdx?' selected':'')+'>'+iqpPkgLabel(q.duration)+' — £'+q.price+'</option>').join('');
+}
+function iqpSetPackage(idx){
+  IQP.pkgIdx=idx;
+  const q=IQP.quotes[idx]||{price:0,deposit:0};
+  document.getElementById('iqp-q-fee').textContent='£'+q.price;
+  document.getElementById('iqp-q-dep').textContent='£'+q.deposit;
+  iqpUpdateTotals();
+}
+function iqpShowState(h,p){const s=document.getElementById('iqp-state');s.style.display='block';s.innerHTML='<h2>'+h+'</h2><p>'+p+'</p>';const f=document.getElementById('iqp-form');if(f)f.style.display='none';}
+function iqpShowResponded(node){
+  const r=node.response||{};
+  iqpShowState('You’re all booked in ✓','This quote has already been confirmed'+(r.pkgLabel?' for the '+r.pkgLabel+' package':'')+'. If that wasn’t you, or you need to change something, just reply to my email and I’ll sort it out.');
+}
+function iqpRenderStatic(node){
+  const dateLong=node.eventDate?new Date(node.eventDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'TBC';
+  document.getElementById('iqp-ev-type').textContent=node.eventType||'—';
+  document.getElementById('iqp-ev-date').textContent=dateLong;
+  document.getElementById('iqp-ev-venue').textContent=node.venue||'—';
+  document.getElementById('iqp-ev-package').textContent=IQP_SERVICE_LABELS[node.service]||node.service||'—';
+}
+function showQuotePage(){
+  showLayer('layer-quote');
+  const rest=window.location.hash.replace(/^#quote\//,'');
+  const parts=rest.split('/');
+  IQP.token=(parts[0]||'').trim();
+  IQP.mins=parseInt(parts[1],10)||null;
+  const logo=document.getElementById('iqp-logo');
+  if(logo&&typeof EMAIL_LOGO_URI!=='undefined'){logo.src=EMAIL_LOGO_URI;logo.style.display='block';}
+  if(!IQP.token){iqpShowState('This link looks incomplete','Please tap the button in your quote email again.');return;}
+  iqpShowState('Loading your quote…','One moment.');
+  iqpWaitFirebase(0);
+}
+function iqpWaitFirebase(tries){
+  if(window._firebaseReady&&window._fbDb&&window._fbGet&&window._fbRef){iqpLoadNode();return;}
+  if(tries>40){iqpShowState('Can’t connect right now','Please check your connection and reload the page.');return;}
+  setTimeout(function(){iqpWaitFirebase(tries+1);},150);
+}
+function iqpLoadNode(){
+  const db=window._fbDb,r=window._fbRef,g=window._fbGet;
+  g(r(db,'instantQuotes/'+IQP.token)).then(function(snap){
+    if(!snap.exists()){iqpShowState('Quote not found','This quote link isn’t valid or has expired. Please get in touch and I’ll re-send it.');return;}
+    const node=snap.val();IQP.node=node;
+    if(node.status==='responded'||(node.response&&node.response.submittedAt)){iqpShowResponded(node);return;}
+    IQP.quotes=(node.quotes||[]).slice().sort(function(a,b){return a.duration-b.duration;});
+    if(!IQP.quotes.length){iqpShowState('Something’s missing','This quote has no options saved. Please get in touch and I’ll re-send it.');return;}
+    IQP.eventType=node.eventType||'';IQP.service=node.service||'combo';
+    let idx=IQP.quotes.findIndex(function(q){return Math.round(q.duration*60)===IQP.mins;});
+    if(idx<0)idx=IQP.quotes.length-1;
+    IQP.pkgIdx=idx;
+    IQP.sets=[iqpBlankSet()];
+    iqpRenderStatic(node);
+    iqpBuildPkgSelect();
+    iqpSetPackage(idx);
+    iqpRenderSets();
+    document.getElementById('iqp-state').style.display='none';
+    document.getElementById('iqp-form').style.display='block';
+  }).catch(function(e){iqpShowState('Something went wrong','Please reload the page. ('+((e&&e.message)||e)+')');});
+}
+function iqpSubmit(){
+  const err=document.getElementById('iqp-err');err.textContent='';
+  for(let i=0;i<IQP.sets.length;i++){
+    const s=IQP.sets[i],fx=iqpFixedFor(s);
+    if(iqpShowParts()&&!s.part){err.textContent='Please choose a part of the day for set '+(i+1)+'.';return;}
+    if(!iqpHasStart(s)){err.textContent='Please choose a start time for set '+(i+1)+'.';return;}
+    if(!fx&&!iqpHasEnd(s)){err.textContent='Please choose an end time for set '+(i+1)+'.';return;}
+  }
+  const cap=iqpPkgMins();
+  const total=IQP.sets.reduce(function(a,s){return a+iqpSetDuration(s);},0);
+  if(total>cap){err.textContent='Your set times add up to '+total+' mins, more than your '+cap+'-minute package. Please shorten your sets so they match.';return;}
+  if(total<cap){err.textContent='Your set times add up to '+total+' mins, less than your '+cap+'-minute package. Please add '+(cap-total)+' more mins, or choose a shorter package.';return;}
+  const q=IQP.quotes[IQP.pkgIdx];
+  const lines24=[],linesFriendly=[],setList=[];
+  IQP.sets.forEach(function(s){
+    const fx=iqpFixedFor(s);let endIdx,endMin;
+    if(fx){const t=iqpStartTotal(s)+fx;endIdx=Math.floor(t/60);endMin=t%60;}else{endIdx=s.eH;endMin=s.eM;}
+    const tag=iqpShowParts()&&s.part?'['+s.part+'] ':'';
+    lines24.push(tag+iqp24(s.sH,s.sM)+' to '+iqp24(endIdx,endMin));
+    linesFriendly.push(tag+iqpTimeLabel(s.sH,s.sM)+' to '+iqpTimeLabel(endIdx,endMin));
+    setList.push({part:iqpShowParts()?(s.part||''):'',start:iqp24(s.sH,s.sM),end:iqp24(endIdx,endMin),mins:iqpSetDuration(s)});
+  });
+  const resp={
+    submittedAt:new Date().toISOString(),
+    pkgDuration:q.duration,pkgMins:cap,pkgLabel:iqpPkgLabel(q.duration),
+    fee:q.price,deposit:q.deposit,service:IQP.service,eventType:IQP.eventType,
+    sets:setList,provisionalTimings:lines24.join('\n'),setTimesFriendly:linesFriendly.join('\n'),
+    depositPaid:true,depositPaidMock:true
+  };
+  const submit=document.getElementById('iqp-submit-btn');submit.disabled=true;submit.textContent='Processing…';
+  const db=window._fbDb,r=window._fbRef,s=window._fbSet;
+  Promise.resolve()
+    .then(function(){return s(r(db,'instantQuotes/'+IQP.token+'/response'),resp);})
+    .then(function(){return s(r(db,'instantQuotes/'+IQP.token+'/status'),'responded');})
+    .then(function(){iqpShowConfirmed(resp);})
+    .catch(function(e){submit.disabled=false;submit.textContent='Submit & pay deposit';err.textContent='Couldn’t submit — please try again. ('+((e&&e.message)||e)+')';});
+}
+function iqpShowConfirmed(resp){
+  document.getElementById('iqp-form').style.display='none';
+  const s=document.getElementById('iqp-state');s.style.display='block';
+  s.innerHTML='<div class="iqp-mock-tag">⚡ DEMO — deposit payment is simulated</div>'+
+    '<h2>Thank you — you’re booked in! ✓</h2>'+
+    '<p>I’ve got your '+resp.pkgLabel+' booking for your '+(resp.eventType||'event')+'.<br>Deposit: £'+resp.deposit+' &nbsp;·&nbsp; Total: £'+resp.fee+'</p>'+
+    '<div class="iqp-pay" style="text-align:left;max-width:440px;margin:16px auto 0;"><strong>Your set times</strong><br>'+resp.setTimesFriendly.replace(/\n/g,'<br>')+'</div>'+
+    '<p style="margin-top:18px;font-size:13px;max-width:440px;margin-left:auto;margin-right:auto;">In the live version you’ll now be taken to pay your deposit, then emailed a full confirmation with your invoices. For now this is saved to my workstation and will show as <strong>Deposit Pending</strong>.</p>';
+}
+
+// Workstation-side: reconcile paid quote responses into the pipeline.
+function startQuoteReconListener(){
+  if(!window._firebaseReady||!window._fbOnValue||!window._fbDb)return;
+  if(window._quoteReconActive)return;
+  window._quoteReconActive=true;
+  const db=window._fbDb,r=window._fbRef;
+  window._fbOnValue(r(db,'instantQuotes'),function(snap){
+    if(!snap.exists())return;
+    const nodes=snap.val()||{};
+    let changed=false;
+    Object.keys(nodes).forEach(function(token){
+      const n=nodes[token];
+      if(!n||!n.response||!n.response.submittedAt)return;
+      const b=bookings.find(function(x){return x&&x.instantQuoteToken===token;});
+      if(!b||b.instantQuoteResponded)return;
+      const resp=n.response;
+      let price=resp.fee,deposit=resp.deposit;
+      if(Array.isArray(b.instantQuotes)){
+        const lk=b.instantQuotes.find(function(qq){return qq.duration===resp.pkgDuration;});
+        if(lk){price=lk.price;deposit=lk.deposit;}
+      }
+      b.stage='deposit';
+      b.chosenOption=String(resp.pkgDuration);
+      b.chosenDuration=resp.pkgDuration;
+      b.agreedPrice=price;
+      b.hasDeposit=true;
+      b.provisionalTimings=resp.provisionalTimings||b.provisionalTimings||'';
+      const allTimes=[...(b.provisionalTimings||'').matchAll(/(\d{1,2}):(\d{2})/g)];
+      if(allTimes.length>0)b.startTime=allTimes[0][1].padStart(2,'0')+':'+allTimes[0][2];
+      if(allTimes.length>1)b.endTime=allTimes[allTimes.length-1][1].padStart(2,'0')+':'+allTimes[allTimes.length-1][2];
+      b.instantQuoteResponded=true;
+      b.instantQuoteRespondedAt=resp.submittedAt;
+      changed=true;
+      if(typeof showToast==='function')showToast('💷 '+((b.firstName||'')+' '+(b.lastName||'')).trim()+' paid their deposit — moved to Deposit Pending','success',6000);
+    });
+    if(changed){saveData();renderPipeline();}
+  });
 }
 
 function nqSubmit(){
